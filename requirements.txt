@@ -1,0 +1,2 @@
+pycoin==0.62
+python-bitcoinlib==0.5.0

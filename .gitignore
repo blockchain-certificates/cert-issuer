@@ -1,0 +1,7 @@
+*.pyc
+.DS_Store
+venv/
+virtual_usb/
+secrets.py
+__pycache__
+
