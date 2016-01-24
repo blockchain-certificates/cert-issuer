@@ -11,12 +11,7 @@ import sys
 import json
 import glob
 import binascii
-import pickle
-
-from pycoin.encoding import wif_to_secret_exponent
-from pycoin.tx.tx_utils import *
-from pycoin.tx import *
-from pycoin.services import get_tx_db
+#import pickle
 
 from bitcoin import params
 from bitcoin.core import *
@@ -24,11 +19,11 @@ from bitcoin.core.script import *
 from bitcoin.wallet import CBitcoinAddress, CBitcoinSecret
 from bitcoin.signmessage import BitcoinMessage, VerifyMessage, SignMessage
 
-import simplejson
-import bitcoin.rpc
-bitcoin.rpc.json = simplejson
+#import simplejson
+#import bitcoin.rpc
+#bitcoin.rpc.json = simplejson
 
-from subprocess import check_output
+#from subprocess import check_output
 
 import config
 import helpers
