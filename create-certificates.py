@@ -46,7 +46,7 @@ revoke_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), revoke_addr.to_scri
 change_addr = CBitcoinAddress(secrets.ISSUING_ADDRESS)
 change_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), change_addr.to_scriptPubKey())
 
-proxy = bitcoin.rpc.Proxy()
+proxy = bitcoin.rpc.Proxy(service_url=secrets.PROXY_URL, service_port=secrets.PROXY_PORT)
 
 address_balance = proxy.getreceivedbyaddress(addr=secrets.ISSUING_ADDRESS)
 cost_to_issue = int((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN) * len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
@@ -121,8 +121,33 @@ def build_cert_txs():
                 break
         return "Created txs for recipients\n"
 
+def verify_cert_txs():
+
+    def verify_signature(address, signed_cert):
+        message = BitcoinMessage(signed_cert["assertion"]["uid"])
+        signature = signed_cert["signature"]
+        return VerifyMessage(address, message, signature)
+
+    def verify_doc(uid):
+        # hashed_cert = hashlib.sha256(str(signed_cert).encode('utf-8')).hexdigest()
+        hashed_cert = hashlib.sha256(open(config.SIGNED_CERTS_FOLDER+uid+".json", 'rb').read()).hexdigest()
+        op_return_hash = open(config.UNSENT_CERTS_FOLDER+uid+".txt").read()[-72:-8]
+        if hashed_cert == op_return_hash:
+            return True
+        return False
+
+
+    for f in glob.glob(config.UNSENT_CERTS_FOLDER+"*"):
+        uid = helpers.get_uid(f)
+        print("UID: \t\t\t" + uid)
+        print("VERIFY SIGNATURE: \t%s " % (verify_signature(secrets.ISSUING_ADDRESS, json.loads(open(config.SIGNED_CERTS_FOLDER+uid+".json").read()))))
+        print("VERIFY_OP_RETURN: \t%s " % (verify_doc(uid)))
+        # print("SIGNED_CERT_HASH: \t" + hashlib.sha256(str(open(config.SIGNED_CERTS_FOLDER+uid+".json").read()).encode('utf-8')).hexdigest())
+        # print("SIGNED_HEX_HASH: \t" + hexlify(open(config.HASHED_CERTS_FOLDER+uid+".txt", 'rb').read()))
+        # print("UNSIGNED_TX_DATA: \t" + )
 
 cert_info = prepare_certs()
 print(sign_certs())
 print(hash_certs())
 print(build_cert_txs())
+verify_cert_txs()
