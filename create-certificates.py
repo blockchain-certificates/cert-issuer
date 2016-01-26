@@ -5,6 +5,8 @@ if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
 
+import getopt
+import argparse
 import hashlib
 import bitcoin.rpc
 import sys
@@ -32,12 +34,6 @@ from pycoin.key import Key
 from pycoin.encoding import wif_to_secret_exponent
 from pycoin.serialize import h2b
 
-#import simplejson
-#import bitcoin.rpc
-#bitcoin.rpc.json = simplejson
-
-#from subprocess import check_output
-
 import config
 import helpers
 import secrets
@@ -48,19 +44,7 @@ if sys.version > '3':
     unhexlify = lambda h: binascii.unhexlify(h.encode('utf8'))
     hexlify = lambda b: binascii.hexlify(b).decode('utf8')
 
-if config.REMOTE_CONNECT == False:
-    proxy = bitcoin.rpc.Proxy()
-
-if config.REMOTE_CONNECT == True:
-    COIN = config.COIN
-    address_balance = requests.get("https://blockchain.info/address/%s?format=json&limit=1" % (secrets.ISSUING_ADDRESS)).json()['final_balance']
-else:
-    address_balance = proxy.getreceivedbyaddress(addr=secrets.ISSUING_ADDRESS)
-
-cost_to_issue = int((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN) * len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
-if address_balance < cost_to_issue:
-    sys.stderr.write('Sorry, please add %s BTC to the address %s.\n' % ((cost_to_issue - address_balance)/COIN, secrets.ISSUING_ADDRESS))
-    sys.exit(1)
+REMOTE_CONNECT = True
 
 def make_remote_url(command, extras={}):
     url = "http://blockchain.info/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
@@ -97,7 +81,7 @@ def check_if_confirmed(address):
 
 def prepare_btc():
     print("Starting script...\n")
-    if config.REMOTE_CONNECT == True:
+    if REMOTE_CONNECT == True:
 
         # r = check_for_errors( requests.get( make_remote_url('login', {'api_code': ''})) )
 
@@ -191,7 +175,7 @@ def build_cert_txs(cert_info):
         print("Creating tx of certificate for recipient id: %s ..." % (uid))
 
         txouts = []
-        if config.REMOTE_CONNECT == True:
+        if REMOTE_CONNECT == True:
             r = requests.get("https://blockchain.info/unspent?active=%s&format=json" % (secrets.ISSUING_ADDRESS)).json()
             unspent = []
             for u in r['unspent_outputs']:
@@ -264,28 +248,80 @@ def verify_cert_txs():
     for f in glob.glob(config.UNSENT_TXS_FOLDER+"*"):
         uid = helpers.get_uid(f)
         print("UID: \t\t\t" + uid)
-        print("VERIFY SIGNATURE: \t%s " % (verify_signature(secrets.ISSUING_ADDRESS, json.loads(open(config.SIGNED_CERTS_FOLDER+uid+".json").read()))))
-        print("VERIFY_OP_RETURN: \t%s " % (verify_doc(uid)))
+        verified_sig = verify_signature(secrets.ISSUING_ADDRESS, json.loads(open(config.SIGNED_CERTS_FOLDER+uid+".json").read()))
+        verified_doc = verify_doc(uid)
+        print("VERIFY SIGNATURE: \t%s " % (verified_sig))
+        print("VERIFY_OP_RETURN: \t%s " % (verified_doc))
+        if verified_sig == False or verified_doc == False:
+            sys.stderr.write('Sorry, there seems to be an issue with the certificate for recipient id: %s' % (uid))
+            sys.exit(1)
 
     return "Verified transactions are complete."
 
-def run():
-    # helpers.check_internet_on()
-    if REMOTE_CONNECT == True:
-        print(prepare_btc())
-        
-    cert_info = prepare_certs()
+def send_txs():
+    for f in glob.glob(config.UNSENT_TXS_FOLDER+"*"):
+        uid = helpers.get_uid(f)
+        hextx = str(open(f, 'rb').read(), 'utf-8')
+        if REMOTE_CONNECT == True:
+            r = requests.post("https://insight.bitpay.com/api/tx/send", json={"rawtx": hextx})
+            if int(r.status_code) != 200:
+                sys.stderr.write("Error broadcasting the transaction through the Insight API. Error msg: %s" % r.text)
+                sys.exit(1)
+            else:
+                txid = r.json().get('txid', None)
+        else:
+            proxy = bitcoin.rpc.Proxy()
+            txid = b2lx(lx(proxy._call('sendrawtransaction', hextx)))
+        open(config.SENT_TXS_FOLDER + uid + ".txt", "wb").write(bytes(txid, 'utf-8'))
+        print("Broadcast transaction for certificate id %s with a txid of %s" % (uid, txid))
+    return "Broadcast all transactions."
 
-    # helpers.check_internet_off()
-    print(sign_certs()) # offline
+def main(argv):
+    parser = argparse.ArgumentParser(description='Create digital certificates')
+    parser.add_argument('--remote', default=1, help='Use remote or local bitcoind (default: remote)')
+    parser.add_argument('--transfer', default=1, help='Transfer BTC to issuing address (default: 1). Only change this option for troubleshooting.')
+    parser.add_argument('--create', default=1, help='Create certificate transactions (default: 1). Only change this option for troubleshooting.')
+    parser.add_argument('--broadcast', default=1, help='Broadcast transactions (default: 1). Only change this option for troubleshooting.')
+    args = parser.parse_args()
+    
+    if args.remote == 0:
+        REMOTE_CONNECT = False
+        proxy = bitcoin.rpc.Proxy()
+        address_balance = proxy.getreceivedbyaddress(addr=secrets.ISSUING_ADDRESS)
+    if args.remote == 1:
+        REMOTE_CONNECT = True
+        COIN = config.COIN
 
-    # helpers.check_internet_on()
-    print(hash_certs())
-    message, last_input = build_cert_txs(cert_info)
-    print(message)
+    if args.transfer==0:
+        address_balance = requests.get("https://blockchain.info/address/%s?format=json&limit=1" % (secrets.ISSUING_ADDRESS)).json()['final_balance']
+        cost_to_issue = int((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN) * len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
+        if address_balance < cost_to_issue:
+            sys.stderr.write('Sorry, please add %s BTC to the address %s.\n' % ((cost_to_issue - address_balance)/COIN, secrets.ISSUING_ADDRESS))
+            sys.exit(1)
 
-    # helpers.check_internet_off()
-    print(sign_cert_txs(last_input)) #offline
-    print(verify_cert_txs())
+    if args.transfer==1:
+        if REMOTE_CONNECT==True:
+            helpers.check_internet_on()
+            print(prepare_btc())
+        else:
+            pass
 
-run()
+    if args.create==1:
+        cert_info = prepare_certs()
+        helpers.check_internet_off()
+        print(sign_certs())
+        helpers.check_internet_on()
+        print(hash_certs())
+        message, last_input = build_cert_txs(cert_info)
+        print(message)
+        helpers.check_internet_off()
+        print(sign_cert_txs(last_input))
+        print(verify_cert_txs())
+
+    if args.broadcast==1:
+        helpers.check_internet_on()
+        send_txs()
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+

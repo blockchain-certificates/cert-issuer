@@ -3,6 +3,7 @@ from datetime import datetime
 import requests
 import json
 import os
+import time
 
 def get_uid(filename):
     if "/" in filename:
@@ -26,15 +27,19 @@ def internet_on():
 def check_internet_off():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
     while(1):
-        i = input("Turn internet OFF and PLUG IN usb. Type CONTINUE to continue...\n")
-        if i.lower() == "continue" and internet_on() == False and os.path.exists(secrets.USB_NAME) == True:
+        if internet_on() == False and os.path.exists(secrets.USB_NAME) == True:
             break
+        else:
+            print("Turn off your internet and plug in your USB to continue...")
+            time.sleep(10)
     return True
 
 def check_internet_on():
     """If internet is on and USB is not plugged in, returns true. Else, continues to wait..."""
     while(1):
-        i = input("Turn internet ON and UNPLUG usb. Type CONTINUE to continue...\n")
-        if i.lower() == "continue" and internet_on() == True and os.path.exists(secrets.USB_NAME) == False:
+        if internet_on() == True and os.path.exists(secrets.USB_NAME) == False:
             break
+        else:
+            print("Turn on your internet and unplug your USB to continue...")
+            time.sleep(10)
     return True
