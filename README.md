@@ -36,7 +36,6 @@ KEYPATH = USB_NAME + "<name of private key file>"
 WALLET_GUID = "<blockchain.info wallet guid>"
 WALLET_PASSWORD = "<blockchain.info wallet password>"
 STORAGE_ADDRESS = "<blockchain.info address with storage BTC>"
-API_KEY = "<blockchain.info api key>"
 ```
 
 ### To Run
