@@ -43,5 +43,5 @@ STORAGE_ADDRESS = "<blockchain.info address with storage BTC>"
 2. Run the create-certificates.py script to create your certificates: `python create-certificates.py`
 
 ## Contact
-* For questions or more information, contact Juliana Nazaré at [juliana@media.mit.edu](mailto:juliana@media.mit.edu).
+For questions or more information, contact Juliana Nazaré at [juliana@media.mit.edu](mailto:juliana@media.mit.edu).
 

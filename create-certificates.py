@@ -91,7 +91,7 @@ def prepare_btc():
         temp_addresses = {}
         for i in range(num_certs):
             r = check_for_errors( requests.get( make_remote_url('new_address', {"label": "temp-address-%s" % (i)})) )
-            temp_addresses[r.json()["address"]] = int((config.BLOCKCHAIN_DUST + 2 * config.TX_FEES) * COIN)
+            temp_addresses[r.json()["address"]] = int((2*config.BLOCKCHAIN_DUST+2*config.TX_FEES)* COIN)
 
         print("Transfering BTC to temporary addresses...\n")
 
@@ -124,7 +124,7 @@ def prepare_btc():
             r = check_for_errors( requests.get( make_remote_url('payment', {
                 "from": address, 
                 "to": secrets.ISSUING_ADDRESS, 
-                "amount": int((config.BLOCKCHAIN_DUST+config.TX_FEES)*COIN), 
+                "amount": int((2*config.BLOCKCHAIN_DUST+config.TX_FEES)*COIN), 
                 "fee": int(config.TX_FEES*COIN)} )))
             r = check_for_errors( requests.get( make_remote_url('archive_address', {"address": address} ) ) )
         
@@ -187,7 +187,7 @@ def build_cert_txs(cert_info):
                 unspent.append(u)
         else:
             unspent = proxy.listunspent(addrs=[secrets.ISSUING_ADDRESS])
-        unspent = sorted(unspent, key=lambda x: hash(x['amount']))
+            unspent = sorted(unspent, key=lambda x: hash(x['amount']))
 
         last_input = unspent[ct]
         txins = [CTxIn(last_input['outpoint'])]
@@ -199,12 +199,16 @@ def build_cert_txs(cert_info):
         revoke_addr = CBitcoinAddress(secrets.REVOCATION_ADDRESS)
         revoke_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), revoke_addr.to_scriptPubKey())
 
-        change_addr = CBitcoinAddress(secrets.ISSUING_ADDRESS)
-        change_out = CMutableTxOut(int(value_in-((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN)), change_addr.to_scriptPubKey())
-
         cert_out = CMutableTxOut(0, CScript([OP_RETURN, cert]))
+        txouts = [recipient_out] + [revoke_out]
 
-        txouts = [recipient_out] + [revoke_out] + [change_out] + [cert_out]
+        if int(value_in-((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN)) > 0:
+            change_addr = CBitcoinAddress(secrets.ISSUING_ADDRESS)
+            change_out = CMutableTxOut(int(value_in-((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN)), change_addr.to_scriptPubKey())
+            txouts = txouts + [change_out]
+        
+        txouts = txouts + [cert_out]
+
         tx = CMutableTransaction(txins, txouts)
         hextx = hexlify(tx.serialize())
         open(config.UNSIGNED_TXS_FOLDER + uid + ".txt", "wb").write(bytes(hextx, 'utf-8'))
@@ -281,6 +285,7 @@ def main(argv):
     parser.add_argument('--transfer', default=1, help='Transfer BTC to issuing address (default: 1). Only change this option for troubleshooting.')
     parser.add_argument('--create', default=1, help='Create certificate transactions (default: 1). Only change this option for troubleshooting.')
     parser.add_argument('--broadcast', default=1, help='Broadcast transactions (default: 1). Only change this option for troubleshooting.')
+    parser.add_argument('--wificheck', default=1, help='Used to make sure your private key is not plugged in with the wifi on (default: 1). Only change this option for troubleshooting.')
     args = parser.parse_args()
 
     timestamp = str(time.time())
@@ -302,7 +307,8 @@ def main(argv):
 
     if args.transfer==1:
         if REMOTE_CONNECT==True:
-            helpers.check_internet_on()
+            if args.wificheck == 1:
+                helpers.check_internet_on()
             print(prepare_btc())
         else:
             pass
@@ -310,21 +316,25 @@ def main(argv):
     if args.create==1:
         cert_info = prepare_certs()
         
-        helpers.check_internet_off()
+        if args.wificheck == 1:
+            helpers.check_internet_off()
         print(sign_certs())
         shutil.copytree(config.SIGNED_CERTS_FOLDER, config.ARCHIVE_CERTS_FOLDER+timestamp)
         
-        helpers.check_internet_on()
+        if args.wificheck == 1:
+            helpers.check_internet_on()
         print(hash_certs())
         message, last_input = build_cert_txs(cert_info)
         print(message)
         
-        helpers.check_internet_off()
+        if args.wificheck == 1:
+            helpers.check_internet_off()
         print(sign_cert_txs(last_input))
         print(verify_cert_txs())
 
     if args.broadcast==1:
-        helpers.check_internet_on()
+        if args.wificheck == 1:
+            helpers.check_internet_on()
         send_txs()
         shutil.copytree(config.SENT_TXS_FOLDER, config.ARCHIVE_TXS_FOLDER+timestamp)
 
