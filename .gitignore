@@ -5,14 +5,16 @@ virtual_usb/
 secrets.py
 __pycache__
 
-data/hashed_certs/
-data/sent_certs/
-data/signed_certs/
-data/unsent_certs/
 data/unsigned_certs/
+data/signed_certs/
+data/hashed_certs/
+data/unsigned_txs/
+data/unsent_txs/
+data/sent_txs/
 
-!data/hashed_certs/.*
-!data/sent_certs/.*
-!data/signed_certs/.*
-!data/unsent_certs/.*
 !data/unsigned_certs/.*
+!data/signed_certs/.*
+!data/hashed_certs/.*
+!data/unsigned_txs/.*
+!data/unsent_txs/.*
+!data/sent_txs/.*

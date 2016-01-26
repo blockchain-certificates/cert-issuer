@@ -11,6 +11,13 @@ import sys
 import json
 import glob
 import binascii
+import requests
+import io
+import random
+from datetime import datetime
+import time
+import urllib.parse
+from itertools import islice
 #import pickle
 
 from bitcoin import params
@@ -18,6 +25,12 @@ from bitcoin.core import *
 from bitcoin.core.script import *
 from bitcoin.wallet import CBitcoinAddress, CBitcoinSecret
 from bitcoin.signmessage import BitcoinMessage, VerifyMessage, SignMessage
+
+from pycoin.tx import Tx, TxOut
+from pycoin.tx.pay_to import build_hash160_lookup
+from pycoin.key import Key
+from pycoin.encoding import wif_to_secret_exponent
+from pycoin.serialize import h2b
 
 #import simplejson
 #import bitcoin.rpc
@@ -35,19 +48,104 @@ if sys.version > '3':
     unhexlify = lambda h: binascii.unhexlify(h.encode('utf8'))
     hexlify = lambda b: binascii.hexlify(b).decode('utf8')
 
-revoke_addr = CBitcoinAddress(secrets.REVOCATION_ADDRESS)
-revoke_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), revoke_addr.to_scriptPubKey())
+if config.REMOTE_CONNECT == False:
+    proxy = bitcoin.rpc.Proxy()
 
-change_addr = CBitcoinAddress(secrets.ISSUING_ADDRESS)
-change_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), change_addr.to_scriptPubKey())
+if config.REMOTE_CONNECT == True:
+    COIN = config.COIN
+    address_balance = requests.get("https://blockchain.info/address/%s?format=json&limit=1" % (secrets.ISSUING_ADDRESS)).json()['final_balance']
+else:
+    address_balance = proxy.getreceivedbyaddress(addr=secrets.ISSUING_ADDRESS)
 
-proxy = bitcoin.rpc.Proxy(service_url=secrets.PROXY_URL, service_port=secrets.PROXY_PORT)
-
-address_balance = proxy.getreceivedbyaddress(addr=secrets.ISSUING_ADDRESS)
 cost_to_issue = int((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN) * len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
 if address_balance < cost_to_issue:
-    sys.stderr.write('Sorry, please add %s BTC to the address %s.\n' % ((address_balance - cost_to_issue)/COIN, secrets.ISSUING_ADDRESS))
+    sys.stderr.write('Sorry, please add %s BTC to the address %s.\n' % ((cost_to_issue - address_balance)/COIN, secrets.ISSUING_ADDRESS))
     sys.exit(1)
+
+def make_remote_url(command, extras={}):
+    url = "http://blockchain.info/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
+    # url = "http://localhost:3000/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
+    if len(extras) > 0:
+        addon = ''
+        for name in list(extras.keys()):
+            addon = "%s&%s=%s" % (addon, name, extras[name]) #url+"&"+name+"="+str(extras[name], 'utf-8')
+        url = url+addon
+    return url
+
+def check_for_errors(r):
+    if int(r.status_code) != 200:
+        sys.stderr.write("Error: %s\n" % (r.json()['error']))
+        sys.exit(1)
+    elif r.json().get('error', None):
+        sys.stderr.write("Error: %s\n" % (r.json()['error']))
+        sys.exit(1)
+    return r
+
+def check_if_confirmed(address):
+    """Checks if all the BTC in the address has been confirmed. Returns true if is has been confirmed and false if it has not."""
+    confirmed_url =  make_remote_url('address_balance', {"address": address, "confirmations": 1})
+    unconfirmed_url = make_remote_url('address_balance', {"address": address, "confirmations": 0})
+    confirmed_result = check_for_errors(requests.get(confirmed_url))
+    unconfirmed_result = check_for_errors(requests.get(unconfirmed_url))
+    confirmed_balance = int(confirmed_result.json()["balance"])
+    unconfirmed_balance = int(unconfirmed_result.json()["balance"])
+    if unconfirmed_balance and confirmed_balance:
+        if confirmed_balance > 0:
+            return True
+    else:
+        return False
+
+def prepare_btc():
+    print("Starting script...\n")
+    if config.REMOTE_CONNECT == True:
+
+        # r = check_for_errors( requests.get( make_remote_url('login', {'api_code': ''})) )
+
+        num_certs = len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
+        print("Creating %s temporary addresses...\n" % num_certs)
+
+        temp_addresses = {}
+        for i in range(num_certs):
+            r = check_for_errors( requests.get( make_remote_url('new_address', {"label": "temp-address-%s" % (i)})) )
+            temp_addresses[r.json()["address"]] = int((config.BLOCKCHAIN_DUST + 2 * config.TX_FEES) * COIN)
+
+        print("Transfering BTC to temporary addresses...\n")
+
+        batches = []
+        it = iter(temp_addresses)
+        for i in iter(range(0, len(temp_addresses), config.BATCH_SIZE)):
+            batch = {}
+            for k in islice(it, config.BATCH_SIZE):
+                batch[k] = temp_addresses[k]
+            batches.append(batch)
+
+        for batch in batches:
+            r = check_for_errors( requests.get( make_remote_url('sendmany', {"from": secrets.STORAGE_ADDRESS, "recipients": urllib.parse.quote_plus(json.dumps(temp_addresses)), "fee": int(config.TX_FEES*COIN) }) ) )
+
+            print("Waiting for confirmation of transfer...")
+            random_address = random.choice(list(temp_addresses.keys()))
+
+            benchmark = datetime.now()
+            while(True):
+                confirmed_tx = check_if_confirmed(random_address)
+                elapsed_time = str(datetime.now()-benchmark)
+                if confirmed_tx == True:
+                    print("It took %s to process the trasaction" % (elapsed_time))
+                    break
+                print("Time: %s, waiting 30 seconds and then checking if transaction is confirmed" % (elapsed_time))
+                time.sleep(30)
+                confirmed_tx = check_if_confirmed(secrets.STORAGE_ADDRESS)
+
+        for address in list(temp_addresses.keys()):
+            print(address)
+            r = check_for_errors( requests.get( make_remote_url('payment', {
+                "from": address, 
+                "to": secrets.ISSUING_ADDRESS, 
+                "amount": int((config.BLOCKCHAIN_DUST+config.TX_FEES)*COIN), 
+                "fee": int(config.TX_FEES*COIN)} )))
+            r = check_for_errors( requests.get( make_remote_url('archive_address', {"address": address} ) ) )
+        
+        return "Transfered BTC needed to issue certificates\n"
 
 def prepare_certs():
     cert_info = {}
@@ -57,7 +155,6 @@ def prepare_certs():
             "name": cert["recipient"]["givenName"] + " " + cert["recipient"]["familyName"],
             "pubkey": cert["recipient"]["pubkey"]
         }
-    print("Starting script...\n")
     return cert_info
 
 
@@ -68,53 +165,86 @@ def sign_certs():
         uid = helpers.get_uid(f)
         cert = json.loads(open(f).read())
         message = BitcoinMessage(cert["assertion"]["uid"])
-        print("Signing certificate for recipient id: %s" % (uid))
+        print("Signing certificate for recipient id: %s ..." % (uid))
         signature = SignMessage(privkey, message)
         cert["signature"] = str(signature, 'utf-8')
         cert = json.dumps(cert)
         open(config.SIGNED_CERTS_FOLDER+uid+".json", "wb").write(bytes(cert, 'utf-8'))
-        return "Signed certificates for recipients\n"
+    return "Signed certificates for recipients\n"
 
 # Hash the certificates
 def hash_certs():
     for f in glob.glob(config.SIGNED_CERTS_FOLDER+"*"):
         uid = helpers.get_uid(f)
         cert = open(f, 'rb').read()
-        print("Hashing certificate for recipient id: %s" % (uid))
+        print("Hashing certificate for recipient id: %s ..." % (uid))
         hashed_cert = hashlib.sha256(cert).digest()
         open(config.HASHED_CERTS_FOLDER + uid + ".txt", "wb").write(hashed_cert)
-        return "Hashed certificates for recipients\n"
+    return "Hashed certificates for recipients\n"
 
 # Make transactions for the certificates
 def build_cert_txs():
+    ct = -1
     for f in glob.glob(config.HASHED_CERTS_FOLDER+"*"):
         uid = helpers.get_uid(f)
         cert = open(f, 'rb').read()
-        print("Creating tx of certificate for recipient id: %s" % (uid))
+        print("Creating tx of certificate for recipient id: %s ..." % (uid))
 
         txouts = []
-        unspent = sorted(proxy.listunspent(addrs=[secrets.ISSUING_ADDRESS]), key=lambda x: hash(x['amount']))
+        if config.REMOTE_CONNECT == True:
+            r = requests.get("https://blockchain.info/unspent?active=%s&format=json" % (secrets.ISSUING_ADDRESS)).json()
+            unspent = []
+            for u in r['unspent_outputs']:
+                u['outpoint'] = COutPoint(unhexlify(u['tx_hash']), u['tx_output_n'])
+                del u['tx_hash']
+                del u['tx_output_n']
+                u['address'] = CBitcoinAddress(secrets.ISSUING_ADDRESS)
+                u['scriptPubKey'] = CScript(unhexlify(u['script']))
+                u['amount'] = int(u['value'])
+                unspent.append(u)
+        else:
+            unspent = proxy.listunspent(addrs=[secrets.ISSUING_ADDRESS])
+        unspent = sorted(unspent, key=lambda x: hash(x['amount']))
 
-        txins = [CTxIn(unspent[-1]['outpoint'])]
-        value_in = unspent[-1]['amount']
+        last_input = unspent[ct]
+        txins = [CTxIn(last_input['outpoint'])]
+        value_in = last_input['amount']
 
         recipient_addr = CBitcoinAddress(cert_info[uid]["pubkey"])
         recipient_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), recipient_addr.to_scriptPubKey())
 
-        cert_outs = [CMutableTxOut(0, CScript([OP_RETURN, cert]))]
-        txouts = [recipient_out] + [revoke_out] + [change_out] + cert_outs
-        tx = CMutableTransaction(txins, txouts)
+        revoke_addr = CBitcoinAddress(secrets.REVOCATION_ADDRESS)
+        revoke_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), revoke_addr.to_scriptPubKey())
 
-        while True:
-            tx.vout[2].nValue = int(value_in-((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN))
-            r = proxy.signrawtransaction(tx, None, [helpers.import_key()])
-            assert r['complete']
-            tx = r['tx']
-            if value_in - tx.vout[0].nValue >= config.BLOCKCHAIN_DUST:
-                tx = hexlify(tx.serialize())
-                open(config.UNSENT_CERTS_FOLDER + uid + ".txt", "wb").write(bytes(tx, 'utf-8'))
-                break
-        return "Created txs for recipients\n"
+        change_addr = CBitcoinAddress(secrets.ISSUING_ADDRESS)
+        change_out = CMutableTxOut(int(value_in-((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN)), change_addr.to_scriptPubKey())
+
+        cert_out = CMutableTxOut(0, CScript([OP_RETURN, cert]))
+
+        txouts = [recipient_out] + [revoke_out] + [change_out] + [cert_out]
+        tx = CMutableTransaction(txins, txouts)
+        hextx = hexlify(tx.serialize())
+        open(config.UNSIGNED_TXS_FOLDER + uid + ".txt", "wb").write(bytes(hextx, 'utf-8'))
+        ct -= 1
+        
+    return ("Created unsigned txs for recipients\n", last_input)
+
+def sign_cert_txs(last_input):
+    for f in glob.glob(config.UNSIGNED_TXS_FOLDER+"*"):
+        uid = helpers.get_uid(f)
+        hextx = str(open(f, 'rb').read(), 'utf-8')
+
+        print("Signing tx with private key for recipient id: %s ..." % uid)
+
+        tx = Tx.from_hex(hextx)
+        wif = wif_to_secret_exponent(helpers.import_key())
+        lookup = build_hash160_lookup([wif])
+        tx.set_unspents([ TxOut(coin_value=last_input['amount'], script=unhexlify(last_input['script'])) ])
+
+        tx = tx.sign(lookup)
+        hextx = tx.as_hex()
+        open(config.UNSENT_TXS_FOLDER + uid + ".txt", "wb").write(bytes(hextx, 'utf-8'))
+    return "Signed txs with private key\n"
 
 def verify_cert_txs():
 
@@ -124,25 +254,36 @@ def verify_cert_txs():
         return VerifyMessage(address, message, signature)
 
     def verify_doc(uid):
-        # hashed_cert = hashlib.sha256(str(signed_cert).encode('utf-8')).hexdigest()
         hashed_cert = hashlib.sha256(open(config.SIGNED_CERTS_FOLDER+uid+".json", 'rb').read()).hexdigest()
-        op_return_hash = open(config.UNSENT_CERTS_FOLDER+uid+".txt").read()[-72:-8]
+        op_return_hash = open(config.UNSENT_TXS_FOLDER+uid+".txt").read()[-72:-8]
         if hashed_cert == op_return_hash:
             return True
         return False
 
 
-    for f in glob.glob(config.UNSENT_CERTS_FOLDER+"*"):
+    for f in glob.glob(config.UNSENT_TXS_FOLDER+"*"):
         uid = helpers.get_uid(f)
         print("UID: \t\t\t" + uid)
         print("VERIFY SIGNATURE: \t%s " % (verify_signature(secrets.ISSUING_ADDRESS, json.loads(open(config.SIGNED_CERTS_FOLDER+uid+".json").read()))))
         print("VERIFY_OP_RETURN: \t%s " % (verify_doc(uid)))
-        # print("SIGNED_CERT_HASH: \t" + hashlib.sha256(str(open(config.SIGNED_CERTS_FOLDER+uid+".json").read()).encode('utf-8')).hexdigest())
-        # print("SIGNED_HEX_HASH: \t" + hexlify(open(config.HASHED_CERTS_FOLDER+uid+".txt", 'rb').read()))
-        # print("UNSIGNED_TX_DATA: \t" + )
 
-cert_info = prepare_certs()
-print(sign_certs())
-print(hash_certs())
-print(build_cert_txs())
-verify_cert_txs()
+    return "Verified transactions are complete."
+
+def run():
+    helpers.check_internet_on()
+    # print(prepare_btc())
+    cert_info = prepare_certs()
+
+    helpers.check_internet_off()
+    print(sign_certs()) # offline
+
+    helpers.check_internet_on()
+    print(hash_certs())
+    message, last_input = build_cert_txs()
+    print(message)
+
+    helpers.check_internet_off()
+    print(sign_cert_txs(last_input)) #offline
+    print(verify_cert_txs())
+
+run()
