@@ -17,11 +17,11 @@ def import_key():
 
 def internet_on():
     """Pings Google to see if the internet is on. If online, returns true. If offline, returns false."""
-    r = requests.get('http://google.com')
-    print(r.status_code)
-    if int(r.status_code) != 200:
+    try:
+        r = requests.get('http://google.com')
+        return True
+    except requests.exceptions.RequestException as e: 
         return False
-    return True
 
 def check_internet_off():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""

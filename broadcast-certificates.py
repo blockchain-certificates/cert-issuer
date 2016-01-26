@@ -17,8 +17,6 @@ from bitcoin.core.script import *
 import config
 import helpers
 
-proxy = bitcoin.rpc.Proxy()
-
 def send_txs():
     for f in glob.glob(config.UNSENT_TXS_FOLDER+"*"):
         uid = helpers.get_uid(f)
@@ -31,8 +29,10 @@ def send_txs():
             else:
                 txid = r.json().get('txid', None)
         else:
+            proxy = bitcoin.rpc.Proxy()
             txid = b2lx(lx(proxy._call('sendrawtransaction', hextx)))
         open(config.SENT_TXS_FOLDER + uid + ".txt", "wb").write(bytes(txid, 'utf-8'))
         print("Broadcast transaction for certificate id %s with a txid of %s" % (uid, txid))
 
+# helpers.check_internet_on()
 send_txs()

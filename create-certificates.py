@@ -183,7 +183,7 @@ def hash_certs():
     return "Hashed certificates for recipients\n"
 
 # Make transactions for the certificates
-def build_cert_txs():
+def build_cert_txs(cert_info):
     ct = -1
     for f in glob.glob(config.HASHED_CERTS_FOLDER+"*"):
         uid = helpers.get_uid(f)
@@ -270,19 +270,21 @@ def verify_cert_txs():
     return "Verified transactions are complete."
 
 def run():
-    helpers.check_internet_on()
-    # print(prepare_btc())
+    # helpers.check_internet_on()
+    if REMOTE_CONNECT == True:
+        print(prepare_btc())
+        
     cert_info = prepare_certs()
 
-    helpers.check_internet_off()
+    # helpers.check_internet_off()
     print(sign_certs()) # offline
 
-    helpers.check_internet_on()
+    # helpers.check_internet_on()
     print(hash_certs())
-    message, last_input = build_cert_txs()
+    message, last_input = build_cert_txs(cert_info)
     print(message)
 
-    helpers.check_internet_off()
+    # helpers.check_internet_off()
     print(sign_cert_txs(last_input)) #offline
     print(verify_cert_txs())
 
