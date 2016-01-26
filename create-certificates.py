@@ -20,7 +20,7 @@ from datetime import datetime
 import time
 import urllib.parse
 from itertools import islice
-#import pickle
+import shutil
 
 from bitcoin import params
 from bitcoin.core import *
@@ -52,7 +52,7 @@ def make_remote_url(command, extras={}):
     if len(extras) > 0:
         addon = ''
         for name in list(extras.keys()):
-            addon = "%s&%s=%s" % (addon, name, extras[name]) #url+"&"+name+"="+str(extras[name], 'utf-8')
+            addon = "%s&%s=%s" % (addon, name, extras[name])
         url = url+addon
     return url
 
@@ -121,7 +121,6 @@ def prepare_btc():
                 confirmed_tx = check_if_confirmed(secrets.STORAGE_ADDRESS)
 
         for address in list(temp_addresses.keys()):
-            print(address)
             r = check_for_errors( requests.get( make_remote_url('payment', {
                 "from": address, 
                 "to": secrets.ISSUING_ADDRESS, 
@@ -283,6 +282,8 @@ def main(argv):
     parser.add_argument('--create', default=1, help='Create certificate transactions (default: 1). Only change this option for troubleshooting.')
     parser.add_argument('--broadcast', default=1, help='Broadcast transactions (default: 1). Only change this option for troubleshooting.')
     args = parser.parse_args()
+
+    timestamp = str(time.time())
     
     if args.remote == 0:
         REMOTE_CONNECT = False
@@ -308,12 +309,16 @@ def main(argv):
 
     if args.create==1:
         cert_info = prepare_certs()
+        
         helpers.check_internet_off()
         print(sign_certs())
+        shutil.copytree(config.SIGNED_CERTS_FOLDER, config.ARCHIVE_CERTS_FOLDER+timestamp)
+        
         helpers.check_internet_on()
         print(hash_certs())
         message, last_input = build_cert_txs(cert_info)
         print(message)
+        
         helpers.check_internet_off()
         print(sign_cert_txs(last_input))
         print(verify_cert_txs())
@@ -321,6 +326,7 @@ def main(argv):
     if args.broadcast==1:
         helpers.check_internet_on()
         send_txs()
+        shutil.copytree(config.SENT_TXS_FOLDER, config.ARCHIVE_TXS_FOLDER+timestamp)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
