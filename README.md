@@ -40,6 +40,7 @@ STORAGE_ADDRESS = "<blockchain.info address with storage BTC>"
 
 ### To Run
 1. Add your certificates to data/unsigned_certs/
+2. Make sure you have enough BTC in your storage address. The amount needed is approximatly 0.10 cents (USD) per certificate. Or more accuratly, 0.0001 * number_certificates + 0.000255 BTC.
 2. Run the create-certificates.py script to create your certificates: `python create-certificates.py`
 
 ## Contact

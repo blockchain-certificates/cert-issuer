@@ -79,6 +79,19 @@ def check_if_confirmed(address):
     else:
         return False
 
+def wait_for_confirmation(address):
+    benchmark = datetime.now()
+    while(True):
+        # confirmed_tx = check_if_confirmed(secrets.STORAGE_ADDRESS)
+        confirmed_tx = check_if_confirmed(address)
+        elapsed_time = str(datetime.now()-benchmark)
+        if confirmed_tx == True:
+            print("It took %s to process the trasaction" % (elapsed_time))
+            break
+        print("Time: %s, waiting 30 seconds and then checking if transaction is confirmed" % (elapsed_time))
+        time.sleep(30)
+    return confirmed_tx
+
 def prepare_btc():
     print("Starting script...\n")
     if REMOTE_CONNECT == True:
@@ -110,16 +123,9 @@ def prepare_btc():
             random_address = random.choice(list(temp_addresses.keys()))
 
             benchmark = datetime.now()
-            while(True):
-                confirmed_tx = check_if_confirmed(random_address)
-                elapsed_time = str(datetime.now()-benchmark)
-                if confirmed_tx == True:
-                    print("It took %s to process the trasaction" % (elapsed_time))
-                    break
-                print("Time: %s, waiting 30 seconds and then checking if transaction is confirmed" % (elapsed_time))
-                time.sleep(30)
-                confirmed_tx = check_if_confirmed(secrets.STORAGE_ADDRESS)
+            confirmed_tx = wait_for_confirmation(random_address)
 
+        print("\nMaking transfer to issuing address...\n")
         for address in list(temp_addresses.keys()):
             r = check_for_errors( requests.get( make_remote_url('payment', {
                 "from": address, 
@@ -128,7 +134,9 @@ def prepare_btc():
                 "fee": int(config.TX_FEES*COIN)} )))
             r = check_for_errors( requests.get( make_remote_url('archive_address', {"address": address} ) ) )
         
-        return "Transfered BTC needed to issue certificates\n"
+        # print("Waiting for confirmation of transfer...")
+        # confirmed_tx = wait_for_confirmation(random_address)
+        return "\nTransfered BTC needed to issue certificates\n"
 
 def prepare_certs():
     cert_info = {}
