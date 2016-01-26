@@ -8,9 +8,6 @@ __pycache__
 data/unsigned_certs/
 data/signed_certs/
 data/hashed_certs/
-data/unsigned_txs/
-data/unsent_txs/
-data/sent_txs/
 
 !data/unsigned_certs/.*
 !data/signed_certs/.*
