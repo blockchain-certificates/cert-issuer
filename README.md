@@ -53,7 +53,7 @@ API_KEY = "<blockchain.info api key>"
 ```
 
 ### To Run
-1. Start the blockchain.info server `blockchain-wallet-service start --port 3000`
+1. If you are using the blockchain.info API, start the blockchain.info server `blockchain-wallet-service start --port 3000`. Otherwise, ensure that bitcoind is running.
 2. Add your certificates to data/unsigned_certs/
 3. Make sure you have enough BTC in your storage address. The amount needed is approximatly 0.10 cents (USD) per certificate.
 4. Run the create-certificates.py script to create your certificates: 
