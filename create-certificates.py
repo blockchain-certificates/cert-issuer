@@ -21,6 +21,7 @@ import time
 import urllib.parse
 from itertools import islice
 import shutil
+import os
 
 from bitcoin import params
 from bitcoin.core import *
@@ -80,6 +81,7 @@ def check_if_confirmed(address):
         return False
 
 def wait_for_confirmation(address):
+    print("Waiting for a pending transaction to be confirmed for address %s" % (address))
     benchmark = datetime.now()
     while(True):
         # confirmed_tx = check_if_confirmed(secrets.STORAGE_ADDRESS)
@@ -98,6 +100,9 @@ def prepare_btc():
 
         # r = check_for_errors( requests.get( make_remote_url('login', {'api_code': ''})) )
 
+        # first make sure that there are no pending transactions for the storage address
+        confirmed_tx = wait_for_confirmation(config.STORAGE_ADDRESS)
+
         num_certs = len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
         print("Creating %s temporary addresses...\n" % num_certs)
 
@@ -108,15 +113,6 @@ def prepare_btc():
 
         print("Transfering BTC to temporary addresses...\n")
 
-        #batches = []
-        #it = iter(temp_addresses)
-        #for i in iter(range(0, len(temp_addresses), config.BATCH_SIZE)):
-        #    batch = {}
-        #    for k in islice(it, config.BATCH_SIZE):
-        #        batch[k] = temp_addresses[k]
-        #    batches.append(batch)
-
-        #for batch in batches:
         r = check_for_errors( requests.get( make_remote_url('sendmany', {"from": secrets.STORAGE_ADDRESS, "recipients": urllib.parse.quote_plus(json.dumps(temp_addresses)), "fee": int(helpers.calculate_txfee(1, len(temp_addresses))) }) ) )
 
         print("Waiting for confirmation of transfer...")
@@ -136,6 +132,9 @@ def prepare_btc():
         return "\nTransfered BTC needed to issue certificates\n"
 
 def prepare_certs():
+    folders_to_clear = [config.SIGNED_CERTS_FOLDER, config.HASHED_CERTS_FOLDER, config.UNSIGNED_TXS_FOLDER, config.UNSENT_TXS_FOLDER, config.SENT_TXS_FOLDER]
+    for folder in folders_to_clear:
+        helpers.clear_folder(folder)
     cert_info = {}
     for f in glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"):
         cert = json.loads(open(f).read())
