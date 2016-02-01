@@ -2,6 +2,7 @@ import secrets
 from datetime import datetime
 import requests
 import json
+import glob
 import os
 import time
 
@@ -13,8 +14,15 @@ def get_uid(filename):
     return filename
 
 def import_key():
+    secrets.KEYPATH = secrets.KEYPATH.replace(" ", "\ ")
     key = open(secrets.KEYPATH).read().strip()
     return key
+
+def clear_folder(foldername):
+    files = glob.glob(foldername+'*')
+    for f in files:
+        os.remove(f)
+    return True
 
 def internet_on():
     """Pings Google to see if the internet is on. If online, returns true. If offline, returns false."""

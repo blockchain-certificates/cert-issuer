@@ -5,6 +5,8 @@ virtual_usb/
 secrets.py
 __pycache__
 
+certs_dbdump.csv
+
 data/unsigned_certs/
 data/signed_certs/
 data/hashed_certs/
