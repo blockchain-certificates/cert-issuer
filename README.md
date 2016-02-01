@@ -44,7 +44,8 @@ REVOCATION_ADDRESS = "<revocation address>"
 USB_NAME = "<path to usb>"
 KEY_FILE = "<name of private key file>"
 
-# The below fields are not needed for the local bitcoind installation, but are for the blockchain.info configuration
+# The below fields are not needed for the local bitcoind installation,
+# but are needed for the blockchain.info configuration
 WALLET_GUID = "<blockchain.info wallet guid>" # Your unique identifier to login to blockchain.info
 WALLET_PASSWORD = "<blockchain.info wallet password>" # Your password to login to blockchain.info
 STORAGE_ADDRESS = "<blockchain.info address with storage BTC>" 
