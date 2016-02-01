@@ -108,22 +108,21 @@ def prepare_btc():
 
         print("Transfering BTC to temporary addresses...\n")
 
-        batches = []
-        it = iter(temp_addresses)
-        for i in iter(range(0, len(temp_addresses), config.BATCH_SIZE)):
-            batch = {}
-            for k in islice(it, config.BATCH_SIZE):
-                batch[k] = temp_addresses[k]
-            batches.append(batch)
+        #batches = []
+        #it = iter(temp_addresses)
+        #for i in iter(range(0, len(temp_addresses), config.BATCH_SIZE)):
+        #    batch = {}
+        #    for k in islice(it, config.BATCH_SIZE):
+        #        batch[k] = temp_addresses[k]
+        #    batches.append(batch)
 
-        for batch in batches:
-            r = check_for_errors( requests.get( make_remote_url('sendmany', {"from": secrets.STORAGE_ADDRESS, "recipients": urllib.parse.quote_plus(json.dumps(temp_addresses)), "fee": int(config.TX_FEES*COIN) }) ) )
+        #for batch in batches:
+        r = check_for_errors( requests.get( make_remote_url('sendmany', {"from": secrets.STORAGE_ADDRESS, "recipients": urllib.parse.quote_plus(json.dumps(temp_addresses)), "fee": int(helpers.calculate_txfee(1, len(temp_addresses))) }) ) )
 
-            print("Waiting for confirmation of transfer...")
-            random_address = random.choice(list(temp_addresses.keys()))
+        print("Waiting for confirmation of transfer...")
+        random_address = random.choice(list(temp_addresses.keys()))
 
-            benchmark = datetime.now()
-            confirmed_tx = wait_for_confirmation(random_address)
+        confirmed_tx = wait_for_confirmation(random_address)
 
         print("\nMaking transfer to issuing address...\n")
         for address in list(temp_addresses.keys()):
@@ -134,8 +133,6 @@ def prepare_btc():
                 "fee": int(config.TX_FEES*COIN)} )))
             r = check_for_errors( requests.get( make_remote_url('archive_address', {"address": address} ) ) )
         
-        # print("Waiting for confirmation of transfer...")
-        # confirmed_tx = wait_for_confirmation(random_address)
         return "\nTransfered BTC needed to issue certificates\n"
 
 def prepare_certs():

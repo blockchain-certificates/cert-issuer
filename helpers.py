@@ -5,6 +5,11 @@ import json
 import os
 import time
 
+def calculate_txfee(num_inputs, num_outputs):
+    satoshi_per_byte = 41
+    tx_size = num_inputs*180 + num_outputs*34 + 10 + num_inputs
+    return satoshi_per_byte * tx_size
+
 def get_uid(filename):
     if "/" in filename:
         filename = filename.split("/")[-1]
