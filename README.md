@@ -55,7 +55,9 @@ API_KEY = "<blockchain.info api key>"
 ### To Run
 1. If you are using the blockchain.info API, start the blockchain.info server `blockchain-wallet-service start --port 3000`. Otherwise, ensure that bitcoind is running.
 2. Add your certificates to data/unsigned_certs/
-3. Make sure you have enough BTC in your storage address. The amount needed is approximatly 0.10 cents (USD) per certificate.
+3. Make sure you have enough BTC in your storage address. The amount needed is approximatly $0.10 cents (USD) per certificate if you are using the API, and $0.06 if you are using bitcoind. More precisely:
+	1. Using bitcoind, each certificate costs 15000 satoshi (0.00015 BTC)
+	2. Using the blockchain.info API, each certificate costs 26435 * total_num_certs + 7790
 4. Run the create-certificates.py script to create your certificates: 
 	1. To run "remotely" using the Blockchain.info API: `python create-certificates.py`
 	2. To run using your bitcoind installation: `python create-certificates.py --remote=0`
