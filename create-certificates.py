@@ -46,10 +46,11 @@ if sys.version > '3':
     hexlify = lambda b: binascii.hexlify(b).decode('utf8')
 
 REMOTE_CONNECT = True
+proxy = None
 
 def make_remote_url(command, extras={}):
-    url = "http://blockchain.info/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
-    # url = "http://localhost:3000/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
+    # url = "http://blockchain.info/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
+    url = "http://localhost:3000/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
     if len(extras) > 0:
         addon = ''
         for name in list(extras.keys()):
@@ -72,10 +73,10 @@ def check_if_confirmed(address):
     unconfirmed_url = make_remote_url('address_balance', {"address": address, "confirmations": 0})
     confirmed_result = check_for_errors(requests.get(confirmed_url))
     unconfirmed_result = check_for_errors(requests.get(unconfirmed_url))
-    confirmed_balance = int(confirmed_result.json()["balance"])
-    unconfirmed_balance = int(unconfirmed_result.json()["balance"])
+    confirmed_balance = confirmed_result.json().get("balance", None)
+    unconfirmed_balance = unconfirmed_result.json().get("balance", None)
     if unconfirmed_balance and confirmed_balance:
-        if confirmed_balance > 0:
+        if int(confirmed_balance) > 0:
             return True
     else:
         return False
@@ -98,10 +99,10 @@ def prepare_btc():
     print("Starting script...\n")
     if REMOTE_CONNECT == True:
 
-        # r = check_for_errors( requests.get( make_remote_url('login', {'api_code': ''})) )
+        r = check_for_errors( requests.get( make_remote_url('login', {'api_code': secrets.API_KEY})) )
 
         # first make sure that there are no pending transactions for the storage address
-        confirmed_tx = wait_for_confirmation(config.STORAGE_ADDRESS)
+        confirmed_tx = wait_for_confirmation(secrets.STORAGE_ADDRESS)
 
         num_certs = len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
         print("Creating %s temporary addresses...\n" % num_certs)
@@ -230,7 +231,11 @@ def sign_cert_txs(last_input):
         tx = Tx.from_hex(hextx)
         wif = wif_to_secret_exponent(helpers.import_key())
         lookup = build_hash160_lookup([wif])
-        tx.set_unspents([ TxOut(coin_value=last_input['amount'], script=unhexlify(last_input['script'])) ])
+
+        if REMOTE_CONNECT == True:
+            tx.set_unspents([ TxOut(coin_value=last_input['amount'], script=unhexlify(last_input['script'])) ])
+        else:
+            tx.set_unspents([ TxOut(coin_value=last_input['amount'], script=last_input["scriptPubKey"]) ])
 
         tx = tx.sign(lookup)
         hextx = tx.as_hex()
@@ -277,7 +282,6 @@ def send_txs():
             else:
                 txid = r.json().get('txid', None)
         else:
-            proxy = bitcoin.rpc.Proxy()
             txid = b2lx(lx(proxy._call('sendrawtransaction', hextx)))
         open(config.SENT_TXS_FOLDER + uid + ".txt", "wb").write(bytes(txid, 'utf-8'))
         print("Broadcast transaction for certificate id %s with a txid of %s" % (uid, txid))
@@ -285,7 +289,7 @@ def send_txs():
 
 def main(argv):
     parser = argparse.ArgumentParser(description='Create digital certificates')
-    parser.add_argument('--remote', default=1, help='Use remote or local bitcoind (default: remote)')
+    parser.add_argument('--remote', default=1, help='Use remote or local bitcoind (default: remote=1)')
     parser.add_argument('--transfer', default=1, help='Transfer BTC to issuing address (default: 1). Only change this option for troubleshooting.')
     parser.add_argument('--create', default=1, help='Create certificate transactions (default: 1). Only change this option for troubleshooting.')
     parser.add_argument('--broadcast', default=1, help='Broadcast transactions (default: 1). Only change this option for troubleshooting.')
@@ -293,31 +297,40 @@ def main(argv):
     args = parser.parse_args()
 
     timestamp = str(time.time())
+    global REMOTE_CONNECT
+    global proxy
+    global COIN
     
-    if args.remote == 0:
+    if int(args.remote) == 0:
         REMOTE_CONNECT = False
+        args.transfer = 0
         proxy = bitcoin.rpc.Proxy()
-        address_balance = proxy.getreceivedbyaddress(addr=secrets.ISSUING_ADDRESS)
-    if args.remote == 1:
+
+    if int(args.remote) == 1:
         REMOTE_CONNECT = True
         COIN = config.COIN
 
-    if args.transfer==0:
-        address_balance = requests.get("https://blockchain.info/address/%s?format=json&limit=1" % (secrets.ISSUING_ADDRESS)).json()['final_balance']
+    if int(args.transfer)==0:
+        if REMOTE_CONNECT == True:
+            address_balance = requests.get("https://blockchain.info/address/%s?format=json&limit=1" % (secrets.ISSUING_ADDRESS)).json()['final_balance']
+        else:
+            address_balance = 0
+            unspent = proxy.listunspent(addrs=[secrets.ISSUING_ADDRESS])
+            for u in unspent: address_balance = address_balance + u.get("amount", 0)
         cost_to_issue = int((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN) * len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
         if address_balance < cost_to_issue:
             sys.stderr.write('Sorry, please add %s BTC to the address %s.\n' % ((cost_to_issue - address_balance)/COIN, secrets.ISSUING_ADDRESS))
             sys.exit(1)
 
-    if args.transfer==1:
-        if REMOTE_CONNECT==True:
-            if args.wificheck == 1:
+    if int(args.transfer)==1:
+        if int(args.remote) == 1:
+            if int(args.wificheck) == 1:
                 helpers.check_internet_on()
             print(prepare_btc())
         else:
             pass
 
-    if args.create==1:
+    if int(args.create)==1:
         cert_info = prepare_certs()
         
         if args.wificheck == 1:
@@ -325,19 +338,19 @@ def main(argv):
         print(sign_certs())
         shutil.copytree(config.SIGNED_CERTS_FOLDER, config.ARCHIVE_CERTS_FOLDER+timestamp)
         
-        if args.wificheck == 1:
+        if int(args.wificheck) == 1:
             helpers.check_internet_on()
         print(hash_certs())
         message, last_input = build_cert_txs(cert_info)
         print(message)
         
-        if args.wificheck == 1:
+        if int(args.wificheck) == 1:
             helpers.check_internet_off()
         print(sign_cert_txs(last_input))
         print(verify_cert_txs())
 
-    if args.broadcast==1:
-        if args.wificheck == 1:
+    if int(args.broadcast)==1:
+        if int(args.wificheck) == 1:
             helpers.check_internet_on()
         send_txs()
         shutil.copytree(config.SENT_TXS_FOLDER, config.ARCHIVE_TXS_FOLDER+timestamp)

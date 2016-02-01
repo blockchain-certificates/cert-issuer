@@ -23,8 +23,9 @@ def get_uid(filename):
     return filename
 
 def import_key():
-    secrets.KEYPATH = secrets.KEYPATH.replace(" ", "\ ")
-    key = open(secrets.KEYPATH).read().strip()
+    if secrets.USB_NAME[-1] != "/":
+        secrets.USB_NAME = secrets.USB_NAME+"/"
+    key = open(secrets.USB_NAME + secrets.KEY_FILE).read().strip()
     return key
 
 def clear_folder(foldername):
