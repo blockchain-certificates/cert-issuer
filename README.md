@@ -18,7 +18,7 @@ Below are steps that will allow you to setup the digital certificates code to in
 1. Make a [blockchain.info](http://blockchain.info) wallet and designate an address that will store your bitcoin for issuing the certificates. This is not the same as your issuing address, which you should NOT add to your wallet. Transfer a few BTC to this address. FYI: This will be referenced as your `STORAGE_ADDRESS` in the code.
 2. Verify your blockchain.info account via the link in your email.
 3. Enable the blockchain.info API to access your wallet [Account Settings > IP Restrictions > Enable API Access]
-4. Install the Blockchain.info API local service [instructions here](https://github.com/blockchain/service-my-wallet-v3). This will require you to request an API key, which may take 24 hours to recieve. This API key will be referenced as your `API_KEY` in the code.
+4. Install the Blockchain.info API local service [instructions here](https://github.com/blockchain/service-my-wallet-v3). This will require you to request an API key, which may take 24 hours to recieve. This API key will be referenced as your `API_KEY` in the code. Note: You must check the "Create Wallets" checkbox under "Permissions" when requesting an API key in order for it to be compatible with the local service.
 
 ## Local Bitcoind Installation
 Below are instructions are for running the code using bitcoind. To install bitcoind on a Ubuntu server, please follow the [tutorial here](https://21.co/learn/setup-a-bitcoin-development-environment/#installing-bitcoind-from-source-on-ubuntu).
