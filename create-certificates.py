@@ -64,21 +64,21 @@ def check_for_errors(r):
     if int(r.status_code) != 200:
         sys.stderr.write("Error: %s\n" % (r.json()['error']))
         sys.exit(1)
-    elif r.json().get('error', None):
-        sys.stderr.write("Error: %s\n" % (r.json()['error']))
-        sys.exit(1)
+    # elif 'error' in r.json():
+    #     sys.stderr.write("Error: %s\n" % (r.json()['error']))
+    #     sys.exit(1)
     return r
 
 def check_if_confirmed(address):
     """Checks if all the BTC in the address has been confirmed. Returns true if is has been confirmed and false if it has not."""
-    confirmed_url =  make_remote_url('address_balance', {"address": address, "confirmations": 1}, remote_url = True)
-    unconfirmed_url = make_remote_url('address_balance', {"address": address, "confirmations": 0}, remote_url = True)
+    confirmed_url =  make_remote_url('address_balance', {"address": address, "confirmations": 1}, remote_url = False)
+    unconfirmed_url = make_remote_url('address_balance', {"address": address, "confirmations": 0}, remote_url = False)
 
-    confirmed_result = check_for_errors(requests.get(confirmed_url))
     unconfirmed_result = check_for_errors(requests.get(unconfirmed_url))
+    confirmed_result = check_for_errors(requests.get(confirmed_url))
     
-    confirmed_balance = confirmed_result.json().get("balance", None)
     unconfirmed_balance = unconfirmed_result.json().get("balance", None)
+    confirmed_balance = confirmed_result.json().get("balance", None)
 
     if unconfirmed_balance and confirmed_balance:
         if int(confirmed_balance) == int(unconfirmed_balance):
