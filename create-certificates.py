@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import sys
+
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
 
-import getopt
 import argparse
 import hashlib
 import bitcoin.rpc
@@ -14,16 +14,12 @@ import json
 import glob
 import binascii
 import requests
-import io
 import random
 from datetime import datetime
 import time
 import urllib.parse
-from itertools import islice
 import shutil
-import os
 
-from bitcoin import params
 from bitcoin.core import *
 from bitcoin.core.script import *
 from bitcoin.wallet import CBitcoinAddress, CBitcoinSecret
@@ -31,9 +27,7 @@ from bitcoin.signmessage import BitcoinMessage, VerifyMessage, SignMessage
 
 from pycoin.tx import Tx, TxOut
 from pycoin.tx.pay_to import build_hash160_lookup
-from pycoin.key import Key
 from pycoin.encoding import wif_to_secret_exponent
-from pycoin.serialize import h2b
 
 import config
 import helpers
@@ -48,17 +42,21 @@ if sys.version > '3':
 REMOTE_CONNECT = True
 proxy = None
 
+
 def make_remote_url(command, extras={}, remote_url=False):
     if remote_url == True:
-        url = "http://blockchain.info/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
+        url = "http://blockchain.info/merchant/%s/%s?password=%s" % (
+        secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
     else:
-        url = "http://localhost:3000/merchant/%s/%s?password=%s" % (secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
+        url = "http://localhost:3000/merchant/%s/%s?password=%s" % (
+        secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
     if len(extras) > 0:
         addon = ''
         for name in list(extras.keys()):
             addon = "%s&%s=%s" % (addon, name, extras[name])
-        url = url+addon
+        url = url + addon
     return url
+
 
 def check_for_errors(r):
     if int(r.status_code) != 200:
@@ -69,14 +67,15 @@ def check_for_errors(r):
     #     sys.exit(1)
     return r
 
+
 def check_if_confirmed(address):
     """Checks if all the BTC in the address has been confirmed. Returns true if is has been confirmed and false if it has not."""
-    confirmed_url =  make_remote_url('address_balance', {"address": address, "confirmations": 1}, remote_url = False)
-    unconfirmed_url = make_remote_url('address_balance', {"address": address, "confirmations": 0}, remote_url = False)
+    confirmed_url = make_remote_url('address_balance', {"address": address, "confirmations": 1}, remote_url=False)
+    unconfirmed_url = make_remote_url('address_balance', {"address": address, "confirmations": 0}, remote_url=False)
 
     unconfirmed_result = check_for_errors(requests.get(unconfirmed_url))
     confirmed_result = check_for_errors(requests.get(confirmed_url))
-    
+
     unconfirmed_balance = unconfirmed_result.json().get("balance", None)
     confirmed_balance = confirmed_result.json().get("balance", None)
 
@@ -85,13 +84,14 @@ def check_if_confirmed(address):
             return True
     return False
 
+
 def wait_for_confirmation(address):
     print("Waiting for a pending transaction to be confirmed for address %s" % (address))
     benchmark = datetime.now()
-    while(True):
+    while (True):
         # confirmed_tx = check_if_confirmed(secrets.STORAGE_ADDRESS)
         confirmed_tx = check_if_confirmed(address)
-        elapsed_time = str(datetime.now()-benchmark)
+        elapsed_time = str(datetime.now() - benchmark)
         if confirmed_tx == True:
             print("It took %s to process the trasaction" % (elapsed_time))
             break
@@ -99,11 +99,12 @@ def wait_for_confirmation(address):
         time.sleep(30)
     return confirmed_tx
 
+
 def prepare_btc():
     print("Starting script...\n")
     if REMOTE_CONNECT == True:
 
-        r = check_for_errors( requests.get( make_remote_url('login', {'api_code': secrets.API_KEY})) )
+        r = check_for_errors(requests.get(make_remote_url('login', {'api_code': secrets.API_KEY})))
 
         # first make sure that there are no pending transactions for the storage address
         confirmed_tx = wait_for_confirmation(secrets.STORAGE_ADDRESS)
@@ -113,12 +114,15 @@ def prepare_btc():
 
         temp_addresses = {}
         for i in range(num_certs):
-            r = check_for_errors( requests.get( make_remote_url('new_address', {"label": "temp-address-%s" % (i)})) )
-            temp_addresses[r.json()["address"]] = int((2*config.BLOCKCHAIN_DUST+2*config.TX_FEES)* COIN)
+            r = check_for_errors(requests.get(make_remote_url('new_address', {"label": "temp-address-%s" % (i)})))
+            temp_addresses[r.json()["address"]] = int((2 * config.BLOCKCHAIN_DUST + 2 * config.TX_FEES) * COIN)
 
         print("Transfering BTC to temporary addresses...\n")
 
-        r = check_for_errors( requests.get( make_remote_url('sendmany', {"from": secrets.STORAGE_ADDRESS, "recipients": urllib.parse.quote_plus(json.dumps(temp_addresses)), "fee": int(helpers.calculate_txfee(1, len(temp_addresses))) }) ) )
+        r = check_for_errors(requests.get(make_remote_url('sendmany', {"from": secrets.STORAGE_ADDRESS,
+                                                                       "recipients": urllib.parse.quote_plus(
+                                                                           json.dumps(temp_addresses)), "fee": int(
+                helpers.calculate_txfee(1, len(temp_addresses)))})))
 
         print("Waiting for confirmation of transfer...")
         random_address = random.choice(list(temp_addresses.keys()))
@@ -127,18 +131,20 @@ def prepare_btc():
 
         print("\nMaking transfer to issuing address...\n")
         for address in list(temp_addresses.keys()):
-            r = check_for_errors( requests.get( make_remote_url('payment', {
-                "from": address, 
-                "to": secrets.ISSUING_ADDRESS, 
-                "amount": int((2*config.BLOCKCHAIN_DUST+config.TX_FEES)*COIN), 
-                "fee": int(config.TX_FEES*COIN)} )))
-            r = check_for_errors( requests.get( make_remote_url('archive_address', {"address": address} ) ) )
+            r = check_for_errors(requests.get(make_remote_url('payment', {
+                "from": address,
+                "to": secrets.ISSUING_ADDRESS,
+                "amount": int((2 * config.BLOCKCHAIN_DUST + config.TX_FEES) * COIN),
+                "fee": int(config.TX_FEES * COIN)})))
+            r = check_for_errors(requests.get(make_remote_url('archive_address', {"address": address})))
         wait_for_confirmation(secrets.ISSUING_ADDRESS)
-        
+
         return "\nTransfered BTC needed to issue certificates\n"
 
+
 def prepare_certs():
-    folders_to_clear = [config.SIGNED_CERTS_FOLDER, config.HASHED_CERTS_FOLDER, config.UNSIGNED_TXS_FOLDER, config.UNSENT_TXS_FOLDER, config.SENT_TXS_FOLDER]
+    folders_to_clear = [config.SIGNED_CERTS_FOLDER, config.HASHED_CERTS_FOLDER, config.UNSIGNED_TXS_FOLDER,
+                        config.UNSENT_TXS_FOLDER, config.SENT_TXS_FOLDER]
     for folder in folders_to_clear:
         helpers.clear_folder(folder)
     cert_info = {}
@@ -162,12 +168,13 @@ def sign_certs():
         signature = SignMessage(privkey, message)
         cert["signature"] = str(signature, 'utf-8')
         cert = json.dumps(cert)
-        open(config.SIGNED_CERTS_FOLDER+uid+".json", "wb").write(bytes(cert, 'utf-8'))
+        open(config.SIGNED_CERTS_FOLDER + uid + ".json", "wb").write(bytes(cert, 'utf-8'))
     return "Signed certificates for recipients\n"
+
 
 # Hash the certificates
 def hash_certs():
-    for f in glob.glob(config.SIGNED_CERTS_FOLDER+"*"):
+    for f in glob.glob(config.SIGNED_CERTS_FOLDER + "*"):
         uid = helpers.get_uid(f)
         cert = open(f, 'rb').read()
         print("Hashing certificate for recipient id: %s ..." % (uid))
@@ -196,11 +203,11 @@ def build_cert_txs(cert_info, f, ct):
             unspent.append(u)
     else:
         unspent = proxy.listunspent(addrs=[secrets.ISSUING_ADDRESS])
-    
+
     unspent = sorted(unspent, key=lambda x: hash(x['amount']))
-    
+
     if REMOTE_CONNECT == True:
-        last_input = unspent[ct] #problem
+        last_input = unspent[ct]  # problem
     else:
         last_input = unspent[-1]
 
@@ -208,26 +215,28 @@ def build_cert_txs(cert_info, f, ct):
     value_in = last_input['amount']
 
     recipient_addr = CBitcoinAddress(cert_info[uid]["pubkey"])
-    recipient_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), recipient_addr.to_scriptPubKey())
+    recipient_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST * COIN), recipient_addr.to_scriptPubKey())
 
     revoke_addr = CBitcoinAddress(secrets.REVOCATION_ADDRESS)
-    revoke_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST*COIN), revoke_addr.to_scriptPubKey())
+    revoke_out = CMutableTxOut(int(config.BLOCKCHAIN_DUST * COIN), revoke_addr.to_scriptPubKey())
 
     cert_out = CMutableTxOut(0, CScript([OP_RETURN, cert]))
     txouts = [recipient_out] + [revoke_out]
 
-    if int(value_in-((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN)) > 0:
+    if int(value_in - ((config.BLOCKCHAIN_DUST * 2 + config.TX_FEES) * COIN)) > 0:
         change_addr = CBitcoinAddress(secrets.ISSUING_ADDRESS)
-        change_out = CMutableTxOut(int(value_in-((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN)), change_addr.to_scriptPubKey())
+        change_out = CMutableTxOut(int(value_in - ((config.BLOCKCHAIN_DUST * 2 + config.TX_FEES) * COIN)),
+                                   change_addr.to_scriptPubKey())
         txouts = txouts + [change_out]
-    
+
     txouts = txouts + [cert_out]
 
     tx = CMutableTransaction(txins, txouts)
     hextx = hexlify(tx.serialize())
     open(config.UNSIGNED_TXS_FOLDER + uid + ".txt", "wb").write(bytes(hextx, 'utf-8'))
-        
-    return ("Created unsigned tx for recipient \n" , last_input)
+
+    return ("Created unsigned tx for recipient \n", last_input)
+
 
 def sign_cert_txs(last_input, f):
     uid = helpers.get_uid(f)
@@ -240,32 +249,33 @@ def sign_cert_txs(last_input, f):
     lookup = build_hash160_lookup([wif])
 
     if REMOTE_CONNECT == True:
-        tx.set_unspents([ TxOut(coin_value=last_input['amount'], script=unhexlify(last_input['script'])) ])
+        tx.set_unspents([TxOut(coin_value=last_input['amount'], script=unhexlify(last_input['script']))])
     else:
-        tx.set_unspents([ TxOut(coin_value=last_input['amount'], script=last_input["scriptPubKey"]) ])
+        tx.set_unspents([TxOut(coin_value=last_input['amount'], script=last_input["scriptPubKey"])])
 
     tx = tx.sign(lookup)
     hextx = tx.as_hex()
     open(config.UNSENT_TXS_FOLDER + uid + ".txt", "wb").write(bytes(hextx, 'utf-8'))
     return "Signed tx with private key\n"
 
-def verify_cert_txs(f):
 
+def verify_cert_txs(f):
     def verify_signature(address, signed_cert):
         message = BitcoinMessage(signed_cert["assertion"]["uid"])
         signature = signed_cert["signature"]
         return VerifyMessage(address, message, signature)
 
     def verify_doc(uid):
-        hashed_cert = hashlib.sha256(open(config.SIGNED_CERTS_FOLDER+uid+".json", 'rb').read()).hexdigest()
-        op_return_hash = open(config.UNSENT_TXS_FOLDER+uid+".txt").read()[-72:-8]
+        hashed_cert = hashlib.sha256(open(config.SIGNED_CERTS_FOLDER + uid + ".json", 'rb').read()).hexdigest()
+        op_return_hash = open(config.UNSENT_TXS_FOLDER + uid + ".txt").read()[-72:-8]
         if hashed_cert == op_return_hash:
             return True
         return False
 
     uid = helpers.get_uid(f)
     print("UID: \t\t\t" + uid)
-    verified_sig = verify_signature(secrets.ISSUING_ADDRESS, json.loads(open(config.SIGNED_CERTS_FOLDER+uid+".json").read()))
+    verified_sig = verify_signature(secrets.ISSUING_ADDRESS,
+                                    json.loads(open(config.SIGNED_CERTS_FOLDER + uid + ".json").read()))
     verified_doc = verify_doc(uid)
     print("VERIFY SIGNATURE: \t%s " % (verified_sig))
     print("VERIFY_OP_RETURN: \t%s " % (verified_doc))
@@ -274,6 +284,7 @@ def verify_cert_txs(f):
         sys.exit(1)
 
     return "Verified transaction is complete.\n"
+
 
 def send_txs(f):
     uid = helpers.get_uid(f)
@@ -291,20 +302,25 @@ def send_txs(f):
     print("Broadcast transaction for certificate id %s with a txid of %s" % (uid, txid))
     return "Broadcast transaction.\n"
 
+
 def main(argv):
     parser = argparse.ArgumentParser(description='Create digital certificates')
     parser.add_argument('--remote', default=1, help='Use remote or local bitcoind (default: remote=1)')
-    parser.add_argument('--transfer', default=1, help='Transfer BTC to issuing address (default: 1). Only change this option for troubleshooting.')
-    parser.add_argument('--create', default=1, help='Create certificate transactions (default: 1). Only change this option for troubleshooting.')
-    parser.add_argument('--broadcast', default=1, help='Broadcast transactions (default: 1). Only change this option for troubleshooting.')
-    parser.add_argument('--wificheck', default=1, help='Used to make sure your private key is not plugged in with the wifi on (default: 1). Only change this option for troubleshooting.')
+    parser.add_argument('--transfer', default=1,
+                        help='Transfer BTC to issuing address (default: 1). Only change this option for troubleshooting.')
+    parser.add_argument('--create', default=1,
+                        help='Create certificate transactions (default: 1). Only change this option for troubleshooting.')
+    parser.add_argument('--broadcast', default=1,
+                        help='Broadcast transactions (default: 1). Only change this option for troubleshooting.')
+    parser.add_argument('--wificheck', default=1,
+                        help='Used to make sure your private key is not plugged in with the wifi on (default: 1). Only change this option for troubleshooting.')
     args = parser.parse_args()
 
     timestamp = str(time.time())
     global REMOTE_CONNECT
     global proxy
     global COIN
-    
+
     if int(args.remote) == 0:
         REMOTE_CONNECT = False
         args.transfer = 0
@@ -314,60 +330,63 @@ def main(argv):
         REMOTE_CONNECT = True
         COIN = config.COIN
 
-    if int(args.transfer)==0:
+    if int(args.transfer) == 0:
         if REMOTE_CONNECT == True:
-            r =  make_remote_url('address_balance', {"address": secrets.ISSUING_ADDRESS, "confirmations": 1}, remote_url = True)
+            r = make_remote_url('address_balance', {"address": secrets.ISSUING_ADDRESS, "confirmations": 1},
+                                remote_url=True)
             r_result = check_for_errors(requests.get(r))
             address_balance = r_result.json().get("balance", 0)
         else:
             address_balance = 0
             unspent = proxy.listunspent(addrs=[secrets.ISSUING_ADDRESS])
-            for u in unspent: 
+            for u in unspent:
                 address_balance = address_balance + u.get("amount", 0)
-        
-        cost_to_issue = int((config.BLOCKCHAIN_DUST*2+config.TX_FEES)*COIN) * len(glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
+
+        cost_to_issue = int((config.BLOCKCHAIN_DUST * 2 + config.TX_FEES) * COIN) * len(
+            glob.glob(config.UNSIGNED_CERTS_FOLDER + "*"))
         if address_balance < cost_to_issue:
-            sys.stderr.write('Sorry, please add %s BTC to the address %s.\n' % ((cost_to_issue - address_balance)/COIN, secrets.ISSUING_ADDRESS))
+            sys.stderr.write('Sorry, please add %s BTC to the address %s.\n' % (
+            (cost_to_issue - address_balance) / COIN, secrets.ISSUING_ADDRESS))
             sys.exit(1)
 
-    if int(args.transfer)==1:
+    if int(args.transfer) == 1:
         if int(args.remote) == 1:
             if int(args.wificheck) == 1:
                 helpers.check_internet_on()
             print(prepare_btc())
 
-    if int(args.create)==1:
+    if int(args.create) == 1:
         cert_info = prepare_certs()
-        
+
         if args.wificheck == 1:
             helpers.check_internet_off()
         print(sign_certs())
-        shutil.copytree(config.SIGNED_CERTS_FOLDER, config.ARCHIVE_CERTS_FOLDER+timestamp)
-        
+        shutil.copytree(config.SIGNED_CERTS_FOLDER, config.ARCHIVE_CERTS_FOLDER + timestamp)
+
         if int(args.wificheck) == 1:
             helpers.check_internet_on()
         print(hash_certs())
 
     ct = -1
-    for f in glob.glob(config.HASHED_CERTS_FOLDER+"*"):
-        filename = helpers.get_uid(f)+".txt"
+    for f in glob.glob(config.HASHED_CERTS_FOLDER + "*"):
+        filename = helpers.get_uid(f) + ".txt"
         message, last_input = build_cert_txs(cert_info, f, ct)
         print(message)
-        if int(args.create)==1:
+        if int(args.create) == 1:
             if int(args.wificheck) == 1:
                 helpers.check_internet_off()
-            print(sign_cert_txs(last_input, config.UNSIGNED_TXS_FOLDER+filename))
-            print(verify_cert_txs(config.UNSENT_TXS_FOLDER+filename))
-        if int(args.broadcast)==1:
+            print(sign_cert_txs(last_input, config.UNSIGNED_TXS_FOLDER + filename))
+            print(verify_cert_txs(config.UNSENT_TXS_FOLDER + filename))
+        if int(args.broadcast) == 1:
             if int(args.wificheck) == 1:
                 helpers.check_internet_on()
-            print(send_txs(config.UNSENT_TXS_FOLDER+filename))
+            print(send_txs(config.UNSENT_TXS_FOLDER + filename))
         ct -= 1
 
-    if int(args.broadcast)==1:
-        shutil.copytree(config.SENT_TXS_FOLDER, config.ARCHIVE_TXS_FOLDER+timestamp)
+    if int(args.broadcast) == 1:
+        shutil.copytree(config.SENT_TXS_FOLDER, config.ARCHIVE_TXS_FOLDER + timestamp)
         print("Archived sent transactions folder for safe keeping.\n")
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
