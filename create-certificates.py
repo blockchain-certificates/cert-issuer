@@ -44,7 +44,7 @@ proxy = None
 
 
 def make_remote_url(command, extras={}, remote_url=False):
-    if remote_url == True:
+    if remote_url:
         url = "http://blockchain.info/merchant/%s/%s?password=%s" % (
         secrets.WALLET_GUID, command, secrets.WALLET_PASSWORD)
     else:
@@ -54,7 +54,7 @@ def make_remote_url(command, extras={}, remote_url=False):
         addon = ''
         for name in list(extras.keys()):
             addon = "%s&%s=%s" % (addon, name, extras[name])
-        url = url + addon
+        url += addon
     return url
 
 
@@ -86,23 +86,23 @@ def check_if_confirmed(address):
 
 
 def wait_for_confirmation(address):
-    print("Waiting for a pending transaction to be confirmed for address %s" % (address))
+    print("Waiting for a pending transaction to be confirmed for address %s" % address)
     benchmark = datetime.now()
-    while (True):
+    while True:
         # confirmed_tx = check_if_confirmed(secrets.STORAGE_ADDRESS)
         confirmed_tx = check_if_confirmed(address)
         elapsed_time = str(datetime.now() - benchmark)
-        if confirmed_tx == True:
-            print("It took %s to process the trasaction" % (elapsed_time))
+        if confirmed_tx:
+            print("It took %s to process the trasaction" % elapsed_time)
             break
-        print("Time: %s, waiting 30 seconds and then checking if transaction is confirmed" % (elapsed_time))
+        print("Time: %s, waiting 30 seconds and then checking if transaction is confirmed" % elapsed_time)
         time.sleep(30)
     return confirmed_tx
 
 
 def prepare_btc():
     print("Starting script...\n")
-    if REMOTE_CONNECT == True:
+    if REMOTE_CONNECT:
 
         r = check_for_errors(requests.get(make_remote_url('login', {'api_code': secrets.API_KEY})))
 
@@ -114,7 +114,7 @@ def prepare_btc():
 
         temp_addresses = {}
         for i in range(num_certs):
-            r = check_for_errors(requests.get(make_remote_url('new_address', {"label": "temp-address-%s" % (i)})))
+            r = check_for_errors(requests.get(make_remote_url('new_address', {"label": "temp-address-%s" % i})))
             temp_addresses[r.json()["address"]] = int((2 * config.BLOCKCHAIN_DUST + 2 * config.TX_FEES) * COIN)
 
         print("Transfering BTC to temporary addresses...\n")
@@ -164,7 +164,7 @@ def sign_certs():
         uid = helpers.get_uid(f)
         cert = json.loads(open(f).read())
         message = BitcoinMessage(cert["assertion"]["uid"])
-        print("Signing certificate for recipient id: %s ..." % (uid))
+        print("Signing certificate for recipient id: %s ..." % uid)
         signature = SignMessage(privkey, message)
         cert["signature"] = str(signature, 'utf-8')
         cert = json.dumps(cert)
@@ -177,7 +177,7 @@ def hash_certs():
     for f in glob.glob(config.SIGNED_CERTS_FOLDER + "*"):
         uid = helpers.get_uid(f)
         cert = open(f, 'rb').read()
-        print("Hashing certificate for recipient id: %s ..." % (uid))
+        print("Hashing certificate for recipient id: %s ..." % uid)
         hashed_cert = hashlib.sha256(cert).digest()
         open(config.HASHED_CERTS_FOLDER + uid + ".txt", "wb").write(hashed_cert)
     return "Hashed certificates for recipients\n"
@@ -187,11 +187,11 @@ def hash_certs():
 def build_cert_txs(cert_info, f, ct):
     uid = helpers.get_uid(f)
     cert = open(f, 'rb').read()
-    print("Creating tx of certificate for recipient id: %s ..." % (uid))
+    print("Creating tx of certificate for recipient id: %s ..." % uid)
 
     txouts = []
-    if REMOTE_CONNECT == True:
-        r = requests.get("https://blockchain.info/unspent?active=%s&format=json" % (secrets.ISSUING_ADDRESS)).json()
+    if REMOTE_CONNECT:
+        r = requests.get("https://blockchain.info/unspent?active=%s&format=json" % secrets.ISSUING_ADDRESS).json()
         unspent = []
         for u in r['unspent_outputs']:
             u['outpoint'] = COutPoint(unhexlify(u['tx_hash']), u['tx_output_n'])
@@ -206,7 +206,7 @@ def build_cert_txs(cert_info, f, ct):
 
     unspent = sorted(unspent, key=lambda x: hash(x['amount']))
 
-    if REMOTE_CONNECT == True:
+    if REMOTE_CONNECT:
         last_input = unspent[ct]  # problem
     else:
         last_input = unspent[-1]
@@ -235,7 +235,7 @@ def build_cert_txs(cert_info, f, ct):
     hextx = hexlify(tx.serialize())
     open(config.UNSIGNED_TXS_FOLDER + uid + ".txt", "wb").write(bytes(hextx, 'utf-8'))
 
-    return ("Created unsigned tx for recipient \n", last_input)
+    return "Created unsigned tx for recipient \n", last_input
 
 
 def sign_cert_txs(last_input, f):
@@ -248,7 +248,7 @@ def sign_cert_txs(last_input, f):
     wif = wif_to_secret_exponent(helpers.import_key())
     lookup = build_hash160_lookup([wif])
 
-    if REMOTE_CONNECT == True:
+    if REMOTE_CONNECT:
         tx.set_unspents([TxOut(coin_value=last_input['amount'], script=unhexlify(last_input['script']))])
     else:
         tx.set_unspents([TxOut(coin_value=last_input['amount'], script=last_input["scriptPubKey"])])
@@ -277,10 +277,10 @@ def verify_cert_txs(f):
     verified_sig = verify_signature(secrets.ISSUING_ADDRESS,
                                     json.loads(open(config.SIGNED_CERTS_FOLDER + uid + ".json").read()))
     verified_doc = verify_doc(uid)
-    print("VERIFY SIGNATURE: \t%s " % (verified_sig))
-    print("VERIFY_OP_RETURN: \t%s " % (verified_doc))
-    if verified_sig == False or verified_doc == False:
-        sys.stderr.write('Sorry, there seems to be an issue with the certificate for recipient id: %s' % (uid))
+    print("VERIFY SIGNATURE: \t%s " % verified_sig)
+    print("VERIFY_OP_RETURN: \t%s " % verified_doc)
+    if not verified_sig or not verified_doc:
+        sys.stderr.write('Sorry, there seems to be an issue with the certificate for recipient id: %s' % uid)
         sys.exit(1)
 
     return "Verified transaction is complete.\n"
@@ -289,7 +289,7 @@ def verify_cert_txs(f):
 def send_txs(f):
     uid = helpers.get_uid(f)
     hextx = str(open(f, 'rb').read(), 'utf-8')
-    if REMOTE_CONNECT == True:
+    if REMOTE_CONNECT:
         r = requests.post("https://insight.bitpay.com/api/tx/send", json={"rawtx": hextx})
         if int(r.status_code) != 200:
             sys.stderr.write("Error broadcasting the transaction through the Insight API. Error msg: %s" % r.text)
@@ -331,7 +331,7 @@ def main(argv):
         COIN = config.COIN
 
     if int(args.transfer) == 0:
-        if REMOTE_CONNECT == True:
+        if REMOTE_CONNECT:
             r = make_remote_url('address_balance', {"address": secrets.ISSUING_ADDRESS, "confirmations": 1},
                                 remote_url=True)
             r_result = check_for_errors(requests.get(r))
