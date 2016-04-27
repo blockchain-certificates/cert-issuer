@@ -27,7 +27,7 @@ def get_uid(filename):
 
 def import_key():
     if secrets.USB_NAME[-1] != "/":
-        secrets.USB_NAME = secrets.USB_NAME + "/"
+        secrets.USB_NAME += "/"
     key = open(secrets.USB_NAME + secrets.KEY_FILE).read().strip()
     return key
 
@@ -50,7 +50,7 @@ def internet_on():
 
 def check_internet_off():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    while (1):
+    while 1:
         if internet_on() == False and os.path.exists(secrets.USB_NAME) == True:
             break
         else:
@@ -61,7 +61,7 @@ def check_internet_off():
 
 def check_internet_on():
     """If internet is on and USB is not plugged in, returns true. Else, continues to wait..."""
-    while (1):
+    while 1:
         if internet_on() == True and os.path.exists(secrets.USB_NAME) == False:
             break
         else:
