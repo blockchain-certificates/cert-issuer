@@ -1,9 +1,8 @@
-import glob
 import csv
+import glob
 import json
 
-import helpers
-import config
+from certificate_issuer import config, helpers
 
 with open('certs_dbdump.csv', 'w') as csvfile:
     fieldnames = ['_id', 'issued', 'pubkey', 'txid']
@@ -15,3 +14,11 @@ with open('certs_dbdump.csv', 'w') as csvfile:
         pubkey = json.loads(open(config.SIGNED_CERTS_FOLDER + uid + ".json", "r").read())["recipient"]["pubkey"]
         issued = True
         writer.writerow({'_id': uid, 'issued': issued, 'txid': txid, 'pubkey': pubkey})
+
+
+def get_uid(filename):
+    if "/" in filename:
+        filename = filename.split("/")[-1]
+    if "." in filename:
+        filename = filename.split(".")[0]
+    return filename

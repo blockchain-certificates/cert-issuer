@@ -1,6 +1,6 @@
 # Digital Certificates Project
 
-### Setting Up The VM 
+### Setting Up The VM (optional)
 1. Install [Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 2. Make a Linux VM (768MB of memory)
 	* Make virtual harddisk (8GB) of VDI (Virtual Disk Image)
@@ -25,43 +25,104 @@ Below are instructions are for running the code using bitcoind. To install bitco
 
 1. Once your bitcoind instance is up and running, add in the Bitcoin address that you will use for issuing as a "watch address" using the command `bitcoin-cli importaddress "<insert_address_here>" ( "ISSUING_ADDRESS" rescan )`. This will take a while to run, since it will scan the blockchain for the address's previous transactions.
 
-## Creating Bitcoin Addresses
-1. Go to [bitaddress.org](http://bitaddress.org) and create two address, the issuing address and the revocation address. Print these out to save them. 
-2. Save the unencrypted private key for the issuing address to a USB. Do not plug in this USB when your computer's wifi is on. FYI: These will be referenced as your `ISSUING_ADDRESS` and `REVOCATION_ADDRESS` respectivly in the code.
 
 ## Install 
 1. Clone the repo: `git clone https://github.com/ml-learning/digital-certificates-v2.git`
 2. Create a Python 3 virtual environment: `cd digital-certificates-v2 && virtualenv venv -p python3.4`
 3. Activate the virtual environment and install the requirements: `source venv/bin/activate && venv/bin/pip install -r requirements.txt`
-4. Create a secrets.py file: `nano secrets.py`
+4. Create your conf.ini file from the template: `cp conf_template.ini conf.ini`
 
-In the secrets.py file, place the following:
+Next we will populate the values
+
+
+## Creating Bitcoin Addresses
+
+1. Go to [bitaddress.org](http://bitaddress.org)
+2. Create an address that will be used as your 'issuing address', i.e. the address from which your certificates are issued.
+
+     a. save the unencrypted private key to your USB drive, in a file called pk_issuing.txt
+     b. save the public address as the issuing_address value in conf.ini
+
+3. Create an address that will be used as your 'revocation address', i.e. the address you will spend from if you decide to revoke the certificates.
+
+     a. save the unencrypted private key to your USB drive, in a file called pk_revocation.txt
+     b. save the public address as the revocation_address value in conf.ini
+
+4. Optional (TODO): create an address as above for the signing address
+5. Optional (TODO): create an address as above for the storage address
+
+
+Important! Do not plug in this USB when your computer's wifi is on.
+
+
+## Create a bitcoin wallet and import your issuing address (instruction for blockchain.info -- adapt these for your environment)
+This is one way to create a blockchain.info wallet that can perform transactions with your issuing address created above.
+This assumes you have an blockchain.info API key with create wallet permissions.
+
+TODO: these instructions aren't ideal. I eventually did this because I was having problems importing addresses. I'm sure
+there is a better way.
+
+1. Ensure your blockchain wallet service is started: `blockchain-wallet-service start --port 3000`
+2. Create a wallet as follows.
+  a. Create a data.json file with the following contents:
+```
+{
+        "password": "create a new, secure password",                    <-- store this securely
+        "api_code": "your_blockchain_info_api_code",
+        "priv": "<the value in pk_issuing.txt>",
+        "email": "<your_email>"
+}
 
 ```
-ISSUING_ADDRESS = "<issuing address>"
-REVOCATION_ADDRESS = "<revocation address>"
+  b. Create the wallet with the above file:
+`curl -X POST -H 'content-type: application/json' -d @data.json "http://localhost:3000/api/v2/create"`
 
-USB_NAME = "<path to usb>"
-KEY_FILE = "<name of private key file>"
+  c. Note the response:
 
-# The below fields are not needed for the local bitcoind installation,
-# but are needed for the blockchain.info configuration
-WALLET_GUID = "<blockchain.info wallet guid>" # Your unique identifier to login to blockchain.info
-WALLET_PASSWORD = "<blockchain.info wallet password>" # Your password to login to blockchain.info
-STORAGE_ADDRESS = "<blockchain.info address with storage BTC>" 
-API_KEY = "<blockchain.info api key>"
+  ```
+  {
+    "guid":"<save this value as wallet_guid in conf.ini>",
+    "address":"<note this matches your issuing address>"
+  }
+
+  ```
+
+  c. Ensure you delete the data.json file and/or ensure it is moved to a secure location
+
+
+3. Ensure the remaining required conf.ini values are entered. At this point you should have:
+
+```
+issuing_address = "<issuing address>"
+revocation_address = "<revocation address>"
+
+usb_name = "<path to usb>"
+key_file = "<name of private key file>"
+
+# The below fields are not needed for the local bitcoind installation, but are needed for the blockchain.info configuration
+wallet_guid = "<blockchain.info wallet guid>"                    # Your unique identifier to login to blockchain.info
+wallet_password = "<blockchain.info wallet password>"            # Your password to login to blockchain.info
+storage_address = "<blockchain.info address with storage BTC>"
+api_key = "<blockchain.info api key>"
 ```
 
 ### To Run
 1. If you are using the blockchain.info API, start the blockchain.info server `blockchain-wallet-service start --port 3000`. Otherwise, ensure that bitcoind is running.
 2. Add your certificates to data/unsigned_certs/
-3. Make sure you have enough BTC in your storage address.
+3. Make sure you have enough BTC in your storage address. (TODO: my blockchain calculations are lower!)
 	1. Using bitcoind, each certificate costs 15000 satoshi ($0.06 USD)
 	2. Using the blockchain.info API, each certificate costs: 26435 * total_num_certs + 7790 satoshi (e.g. if you are issuing 1 certificate, it will cost roughly $0.13 USD)
 4. Run the create-certificates.py script to create your certificates: 
 	1. To run "remotely" using the Blockchain.info API: `python create-certificates.py`
 	2. To run using your bitcoind installation: `python create-certificates.py --remote=0`
 
+
 ## Contact
 For questions or more information, contact Juliana Nazaré at [juliana@media.mit.edu](mailto:juliana@media.mit.edu).
+
+## Kim details on wallet
+
+1. Created issuing/revocation addresses as above
+
+2. Created wallet associated with the above issuing address
 
