@@ -76,11 +76,10 @@ from certificate_issuer.wallet import Wallet
 
 
 def do_sign(certificate, secret_key):
-    """Signs the certificate. String input and output. Ensures json contents are sorted
-    TODO: I am signing entire assertion instead of cert['assertion']['uid']
+    """Signs the certificate. String input and output.
     """
     cert = json.loads(certificate)
-    to_sign = json.dumps(cert['assertion'], sort_keys=True)
+    to_sign = json.dumps(cert['assertion']['uid'])
     message = BitcoinMessage(to_sign)
     signature = SignMessage(secret_key, message)
     cert['signature'] = str(signature, 'utf-8')
@@ -90,7 +89,7 @@ def do_sign(certificate, secret_key):
 
 def do_verify_signature(address, signed_cert):
     signed_cert_json = json.loads(signed_cert)
-    to_verify = json.dumps(signed_cert_json['assertion'], sort_keys=True)
+    to_verify = json.dumps(signed_cert_json['assertion']['uid'], sort_keys=True)
     message = BitcoinMessage(to_verify)
     signature = signed_cert_json['signature']
     verified = VerifyMessage(address, message, signature)
