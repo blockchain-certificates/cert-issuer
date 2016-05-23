@@ -1,36 +1,44 @@
 """
+About:
 Signs a certificate in accordance with the open badges spec and puts it on the blockchain
 
-Certificate issuer assumes the existence of an unsigned certificate, obi compliant, signs the assertion  section, populates the xxx section.
+How it works:
+This certificate issuer assumes the existence of an unsigned, obi-compliant certificate. It signs the assertion section,
+populates the signature section.
 
-As of this signing step, the certificate is finished with ob steps.
+Next the certificate signature is hashed and processed as a bitcoin transaction, as follows.
+1. Hash signed certificate
+2. Ensure balance is available in the wallet (may involve transfering to issuing address)
+3. Prepare bitcoin transaction
+4. Sign bitcoin transaction
+5. Send (broadcast) bitcoin transaction -- the bitcoins are not spent until this step
 
-Next we want to convert it to a Bitcoin transaction. As follows
-Hash signed trx
-Ensure balance
-Prepare trx
-Sign trx
-Send/ broadcast trx
+Transaction details:
+Each certificate corresponds to a bitcoin transaction with these outputs:
+1. Recipient address receives dust amount
+2. Revocation address receives dust amount
+3. OP_RETURN field contains signed, hashed assertion
+4. Change address if the inputs are greater than above plus transaction fees
 
-The btc are not spent until the last step
+Connectors:
+There are different connectors for wallets and broadcasting. By default, it uses blockchain.info for the wallet and
+btc.blockr.io for broadcasting. Bitcoind connector is still under development
 
-Different connectors for wallets and broadcasting
+Use case:
+This script targets a primary use case of issuing an individual certificate or a relatively small batch of
+certificates (<100 -- this is for cost reasons). In the latter case there are some additional steps to speed up the
+transactions by splitting into temporary addresses.
 
-Issue in batch--assumes we have a public btc address for the recipient
-Can issue single or in batch. In the latter case there are some additional tricks to speed up transfer from storage.
+About the recipient public key:
+This script assumes the recipient is assigned a public bitcoin address, located in the unsigned certificate as the
+recipient pubkey field. In past certificate issuing events, this was generated in 2 ways: (1) securely generated offline
+for the recipient, and (2) provided by the recipient via the certificate-viewer functionality. (1) and (2) have
+different characteristics that will be discussed in a whitepaper (link TODO)
 
-Revocation is tricky
-Debating different approach to make more economically
-Usability
-
-Todo-- why storage step at all?
-
-Outputs are:
-Cert
-Revocation
-Op return -- proof
-Change
-
+Planned changes:
+- Revocation is tricky
+- Debating different approach to make more economically
+- Usability
 
 """
 import sys
