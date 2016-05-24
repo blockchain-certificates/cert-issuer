@@ -6,6 +6,8 @@
 Welcome to Digital Certificates' Issuer documentation!
 ======================================================
 
+Get the code: https://github.com/digital-certificates/issuer
+
 API docs
 --------
 
