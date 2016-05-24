@@ -1,7 +1,7 @@
 
 ## Installation
-1. Clone the repo: `git clone https://github.com/ml-learning/digital-certificates-v2.git`
-2. Create a Python 3 virtual environment: `cd digital-certificates-v2 && virtualenv venv -p python3.4`
+1. Clone the repo: `git clone https://github.com/digital-certificates/issuer.git`
+2. Create a Python 3 virtual environment: `cd issuer && virtualenv venv -p python3.4`
 3. Activate the virtual environment and install the requirements: `source venv/bin/activate && venv/bin/pip install -r requirements.txt`
 4. Create your conf.ini file from the template: `cp conf_template.ini conf.ini`
 
