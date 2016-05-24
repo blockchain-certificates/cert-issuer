@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# certificate-issuer documentation build configuration file, created by
+# issuer documentation build configuration file, created by
 # sphinx-quickstart on Tue May 24 09:28:44 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -54,7 +54,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'certificate-issuer'
+project = 'issuer'
 copyright = '2016, MIT Media Lab Digital Certificates'
 author = 'MIT Media Lab Digital Certificates'
 
@@ -129,7 +129,7 @@ todo_include_todos = True
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-#html_title = 'certificate-issuer v0.0.1'
+#html_title = 'issuer v0.0.1'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -211,7 +211,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'certificate-issuerdoc'
+htmlhelp_basename = 'issuerdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -233,7 +233,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'certificate-issuer.tex', 'certificate-issuer Documentation',
+    (master_doc, 'issuer.tex', 'issuer Documentation',
      'MIT Media Lab Digital Certificates', 'manual'),
 ]
 
@@ -263,7 +263,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'certificate-issuer', 'certificate-issuer Documentation',
+    (master_doc, 'issuer', 'issuer Documentation',
      [author], 1)
 ]
 
@@ -277,8 +277,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'certificate-issuer', 'certificate-issuer Documentation',
-     author, 'certificate-issuer', 'One line description of project.',
+    (master_doc, 'issuer', 'issuer Documentation',
+     author, 'issuer', 'One line description of project.',
      'Miscellaneous'),
 ]
 
