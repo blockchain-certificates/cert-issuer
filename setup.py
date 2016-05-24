@@ -23,5 +23,8 @@ setup(
         'configargparse==0.10.0',
         'python-bitcoinlib==0.5.0',
         'mock==2.0.0',
-        'tox==2.3.1'
+        'tox==2.3.1',
+        'recommonmark==0.4.0',
+        'Sphinx>=1.4.1',
+        'sphinx-rtd-theme>=0.1.9'
     ], )
