@@ -4,3 +4,6 @@ requests==2.9.1
 mock==2.0.0
 glob2==0.4.1
 configargparse==0.10.0
+recommonmark==0.4.0
+Sphinx>=1.4.1
+sphinx-rtd-theme>=0.1.9
