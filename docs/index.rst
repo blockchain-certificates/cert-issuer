@@ -17,11 +17,19 @@ Setup
    installation
    creating_addresses
    configuration
-   run
+
+Issuing certificates
+--------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   issuing
 
 
 API docs
 --------
+
 
 .. toctree::
    :maxdepth: 2

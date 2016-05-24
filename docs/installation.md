@@ -21,13 +21,13 @@ Below are steps that will allow you to setup the digital certificates code to in
 permission.
 4. Enter your wallet information into conf.ini
 
-  a. Save the wallet GUID as `wallet_guid` in conf.ini
-  b. Save the wallet password as `wallet_password` in conf.ini
-  c. When your api key from step 3 arrives, save this as `api_key` in conf.ini
+    a. Save the wallet GUID as `wallet_guid` in conf.ini
+    b. Save the wallet password as `wallet_password` in conf.ini
+    c. When your api key from step 3 arrives, save this as `api_key` in conf.ini
 
 5. Designate an address that will store your bitcoin for issuing the certificates. Transfer a few BTC to this address.
 
-  a.  Save this address as your `storage_address` in conf.ini
+    a.  Save this address as your `storage_address` in conf.ini
 
 6. Install the Blockchain.info API local service [instructions here](https://github.com/blockchain/service-my-wallet-v3).
 
@@ -35,9 +35,9 @@ permission.
 Below are instructions are for running the code using bitcoind. To install bitcoind on a Ubuntu server, please follow the
 [tutorial here](https://21.co/learn/setup-a-bitcoin-development-environment/#installing-bitcoind-from-source-on-ubuntu).
 
-1. Once your bitcoind instance is up and running, add in the Bitcoin address that you will use for issuing as a "watch address"
- using the command `bitcoin-cli importaddress "<insert_address_here>" ( "ISSUING_ADDRESS" rescan )`. This will take a
- while to run, since it will scan the blockchain for the address's previous transactions.
+Once your bitcoind instance is up and running, add in the Bitcoin address that you will use for issuing as a "watch address"
+using the command `bitcoin-cli importaddress "<insert_address_here>" ( "ISSUING_ADDRESS" rescan )`. This will take a
+while to run, since it will scan the blockchain for the address's previous transactions.
 
 
 
