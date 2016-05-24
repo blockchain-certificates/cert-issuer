@@ -8,6 +8,18 @@ Welcome to Digital Certificates' Issuer documentation!
 
 Get the code: https://github.com/digital-certificates/issuer
 
+Setup
+-----
+
+.. toctree::
+   :maxdepth: 2
+
+   installation
+   creating_addresses
+   configuration
+   run
+
+
 API docs
 --------
 
