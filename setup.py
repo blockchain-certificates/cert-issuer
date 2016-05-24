@@ -7,14 +7,14 @@ with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
 setup(
-    name='certificate-issuer',
+    name='issuer',
     version='0.0.1',
-    url='https://github.com/ml-learning/digital-certificates-v2',
+    url='https://github.com/digital-certificates/issuer',
     license='MIT',
-    author='MIT Media Labs certificates',
+    author='MIT Media Labs Digital Certificates',
     author_email='coins@media.mit.edu',
     description='',
-    packages=['certificate_issuer'],
+    packages=['issuer'],
     include_package_data=True,
     install_requires=[
         'pycoin==0.62',

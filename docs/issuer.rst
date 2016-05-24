@@ -1,4 +1,4 @@
-certificate_issuer package
+issuer package
 ==========================
 
 Submodules
@@ -7,63 +7,63 @@ Submodules
 Module contents
 ---------------
 
-.. automodule:: certificate_issuer
+.. automodule:: issuer
     :members:
     :undoc-members:
     :show-inheritance:
 
-certificate_issuer.issuer module
+issuer.certificate_issuer module
 --------------------------------
 
-.. automodule:: certificate_issuer.issuer
+.. automodule:: issuer.certificate_issuer
     :members:
     :undoc-members:
     :show-inheritance:
 
-certificate_issuer.wallet module
+issuer.wallet module
 --------------------------------
 
-.. automodule:: certificate_issuer.wallet
+.. automodule:: issuer.wallet
     :members:
     :undoc-members:
     :show-inheritance:
 
-certificate_issuer.connectors module
+issuer.connectors module
 ------------------------------------
 
-.. automodule:: certificate_issuer.connectors
+.. automodule:: issuer.connectors
     :members:
     :undoc-members:
     :show-inheritance:
 
-certificate_issuer.models module
+issuer.models module
 --------------------------------
 
-.. automodule:: certificate_issuer.models
+.. automodule:: issuer.models
     :members:
     :undoc-members:
     :show-inheritance:
 
-certificate_issuer.errors module
+issuer.errors module
 --------------------------------
 
-.. automodule:: certificate_issuer.errors
+.. automodule:: issuer.errors
     :members:
     :undoc-members:
     :show-inheritance:
 
-certificate_issuer.helpers module
+issuer.helpers module
 ---------------------------------
 
-.. automodule:: certificate_issuer.helpers
+.. automodule:: issuer.helpers
     :members:
     :undoc-members:
     :show-inheritance:
 
-certificate_issuer.config module
+issuer.config module
 --------------------------------
 
-.. automodule:: certificate_issuer.config
+.. automodule:: issuer.config
     :members:
     :undoc-members:
     :show-inheritance:

@@ -27,5 +27,5 @@ conf.ini
 
 .cache/*
 .tox/*
-certificate_signer.egg-info/*
+*.egg-info/*
 docs/_build/*

@@ -9,9 +9,9 @@ import requests
 from bitcoin.core import *
 from bitcoin.core.script import *
 from bitcoin.wallet import CBitcoinAddress
-from certificate_issuer.errors import UnrecognizedConnectorError, ConnectorError
-from certificate_issuer.helpers import unhexlify
-from certificate_issuer.models import TransactionOutput
+from issuer.errors import UnrecognizedConnectorError, ConnectorError
+from issuer.helpers import unhexlify
+from issuer.models import TransactionOutput
 
 
 class WalletConnector:

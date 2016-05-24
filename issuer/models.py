@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from certificate_issuer import helpers
+from issuer import helpers
 
 
 TransactionOutput = namedtuple('TxOutput', ['outpoint', 'address', 'script_pub_key', 'amount'])

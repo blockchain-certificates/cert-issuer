@@ -1,10 +1,10 @@
-.. certificate-issuer documentation master file, created by
-   sphinx-quickstart on Tue May 24 09:28:44 2016.
+.. issuer documentation master file, created by
+   sphinx-quickstart on Tue May 24 12:31:23 2016.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to certificate-issuer's documentation!
-==============================================
+Welcome to issuer's documentation!
+==================================
 
 Contents:
 
@@ -12,7 +12,6 @@ Contents:
    :maxdepth: 2
 
    modules
-
 
 Indices and tables
 ==================

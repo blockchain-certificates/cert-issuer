@@ -1,4 +1,4 @@
-# Digital Certificates Project
+# Digital Certificates Issuer Project
 
 ### Setting Up The VM (optional)
 1. Install [Virtualbox](https://www.virtualbox.org/wiki/Downloads)

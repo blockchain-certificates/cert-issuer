@@ -47,8 +47,6 @@ if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
 
-from certificate_issuer.config import CONFIG as app_config
-
 import glob2
 import time
 
@@ -65,14 +63,14 @@ from pycoin.encoding import wif_to_secret_exponent
 from pycoin.tx import Tx, TxOut
 from pycoin.tx.pay_to import build_hash160_lookup
 
-from certificate_issuer import helpers
-from certificate_issuer.helpers import hexlify, internet_off_for_scope
-from certificate_issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
+from issuer import helpers
+from issuer.helpers import hexlify, internet_off_for_scope
+from issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
 
-from certificate_issuer.models import CertificateMetadata
+from issuer.models import CertificateMetadata
 
-from certificate_issuer import connectors, wallet
-from certificate_issuer.wallet import Wallet
+from issuer import connectors, wallet
+from issuer.wallet import Wallet
 
 
 def do_sign(certificate, secret_key):
@@ -318,5 +316,7 @@ if __name__ == "__main__":
     formatter = logging.Formatter("%(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
+    from issuer.config import CONFIG as app_config
 
     main(app_config)

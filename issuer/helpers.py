@@ -8,7 +8,7 @@ import time
 
 import glob2
 import requests
-from certificate_issuer import config
+from issuer import config
 
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify

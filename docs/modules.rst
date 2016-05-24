@@ -1,7 +1,7 @@
-certificate_issuer
+issuer
 ==================
 
 .. toctree::
    :maxdepth: 4
 
-   certificate_issuer
+   issuer

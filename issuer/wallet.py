@@ -3,8 +3,8 @@ import random
 import time
 from datetime import datetime
 
-from certificate_issuer.errors import InsufficientFundsError
-from certificate_issuer.models import TransactionCosts
+from issuer.errors import InsufficientFundsError
+from issuer.models import TransactionCosts
 
 
 COIN = 100000000   # satoshis in 1 btc
@@ -105,11 +105,12 @@ class Wallet:
         return confirmed_tx
 
     def transfer_balance(self, storage_address, issuing_address, transaction_costs):
-        """transfer balance to ensure enough is available for certificates
+        """
+        transfer balance to ensure enough is available for certificates
         The temporary addresses are used to subdivide the payments in order to break them up into individual spends.
         This way, we do not have to wait for one large input to be spent on the blockchain and confirmed (i.e. a little bit
-         of the money spent and the rest return to the address). This allows us to issue 10 certificates in the time it
-         would take to issue two normally.
+        of the money spent and the rest return to the address). This allows us to issue 10 certificates in the time it
+        would take to issue two normally.
         """
         # TODO!!! wallet.login()
 
