@@ -6,7 +6,8 @@
 Welcome to Digital Certificates' Issuer documentation!
 ======================================================
 
-Contents:
+API docs
+--------
 
 .. toctree::
    :maxdepth: 2
@@ -14,7 +15,7 @@ Contents:
    modules
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
