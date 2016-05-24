@@ -28,3 +28,4 @@ conf.ini
 .cache/*
 .tox/*
 certificate_signer.egg-info/*
+docs/_build/*
