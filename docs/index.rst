@@ -3,11 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Digital Certificates' Issuer documentation!
-======================================================
-
-This is an incubation project. We're looking for feedback, contributions, and general discussion.This is not currently
-intended for production release, however that's our focus for the near future.
+Welcome to Issuer's Documentation
+=================================
+The Issuer project is part of the MIT Media Lab Digital Certificates incubation project. We're looking for feedback,
+contributions, and general discussion. This is not currently intended for production release, but we are improving
+our approach for future releases. Read more about the Digital Certificates Project at http://certificates.media.mit.edu/.
 
 Get the code: https://github.com/digital-certificates/issuer
 

@@ -11,7 +11,7 @@ setup(
     version='0.0.1',
     url='https://github.com/digital-certificates/issuer',
     license='MIT',
-    author='MIT Media Labs Digital Certificates',
+    author='MIT Media Lab Digital Certificates',
     author_email='coins@media.mit.edu',
     description='',
     packages=['issuer'],
