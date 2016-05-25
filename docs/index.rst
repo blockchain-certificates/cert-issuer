@@ -6,6 +6,9 @@
 Welcome to Digital Certificates' Issuer documentation!
 ======================================================
 
+This is an incubation project. We're looking for feedback, contributions, and general discussion.This is not currently
+intended for production release, however that's our focus for the near future.
+
 Get the code: https://github.com/digital-certificates/issuer
 
 Setup

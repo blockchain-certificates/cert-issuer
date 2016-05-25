@@ -2,6 +2,8 @@
 
 About
 =====
+This is an incubation project. We're looking for feedback, contributions, and general discussion.This is not currently
+intended for production release, however that's our focus for the near future.
 
 Check out the web application at [https://coins.media.mit.edu](https://coins.media.mit.edu).
 
