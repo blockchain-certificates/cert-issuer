@@ -2,24 +2,20 @@ import json
 import logging
 import sys
 import urllib.parse
-from abc import abstractmethod, ABCMeta
 
 import bitcoin.rpc
 import requests
+from abc import abstractmethod, ABCMeta
 from bitcoin.core import *
 from bitcoin.core.script import *
 from bitcoin.wallet import CBitcoinAddress
-from issuer.errors import UnrecognizedConnectorError, ConnectorError
-from issuer.helpers import unhexlify
+from issuer.errors import UnrecognizedConnectorError, ConnectorError, NotImplementedError
+from issuer.helpers import unhexlify, hexlify
 from issuer.models import TransactionOutput
 
 
 class WalletConnector:
     __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def login(self):
-        return
 
     @abstractmethod
     def get_balance(self, address, confirmations):
@@ -55,10 +51,6 @@ class BlockchainInfoConnector(WalletConnector):
         self.wallet_guid = config.wallet_guid
         self.wallet_password = config.wallet_password
         self.api_key = config.api_key
-
-    def login(self):
-        login_url = self._make_url('login')
-        try_get(login_url)
 
     def get_balance(self, address, confirmations):
         confirmed_url = self._make_url('address_balance', {'address': address, 'confirmations': confirmations})
@@ -101,6 +93,7 @@ class BlockchainInfoConnector(WalletConnector):
                    'recipients': urllib.parse.quote_plus(json.dumps(temp_addresses)),
                    'fee': transfer_split_fee}
         sendmany_url = self._make_url('sendmany', payload)
+        logging.info('calling url from send_to_addresses: %s', sendmany_url)
         try_get(sendmany_url)
 
     def _make_url(self, command, extras={}):
@@ -118,9 +111,6 @@ class BitcoindConnector(WalletConnector):
     def __init__(self, config):
         self.proxy = bitcoin.rpc.Proxy()
 
-    def login(self):
-        return
-
     def get_balance(self, address, confirmations):
         address_balance = 0
         unspent = self.proxy.listunspent(addrs=[address])
@@ -128,25 +118,25 @@ class BitcoindConnector(WalletConnector):
             address_balance = address_balance + u.get('amount', 0)
         return address_balance
 
-    def create_temp_address(self, address):
-        return None
-
     def get_unspent_outputs(self, address):
         unspent_outputs = self.proxy.listunspent(addrs=[address])
-        unspent_outputs_converted = [TransactionOutput(unspent['outpoint'], int(unspent['address']),
-                                                       unspent['scriptPubKey'], unspent['amount'] * COIN)  # TODO
+        unspent_outputs_converted = [TransactionOutput(unspent['outpoint'], unspent['address'],
+                                                       unspent['scriptPubKey'], int(unspent['amount']))
                                      for unspent in unspent_outputs]
         return unspent_outputs_converted
 
     def pay(self, from_address, issuing_address, amount, fee):
-        return
+        self.proxy.sendtoaddress(issuing_address, amount)
+
+    # These methods are used for temporary addresses, and they are not yet supported
+    def create_temp_address(self, address):
+        raise NotImplementedError('create_temp_addresses is not yet supported')
 
     def archive(self, address):
-        return
+        raise NotImplementedError('archive is not yet supported')
 
     def send_to_addresses(self, storage_address, temp_addresses, transfer_split_fee):
-        # TODO!
-        return
+        raise NotImplementedError('send_to_addresses is not yet supported')
 
 
 def insight_broadcast(hextx):
@@ -176,8 +166,9 @@ def noop_broadcast(hextx):
 
 
 def bitcoind_broadcast(hextx):
-    txid = b2lx(lx(bitcoin.rpc.Proxy()._call('sendrawtransaction', hextx)))
-    return txid
+    tx = CTransaction.deserialize(unhexlify(hextx))
+    txid = bitcoin.rpc.Proxy().sendrawtransaction(tx)
+    return hexlify(txid)
 
 
 def create_wallet_connector(config):

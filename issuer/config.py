@@ -16,8 +16,8 @@ def parse_args():
     p.add_argument('--revocation_address', required=True, help='revocation address')
     p.add_argument('--usb_name', required=True, help='usb path to key_file')
     p.add_argument('--key_file', required=True, help='name of file on USB containing private key')
-    p.add_argument('--transfer_from_storage_address', action='store_false',
-                   help='Transfer BTC from storage to issuing address (default: 1). Only change this option for troubleshooting.')
+    p.add_argument('--transfer_from_storage_address', action='store_true',
+                   help='Transfer BTC from storage to issuing address (default: 0). Advanced usage')
     p.add_argument('--sign_certificates', action='store_false',
                    help='Sign certificates in unsigned_certs folder (default: 1). Only change this option for troubleshooting.')
     p.add_argument('--broadcast', action='store_false',
@@ -32,13 +32,13 @@ def parse_args():
     p.add_argument('--satoshi_per_byte', default=41, type=int, help='Satoshi per byte')
     p.add_argument('--unsigned_certs_file_pattern', default='../data/unsigned_certs/*.json',
                    help='unsigned certs file pattern')
-    p.add_argument('--signed_certs_file_pattern', default='data/signed_certs/*.json', help='signed certs file pattern')
-    p.add_argument('--hashed_certs_file_pattern', default='data/hashed_certs/*.txt', help='hashed certs file pattern')
-    p.add_argument('--unsigned_txs_file_pattern', default='data/unsigned_txs/*.txt', help='unsigned txs file pattern')
-    p.add_argument('--unsent_txs_file_pattern', default='data/unsent_txs/*.txt', help='unsent txs file pattern')
-    p.add_argument('--sent_txs_file_pattern', default='data/sent_txs/*.txt', help='sent txs file pattern')
-    p.add_argument('--archived_certs_file_pattern', default='archive/certs/*.json', help='archive certs file pattern')
-    p.add_argument('--archived_txs_file_pattern', default='archive/txs/*.txt', help='archive txs file pattern')
+    p.add_argument('--signed_certs_file_pattern', default='../data/signed_certs/*.json', help='signed certs file pattern')
+    p.add_argument('--hashed_certs_file_pattern', default='../data/hashed_certs/*.txt', help='hashed certs file pattern')
+    p.add_argument('--unsigned_txs_file_pattern', default='../data/unsigned_txs/*.txt', help='unsigned txs file pattern')
+    p.add_argument('--unsent_txs_file_pattern', default='../data/unsent_txs/*.txt', help='unsent txs file pattern')
+    p.add_argument('--sent_txs_file_pattern', default='../data/sent_txs/*.txt', help='sent txs file pattern')
+    p.add_argument('--archived_certs_file_pattern', default='../archive/certs/*.json', help='archive certs file pattern')
+    p.add_argument('--archived_txs_file_pattern', default='../archive/txs/*.txt', help='archive txs file pattern')
 
     p.add_argument('--wallet_connector_type', default='blockchain.info', help='connector to use for wallet')
     p.add_argument('--broadcaster_type', default='btc.blockr.io', help='connector to use for broadcast')

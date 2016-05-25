@@ -20,7 +20,6 @@ def get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transacti
     """
     fee_per_transaction = recommended_fee_per_transaction * COIN
     min_per_transaction = dust_threshold * COIN
-    cost_per_certificate = (2 * min_per_transaction) + fee_per_transaction
 
     # plus additional fees for splitting
     if allow_transfer:
@@ -28,7 +27,7 @@ def get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transacti
     else:
         split_transfer_fee = 0
 
-    return TransactionCosts(cost_per_certificate, fee_per_transaction, num_certificates, split_transfer_fee)
+    return TransactionCosts(min_per_transaction, fee_per_transaction, num_certificates, split_transfer_fee)
 
 
 def calculate_txfee(satoshi_per_byte, fee_per_transaction, num_inputs, num_outputs):
@@ -67,7 +66,7 @@ class Wallet:
 
         if not unspent_outputs:
             logging.error('No money to spend at address %s', address)
-            raise InsufficientFundsError('No money to spend at address {}'.format(address))
+            raise InsufficientFundsError('No money to spend at address {0}'.format(address))
 
         unspent_sorted = sorted(unspent_outputs, key=lambda x: hash(x.amount))
         return unspent_sorted
@@ -112,16 +111,15 @@ class Wallet:
         of the money spent and the rest return to the address). This allows us to issue 10 certificates in the time it
         would take to issue two normally.
         """
-        # TODO!!! wallet.login()
 
         # first make sure that there are no pending transactions for the storage address
         self.wait_for_confirmation(storage_address)
 
-        logging.info('Creating %d temporary addresses...', transaction_costs.number_of_certificates)
+        logging.info('Creating %d temporary addresses...', transaction_costs.number_of_transactions)
 
         # TODO: I think we should only do this if there are >2 or 3 certs?
         temp_addresses = []
-        for i in range(transaction_costs.number_of_certificates):
+        for i in range(transaction_costs.number_of_transactions):
             temp_address_in = 'temp-address-%s' % i
             temp_address = self.connector.create_temp_address(temp_address_in)
             temp_addresses.append(temp_address)

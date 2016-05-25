@@ -24,7 +24,7 @@ class TestCertificateSigner(unittest.TestCase):
                 patch('issuer.certificate_issuer.SignMessage', return_value=b'123'), \
                 patch('issuer.helpers.import_key', return_value='tcKK1A9Si73zG5ZFnA6XYyhAcb1BNrMVyG'):
             certificate_issuer.sign_certs(cert_info)
-            m.assert_any_call('data/signed_certs/somecertificate.json', 'wb')
+            m.assert_any_call('../data/signed_certs/somecertificate.json', 'wb')
             handle = m()
             handle.write.assert_called_once_with(
                 bytes('{"assertion": {"uid": "123"}, "signature": "123"}', 'utf-8'))
@@ -35,8 +35,8 @@ class TestCertificateSigner(unittest.TestCase):
         cert_info = {'someuid': cert_metadata}
         with patch('issuer.certificate_issuer.open', mock_open(read_data='bibble'.encode('utf-8')), create=True) as m:
             certificate_issuer.hash_certs(cert_info)
-            m.assert_any_call('data/signed_certs/someuid.json', 'rb')
-            m.assert_any_call('data/hashed_certs/someuid.txt', 'wb')
+            m.assert_any_call('../data/signed_certs/someuid.json', 'rb')
+            m.assert_any_call('../data/hashed_certs/someuid.txt', 'wb')
 
             handle = m()
             handle.read.assert_called_once()

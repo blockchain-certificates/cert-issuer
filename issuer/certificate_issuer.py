@@ -73,11 +73,14 @@ from issuer import connectors, wallet
 from issuer.wallet import Wallet
 
 
+import bitcoin
+bitcoin.SelectParams('regtest')
+
 def do_sign(certificate, secret_key):
     """Signs the certificate. String input and output.
     """
     cert = json.loads(certificate)
-    to_sign = json.dumps(cert['assertion']['uid'])
+    to_sign = cert['assertion']['uid']
     message = BitcoinMessage(to_sign)
     signature = SignMessage(secret_key, message)
     cert['signature'] = str(signature, 'utf-8')
@@ -87,13 +90,13 @@ def do_sign(certificate, secret_key):
 
 def do_verify_signature(address, signed_cert):
     signed_cert_json = json.loads(signed_cert)
-    to_verify = json.dumps(signed_cert_json['assertion']['uid'], sort_keys=True)
+    to_verify = signed_cert_json['assertion']['uid']
     message = BitcoinMessage(to_verify)
     signature = signed_cert_json['signature']
     verified = VerifyMessage(address, message, signature)
     if not verified:
         raise UnverifiedSignatureError('There was a problem with the signature for certificate uid=%s',
-                                       signed_cert['assertion']['uid'])
+                                       signed_cert_json['assertion']['uid'])
 
 
 def sign_and_hash_certs(certificates_metadata):
@@ -105,6 +108,7 @@ def sign_and_hash_certs(certificates_metadata):
 @internet_off_for_scope
 def sign_certs(certificates_metadata):
     """Sign certificates. Internet should be off for the scope of this function."""
+    logging.info('signing certificates')
     pk = helpers.import_key()
     secret_key = CBitcoinSecret(pk)
     for uid, certificate_metadata in certificates_metadata.items():
@@ -115,6 +119,7 @@ def sign_certs(certificates_metadata):
 
 
 def hash_certs(certificates_metadata):
+    logging.info('hashing certificates')
     for uid, certificate_metadata in certificates_metadata.items():
         with open(certificate_metadata.signed_certificate_file_name, 'rb') as in_file, \
                 open(certificate_metadata.certificate_hash_file_name, 'wb') as out_file:
@@ -152,7 +157,7 @@ def _build_certificate_transactions(wallet, issuing_address, revocation_address,
         hashed_certificate = in_file.read()
         cert_out = CMutableTxOut(0, CScript([OP_RETURN, hashed_certificate]))
         # we send a transaction to the recipient's public key, and to a revocation address
-        txouts = _create_recipient_outputs(certificate_metadata.pubkey, revocation_address, fees.fee_per_transaction)
+        txouts = _create_recipient_outputs(certificate_metadata.pubkey, revocation_address, fees.min_per_transaction)
 
         # independent
         unspent_outputs = wallet.get_unspent_outputs(issuing_address)
@@ -273,11 +278,11 @@ def main(app_config):
 
     if app_config.sign_certificates:
         logging.info('deleting previous generated files')
-        helpers.clear_intermediate_folders()
+        #helpers.clear_intermediate_folders()
 
         logging.info('Signing and hashing %d certificates', number_of_transactions)
-        sign_and_hash_certs(certificates_metadata)
-        helpers.archive_files(app_config.signed_certs_file_pattern, app_config.archived_certs_file_pattern, start_time)
+        #sign_and_hash_certs(certificates_metadata)
+        #helpers.archive_files(app_config.signed_certs_file_pattern, app_config.archived_certs_file_pattern, start_time)
 
     # calculate transaction costs
     transaction_costs = wallet.get_cost_for_certificate_batch(app_config.dust_threshold, app_config.tx_fees,
@@ -302,6 +307,7 @@ def main(app_config):
     issue_on_blockchain(wt, broadcast_function, issuing_address,
                         revocation_address, certificates_metadata,
                         transaction_costs)
+
 
     helpers.archive_files(app_config.sent_txs_file_pattern, app_config.archived_txs_file_pattern, start_time)
     logging.info('Archived sent transactions folder for safe keeping.')

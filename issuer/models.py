@@ -20,12 +20,13 @@ class CertificateMetadata:
 
 
 class TransactionCosts:
-    def __init__(self, cost_per_transaction, fee_per_transaction, number_of_transactions, transfer_split_fee=0):
-        self.cost_per_transaction = cost_per_transaction
+    def __init__(self, min_per_transaction, fee_per_transaction, number_of_transactions, transfer_split_fee=0):
+        self.min_per_transaction = min_per_transaction
         self.fee_per_transaction = fee_per_transaction
+        self.cost_per_transaction = 2*min_per_transaction + fee_per_transaction
         self.number_of_transactions = number_of_transactions
         self.transfer_split_fee = transfer_split_fee
-        self.total = (cost_per_transaction * number_of_transactions) + transfer_split_fee
+        self.total = (self.cost_per_transaction * number_of_transactions) + transfer_split_fee
 
     def difference(self, balance):
         if self.total <= balance:

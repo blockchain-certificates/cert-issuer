@@ -1,18 +1,68 @@
 
 ## Installation
-1. Clone the repo: `git clone https://github.com/digital-certificates/issuer.git`
-2. Create a Python 3 virtual environment: `cd issuer && virtualenv venv -p python3.4`
-3. Activate the virtual environment and install the requirements: `source venv/bin/activate && venv/bin/pip install -r requirements.txt`
-4. Create your conf.ini file from the template: `cp conf_template.ini conf.ini`
+1. Clone the repo:
 
-Next we will populate the conf.ini values
+    ```
+    git clone https://github.com/digital-certificates/issuer.git
+    ```
+2. Create a Python 3 virtual environment and activate it
+
+    ```
+    cd issuer
+    virtualenv venv -p python3.4
+    source venv/bin/activate
+    ```
+3. Install the requirements:
+
+    ```
+    pip install -r requirements.txt
+    ```
+
+4. Create your conf.ini file from the template:
+
+    ```
+    cp conf_template.ini conf.ini
+    ```
+
+Next we will choose a wallet option and populate the conf.ini values
 
 ## Bitcoin wallet options
-You can use an online bitcoin wallet or run a bitcoind instance locally. The online option is faster to setup, but involves
-requesting API access, which requires some turnaround time. The first option describes setup using a blockchain.info online wallet;
-the second if you are using bitcoind
+We highly recommend running a local bitcoind instance in regtest mode while getting started. This allows you to experiment
+with running a bitcoin node without spending money.
 
-### Installation using APIs
+Instructions for using an online wallet are included, but be very careful lest you lose real money!
+
+
+### Bitcoind in regtest mode (recommended)
+Regtest mode allows you to experiment with running a local bitcoin node without actually spending
+money.
+
+1. Follow the instructions to [build Bitcoin Core for your OS](https://github.com/bitcoin/bitcoin/tree/master/doc)
+
+    - for example, [OSX instructions](https://github.com/bitcoin/bitcoin/blob/master/doc/build-osx.md)
+
+
+2. Edit the bitcoin config to run in regtest mode.
+
+    a. Edit or create a new bitcoin.conf file, with the following entries:
+     ```
+     rpcuser=bitcoinrpc
+     rpcpassword=6c8a25acd56561b2a039197e86d07c97
+     regtest=1
+     relaypriority=0
+     rpcallowip=127.0.0.1
+     rpcport = 8332
+     rpcconnect = 127.0.0.1
+     ```
+
+    b. Start the bitcoind daemon with this config file:
+
+    ```
+    bitcoind -daemon -conf=your-bitcoin.conf
+    ```
+
+
+### Blockchain.info online wallet
 Below are steps that will allow you to setup the digital certificates code to interact with the blockchain via the Blockchain.info API. If you do not have bitcoind already running on your computer, these instructions are highly reccomended.
 
 1. Make a [blockchain.info](http://blockchain.info) wallet
@@ -25,19 +75,7 @@ permission.
     b. Save the wallet password as `wallet_password` in conf.ini
     c. When your api key from step 3 arrives, save this as `api_key` in conf.ini
 
-5. Designate an address that will store your bitcoin for issuing the certificates. Transfer a few BTC to this address.
-
-    a.  Save this address as your `storage_address` in conf.ini
-
-6. Install the Blockchain.info API local service [instructions here](https://github.com/blockchain/service-my-wallet-v3).
-
-### Local Bitcoind Installation
-Below are instructions are for running the code using bitcoind. To install bitcoind on a Ubuntu server, please follow the
-[tutorial here](https://21.co/learn/setup-a-bitcoin-development-environment/#installing-bitcoind-from-source-on-ubuntu).
-
-Once your bitcoind instance is up and running, add in the Bitcoin address that you will use for issuing as a "watch address"
-using the command `bitcoin-cli importaddress "<insert_address_here>" ( "ISSUING_ADDRESS" rescan )`. This will take a
-while to run, since it will scan the blockchain for the address's previous transactions.
+5. Install the Blockchain.info API local service [instructions here](https://github.com/blockchain/service-my-wallet-v3).
 
 
 

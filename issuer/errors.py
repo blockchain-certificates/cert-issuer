@@ -21,3 +21,6 @@ class UnverifiedSignatureError(Error):
 
 class UnverifiedDocumentError(Error):
     pass
+
+class NotImplementedError(Error):
+    pass
