@@ -15,11 +15,11 @@ Setup
 -----
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    installation
-   creating_addresses
-   configuration
+   client_setup
+   make_addresses
 
 Issuing certificates
 --------------------
