@@ -11,22 +11,17 @@ our approach for future releases. Read more about the Digital Certificates Proje
 
 Get the code: https://github.com/digital-certificates/issuer
 
-Setup
------
+
+Install and run
+---------------
 
 .. toctree::
    :maxdepth: 3
 
-   installation
-   client_setup
+   options
+   docker
+   live
    make_addresses
-
-Issuing certificates
---------------------
-
-.. toctree::
-   :maxdepth: 2
-
    issuing
 
 
@@ -45,4 +40,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

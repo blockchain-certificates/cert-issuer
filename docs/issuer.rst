@@ -15,7 +15,7 @@ Module contents
 issuer.certificate_issuer module
 --------------------------------
 
-.. automodule:: issuer.certificate_issuer
+.. automodule:: issuer.create_certificates
     :members:
     :undoc-members:
     :show-inheritance:

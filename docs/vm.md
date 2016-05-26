@@ -1,4 +1,4 @@
-### Setting Up The VM (optional)
+# Setting Up The VM (optional)
 1. Install [Virtualbox](https://www.virtualbox.org/wiki/Downloads)
 2. Make a Linux VM (768MB of memory)
 	* Make virtual harddisk (8GB) of VDI (Virtual Disk Image)
