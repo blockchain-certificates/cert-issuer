@@ -65,8 +65,9 @@ class Wallet:
         unspent_outputs = self.connector.get_unspent_outputs(address)
 
         if not unspent_outputs:
-            logging.error('No money to spend at address %s', address)
-            raise InsufficientFundsError('No money to spend at address {0}'.format(address))
+            error_message = 'No money to spend at address {}'.format(address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
 
         unspent_sorted = sorted(unspent_outputs, key=lambda x: hash(x.amount))
         return unspent_sorted
@@ -103,13 +104,23 @@ class Wallet:
             time.sleep(30)
         return confirmed_tx
 
+    def check_balance(self, issuing_address, transaction_costs):
+        """Check there is enough balance in the wallet."""
+        address_balance = self.get_confirmed_balance(issuing_address)
+        amount_needed = transaction_costs.difference(address_balance)
+
+        if amount_needed > 0:
+            error_message = 'Please add {} satoshis to the address {}'.format(amount_needed, issuing_address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
+
+
+
     def transfer_balance(self, storage_address, issuing_address, transaction_costs):
-        """
-        transfer balance to ensure enough is available for certificates
-        The temporary addresses are used to subdivide the payments in order to break them up into individual spends.
-        This way, we do not have to wait for one large input to be spent on the blockchain and confirmed (i.e. a little bit
-        of the money spent and the rest return to the address). This allows us to issue 10 certificates in the time it
-        would take to issue two normally.
+        """Transfer balance to ensure enough is available for certificates. The temporary addresses are used to subdivide
+        the payments in order to break them up into individual spends. This way, we do not have to wait for one large
+        input to be spent on the blockchain and confirmed (i.e. a little bit of the money spent and the rest return to
+        the address). This is useful if issuing a larger number of certificates.
         """
 
         # first make sure that there are no pending transactions for the storage address
@@ -117,7 +128,6 @@ class Wallet:
 
         logging.info('Creating %d temporary addresses...', transaction_costs.number_of_transactions)
 
-        # TODO: I think we should only do this if there are >2 or 3 certs?
         temp_addresses = []
         for i in range(transaction_costs.number_of_transactions):
             temp_address_in = 'temp-address-%s' % i
@@ -131,7 +141,7 @@ class Wallet:
 
         random_address = random.choice(temp_addresses)
 
-        confirmed_tx = self.wait_for_confirmation(random_address)
+        self.wait_for_confirmation(random_address)
 
         logging.info('Making transfer to issuing address...')
         for address in temp_addresses:
@@ -139,12 +149,3 @@ class Wallet:
                                    transaction_costs.fee_per_transaction)
         self.wait_for_confirmation(issuing_address)
         logging.info('Transferred BTC needed for issuing certificates from issuing address...')
-
-    def check_balance(self, issuing_address, transaction_costs):
-        address_balance = self.get_confirmed_balance(issuing_address)
-        amount_needed = transaction_costs.difference(address_balance)
-
-        if amount_needed > 0:
-            logging.error('Please add %s BTC to the address %s', amount_needed, issuing_address)
-            raise InsufficientFundsError('Please add {} BTC to the address {}'.format(amount_needed, issuing_address))
-

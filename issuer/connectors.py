@@ -109,6 +109,7 @@ class BlockchainInfoConnector(WalletConnector):
 
 class BitcoindConnector(WalletConnector):
     def __init__(self, config):
+        bitcoin.rpc.Proxy()
         self.proxy = bitcoin.rpc.Proxy()
 
     def get_balance(self, address, confirmations):
@@ -178,7 +179,8 @@ def create_wallet_connector(config):
     elif wallet_connector_type == 'bitcoind':
         connector = BitcoindConnector(config)
     else:
-        raise UnrecognizedConnectorError('unrecognized wallet connector: {}'.format(wallet_connector_type))
+        error_message = 'unrecognized wallet connector: {}'.format(wallet_connector_type)
+        raise UnrecognizedConnectorError(error_message)
     return connector
 
 
@@ -193,13 +195,15 @@ def create_broadcast_function(config):
     elif broadcaster_type == 'noop':
         return noop_broadcast
     else:
-        raise UnrecognizedConnectorError('unrecognized broadcaster: {}'.format(broadcaster_type))
+        error_message = 'unrecognized broadcaster: {}'.format(broadcaster_type)
+        raise UnrecognizedConnectorError(error_message)
 
 
 def try_get(url):
     """throw error if call fails"""
     r = requests.get(url)
     if int(r.status_code) != 200:
-        logging.error('Error! status_code=%s, error=%s', r.status_code, r.json()['error'])
-        raise ConnectorError('Error! status_code={}, error={}', r.status_code, r.json()['error'])
+        error_message = 'Error! status_code={}, error={}'.format(r.status_code, r.json()['error'])
+        logging.error(error_message)
+        raise ConnectorError(error_message)
     return r
