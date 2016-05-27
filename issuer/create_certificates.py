@@ -197,7 +197,7 @@ def create_transaction_output(address, transaction_fee):
 
 
 @internet_off_for_scope
-def sign_tx(certificate_metadata, last_input, allowable_wif_prefixes=[b'\x80']):
+def sign_tx(certificate_metadata, last_input, allowable_wif_prefixes=None):
     """sign the transaction with private key"""
     with open(certificate_metadata.unsigned_tx_file_name, 'rb') as in_file:
         hextx = str(in_file.read(), 'utf-8')
@@ -205,7 +205,11 @@ def sign_tx(certificate_metadata, last_input, allowable_wif_prefixes=[b'\x80']):
         logging.info('Signing tx with private key for recipient id: %s ...', certificate_metadata.uid)
 
         tx = Tx.from_hex(hextx)
-        wif = wif_to_secret_exponent(helpers.import_key(), allowable_wif_prefixes=allowable_wif_prefixes)
+        if allowable_wif_prefixes:
+            wif = wif_to_secret_exponent(helpers.import_key(), allowable_wif_prefixes)
+        else:
+            wif = wif_to_secret_exponent(helpers.import_key())
+
         lookup = build_hash160_lookup([wif])
 
         tx.set_unspents([TxOut(coin_value=last_input.amount, script=last_input.script_pub_key)])
@@ -272,12 +276,11 @@ def find_unsigned_certificates(app_config):
 
 
 def main(app_config):
-    if app_config.disable_regtest_mode:
-        allowable_wif_prefixes = [b'\x80']
-    else:
+    if app_config.wallet_connector_type=='bitcoind' and not app_config.disable_regtest_mode:
         bitcoin.SelectParams('regtest')
         allowable_wif_prefixes = [b'\x80', b'\xef']
-
+    else:
+        allowable_wif_prefixes = None
     # configure bitcoin wallet and broadcast connectors
     wallet = Wallet(connectors.create_wallet_connector(app_config))
     broadcast_function = connectors.create_broadcast_function(app_config)
@@ -292,7 +295,7 @@ def main(app_config):
 
     start_time = str(time.time())
 
-    if app_config.skip_sign:
+    if not app_config.skip_sign:
         logging.info('Deleting previous generated files')
         helpers.clear_intermediate_folders()
 
