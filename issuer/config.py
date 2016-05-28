@@ -1,10 +1,12 @@
+import configargparse
 import os
 
-import configargparse
-
+PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_CONFIG = os.path.join(PATH, 'conf.ini')
 
 def parse_args():
-    p = configargparse.getArgumentParser(default_config_files=['../conf.ini', '/etc/conf.ini'])
+    print(DEFAULT_CONFIG)
+    p = configargparse.getArgumentParser(default_config_files=[DEFAULT_CONFIG, '/etc/issuer/conf.ini'])
     p.add('-c', '--my-config', required=False, is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
     p.add_argument('--revocation_address', required=True, help='revocation address')
@@ -27,7 +29,7 @@ def parse_args():
     p.add_argument('--skip_wifi_check', action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi on (default: False). Only change this option for troubleshooting.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
-                   help='blockchain dust threshold (in BTC) -- below this 1/3 is fees. TODO: we may need to raise this for # outputs')
+                   help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
     p.add_argument('--tx_fees', default=0.0001, type=float,
                    help='recommended tx fee (in BTC) for inclusion in next block. http://bitcoinexchangerate.org/fees')
     p.add_argument('--batch_size', default=10, type=int, help='Certificate batch size')
@@ -43,11 +45,3 @@ def parse_args():
     p.add_argument('--archived_txs_file_pattern', default='../archive/txs/*.txt', help='archive txs file pattern')
 
     return p.parse_known_args()
-
-
-def _get_config():
-    parsed_config, _ = parse_args()
-    return parsed_config
-
-
-CONFIG = _get_config()

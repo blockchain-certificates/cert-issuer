@@ -22,8 +22,9 @@
 
     b. Otherwise transfer with your online wallet
 
-4. Run the create-certificates.py script to create your certificates:
-    `python create-certificates.py --config=conf.ini`
+4. Run the create-certificates.py script to create your certificates. If you've installed the package
+you can run:
+    `python issuer -c conf.ini`
 
 
 

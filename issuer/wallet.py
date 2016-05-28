@@ -1,11 +1,10 @@
 import logging
-import random
 import time
 from datetime import datetime
 
+import random
 from issuer.errors import InsufficientFundsError
 from issuer.models import TransactionCosts
-
 
 COIN = 100000000   # satoshis in 1 btc
 BYTES_PER_INPUT = 180
@@ -113,7 +112,6 @@ class Wallet:
             error_message = 'Please add {} satoshis to the address {}'.format(amount_needed, issuing_address)
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
-
 
 
     def transfer_balance(self, storage_address, issuing_address, transaction_costs):
