@@ -52,6 +52,7 @@ import time
 
 import hashlib
 import json
+import os
 import logging
 from bitcoin.core import *
 from bitcoin.core.script import *
@@ -64,7 +65,7 @@ from pycoin.tx import Tx, TxOut
 from pycoin.tx.pay_to import build_hash160_lookup
 
 from issuer import helpers
-from issuer.helpers import hexlify, internet_off_for_scope
+from issuer.helpers import hexlify
 from issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
 
 from issuer.models import CertificateMetadata
@@ -72,7 +73,7 @@ from issuer.models import CertificateMetadata
 from issuer import connectors
 from issuer import wallet as wallet_helper
 from issuer.wallet import Wallet
-
+from issuer.__init__ import internet_off_for_scope
 
 import bitcoin
 
@@ -102,10 +103,10 @@ def do_verify_signature(address, signed_cert):
 
 
 @internet_off_for_scope
-def sign_certs(certificates_metadata):
+def sign_certs(certificates_metadata, secret_file_path):
     """Sign certificates. Internet should be off for the scope of this function."""
     logging.info('signing certificates')
-    pk = helpers.import_key()
+    pk = helpers.import_key(secret_file_path=secret_file_path)
     secret_key = CBitcoinSecret(pk)
     for uid, certificate_metadata in certificates_metadata.items():
         with open(certificate_metadata.unsigned_certificate_file_name, 'r') as cert_in, \
@@ -129,12 +130,12 @@ def _hash_cert(signed_certificate):
 
 
 def issue_on_blockchain(wallet, broadcast_function, issuing_address, revocation_address,
-                        certificates_to_issue, fees, allowable_wif_prefixes):
+                        certificates_to_issue, fees, secret_file_path, allowable_wif_prefixes):
     for uid, certificate_metadata in certificates_to_issue.items():
         last_input = _build_certificate_transactions(wallet, issuing_address, revocation_address,
                                                      certificate_metadata, fees)
         # sign transaction
-        sign_tx(certificate_metadata, last_input, allowable_wif_prefixes)
+        sign_tx(certificate_metadata, last_input, secret_file_path, allowable_wif_prefixes)
 
         # verify
         verify(certificate_metadata, issuing_address)
@@ -197,7 +198,7 @@ def create_transaction_output(address, transaction_fee):
 
 
 @internet_off_for_scope
-def sign_tx(certificate_metadata, last_input, allowable_wif_prefixes=None):
+def sign_tx(certificate_metadata, last_input, secret_file_path, allowable_wif_prefixes=None):
     """sign the transaction with private key"""
     with open(certificate_metadata.unsigned_tx_file_name, 'rb') as in_file:
         hextx = str(in_file.read(), 'utf-8')
@@ -206,9 +207,9 @@ def sign_tx(certificate_metadata, last_input, allowable_wif_prefixes=None):
 
         tx = Tx.from_hex(hextx)
         if allowable_wif_prefixes:
-            wif = wif_to_secret_exponent(helpers.import_key(), allowable_wif_prefixes)
+            wif = wif_to_secret_exponent(helpers.import_key(secret_file_path), allowable_wif_prefixes)
         else:
-            wif = wif_to_secret_exponent(helpers.import_key())
+            wif = wif_to_secret_exponent(helpers.import_key(secret_file_path))
 
         lookup = build_hash160_lookup([wif])
 
@@ -276,6 +277,14 @@ def find_unsigned_certificates(app_config):
 
 
 def main(app_config):
+    # find certificates to process
+    certificates_metadata = find_unsigned_certificates(app_config)
+    if not certificates_metadata:
+        logging.info('No certificates to process')
+        exit(0)
+
+    logging.info('Processing %d certificates', len(certificates_metadata))
+
     if app_config.wallet_connector_type=='bitcoind' and not app_config.disable_regtest_mode:
         bitcoin.SelectParams('regtest')
         allowable_wif_prefixes = [b'\x80', b'\xef']
@@ -289,20 +298,17 @@ def main(app_config):
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
 
-    # find certificates to process
-    certificates_metadata = find_unsigned_certificates(app_config)
-    logging.info('Processing %d certificates', len(certificates_metadata))
-
     start_time = str(time.time())
+    secret_file_path = os.path.join(app_config.usb_name, app_config.key_file)
 
     if not app_config.skip_sign:
         logging.info('Deleting previous generated files')
-        helpers.clear_intermediate_folders()
+        helpers.clear_intermediate_folders(app_config)
 
         logging.info('Signing certificates')
-        sign_certs(certificates_metadata)
+        sign_certs(certificates_metadata, secret_file_path=secret_file_path)
 
-        logging.info(' Hashing signed certificates.')
+        logging.info('Hashing signed certificates.')
         hash_certs(certificates_metadata)
 
         logging.info('Archiving signed certificates.')
@@ -327,7 +333,7 @@ def main(app_config):
     logging.info('Issuing the certificates on the blockchain')
     issue_on_blockchain(wallet, broadcast_function, issuing_address,
                         revocation_address, certificates_metadata,
-                        transaction_costs, allowable_wif_prefixes)
+                        transaction_costs, secret_file_path, allowable_wif_prefixes)
 
     # archive
     logging.info('Archived sent transactions folder for safe keeping.')
@@ -335,16 +341,3 @@ def main(app_config):
 
     logging.info('Done!')
 
-
-if __name__ == "__main__":
-    # Configure logging settings; create console handler and set level to info
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-    from issuer.config import CONFIG as app_config
-    main(app_config)

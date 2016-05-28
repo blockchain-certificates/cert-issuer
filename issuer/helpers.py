@@ -1,14 +1,12 @@
 import binascii
 import glob
-import logging
-import os
-import shutil
 import sys
 import time
 
 import glob2
+import os
 import requests
-from issuer import config
+import shutil
 
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
@@ -17,17 +15,8 @@ if sys.version > '3':
     hexlify = lambda b: binascii.hexlify(b).decode('utf8')
 
 
-def internet_off_for_scope(func):
-    def func_wrapper(*args, **kwargs):
-        check_internet_off()
-        result = func(*args, **kwargs)
-        check_internet_on()
-
-    return func_wrapper
-
-
-def import_key():
-    with open(os.path.join(config.CONFIG.usb_name, config.CONFIG.key_file)) as key_file:
+def import_key(secret_file_path):
+    with open(secret_file_path) as key_file:
         key = key_file.read().strip()
     return key
 
@@ -52,14 +41,10 @@ def internet_on():
         return False
 
 
-def check_internet_off():
+def check_internet_off(secrets_path):
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    if config.CONFIG.skip_wifi_check:
-        logging.warning('app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
-                        ' ensure this is what you want, since this is less secure')
-        return True
     while 1:
-        if internet_on() == False and os.path.exists(config.CONFIG.usb_name) == True:
+        if internet_on() == False and os.path.exists(secrets_path) == True:
             break
         else:
             print("Turn off your internet and plug in your USB to continue...")
@@ -67,14 +52,10 @@ def check_internet_off():
     return True
 
 
-def check_internet_on():
+def check_internet_on(secrets_paths):
     """If internet is on and USB is not plugged in, returns true. Else, continues to wait..."""
-    if config.CONFIG.skip_wifi_check:
-        logging.warning('app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
-                        ' ensure this is what you want, since this is less secure')
-        return True
     while 1:
-        if internet_on() == True and os.path.exists(config.CONFIG.usb_name) == False:
+        if internet_on() == True and os.path.exists(secrets_paths) == False:
             break
         else:
             print("Turn on your internet and unplug your USB to continue...")
@@ -88,11 +69,11 @@ def archive_files(from_pattern, to_pattern, timestamp):
      for filename, (uid,) in glob2.iglob(from_pattern, with_matches=True)]
 
 
-def clear_intermediate_folders():
-    folders_to_clear = [config.CONFIG.signed_certs_file_pattern,
-                        config.CONFIG.hashed_certs_file_pattern,
-                        config.CONFIG.unsigned_txs_file_pattern,
-                        config.CONFIG.unsent_txs_file_pattern,
-                        config.CONFIG.sent_txs_file_pattern]
+def clear_intermediate_folders(config):
+    folders_to_clear = [config.signed_certs_file_pattern,
+                        config.hashed_certs_file_pattern,
+                        config.unsigned_txs_file_pattern,
+                        config.unsent_txs_file_pattern,
+                        config.sent_txs_file_pattern]
     for folder in folders_to_clear:
         clear_folder(folder)
