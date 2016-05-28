@@ -41,10 +41,10 @@ def internet_on():
         return False
 
 
-def check_internet_off(usb_name):
+def check_internet_off(secrets_path):
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
     while 1:
-        if internet_on() == False and os.path.exists(usb_name) == True:
+        if internet_on() == False and os.path.exists(secrets_path) == True:
             break
         else:
             print("Turn off your internet and plug in your USB to continue...")
@@ -52,10 +52,10 @@ def check_internet_off(usb_name):
     return True
 
 
-def check_internet_on(usb_name):
+def check_internet_on(secrets_paths):
     """If internet is on and USB is not plugged in, returns true. Else, continues to wait..."""
     while 1:
-        if internet_on() == True and os.path.exists(usb_name) == False:
+        if internet_on() == True and os.path.exists(secrets_paths) == False:
             break
         else:
             print("Turn on your internet and unplug your USB to continue...")

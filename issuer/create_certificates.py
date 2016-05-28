@@ -73,7 +73,7 @@ from issuer.models import CertificateMetadata
 from issuer import connectors
 from issuer import wallet as wallet_helper
 from issuer.wallet import Wallet
-#from issuer import internet_off_for_scope
+from issuer.__init__ import internet_off_for_scope
 
 import bitcoin
 
@@ -102,7 +102,7 @@ def do_verify_signature(address, signed_cert):
         raise UnverifiedSignatureError(error_message)
 
 
-#@internet_off_for_scope
+@internet_off_for_scope
 def sign_certs(certificates_metadata, secret_file_path):
     """Sign certificates. Internet should be off for the scope of this function."""
     logging.info('signing certificates')
@@ -197,7 +197,7 @@ def create_transaction_output(address, transaction_fee):
     return tx_out
 
 
-#@internet_off_for_scope
+@internet_off_for_scope
 def sign_tx(certificate_metadata, last_input, secret_file_path, allowable_wif_prefixes=None):
     """sign the transaction with private key"""
     with open(certificate_metadata.unsigned_tx_file_name, 'rb') as in_file:
@@ -277,6 +277,14 @@ def find_unsigned_certificates(app_config):
 
 
 def main(app_config):
+    # find certificates to process
+    certificates_metadata = find_unsigned_certificates(app_config)
+    if not certificates_metadata:
+        logging.info('No certificates to process')
+        exit(0)
+
+    logging.info('Processing %d certificates', len(certificates_metadata))
+
     if app_config.wallet_connector_type=='bitcoind' and not app_config.disable_regtest_mode:
         bitcoin.SelectParams('regtest')
         allowable_wif_prefixes = [b'\x80', b'\xef']
@@ -289,10 +297,6 @@ def main(app_config):
     # get issuing and revocation addresses from config
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
-
-    # find certificates to process
-    certificates_metadata = find_unsigned_certificates(app_config)
-    logging.info('Processing %d certificates', len(certificates_metadata))
 
     start_time = str(time.time())
     secret_file_path = os.path.join(app_config.usb_name, app_config.key_file)

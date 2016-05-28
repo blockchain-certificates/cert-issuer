@@ -4,7 +4,7 @@
 # $ python -m create_certificates
 
 import sys
-skip_wifi_check=False
+
 
 if __package__ is None and not hasattr(sys, 'frozen'):
     import os.path
