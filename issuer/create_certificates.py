@@ -106,10 +106,10 @@ def do_verify_signature(address, signed_cert):
 
 
 @internet_off_for_scope
-def sign_certs(certificates_metadata, secret_file_path):
+def sign_certs(certificates_metadata):
     """Sign certificates. Internet should be off for the scope of this function."""
     logging.info('signing certificates')
-    pk = helpers.import_key(secret_file_path=secret_file_path)
+    pk = helpers.import_key()
     secret_key = CBitcoinSecret(pk)
     for uid, certificate_metadata in certificates_metadata.items():
         with open(certificate_metadata.unsigned_certificate_file_name, 'r') as cert_in, \
@@ -133,12 +133,18 @@ def _hash_cert(signed_certificate):
 
 
 def issue_on_blockchain(wallet, broadcast_function, issuing_address, revocation_address,
-                        certificates_to_issue, fees, secret_file_path, allowable_wif_prefixes):
+                        certificates_to_issue, fees, transfer_from_storage_address, allowable_wif_prefixes):
+    tail = -1
     for uid, certificate_metadata in certificates_to_issue.items():
+        if transfer_from_storage_address:
+            current_tail = tail
+            tail -=1
+        else:
+            current_tail = -1
         last_input = _build_certificate_transactions(wallet, issuing_address, revocation_address,
-                                                     certificate_metadata, fees)
+                                                     certificate_metadata, fees, current_tail)
         # sign transaction
-        sign_tx(certificate_metadata, last_input, secret_file_path, allowable_wif_prefixes)
+        sign_tx(certificate_metadata, last_input, allowable_wif_prefixes)
 
         # verify
         verify(certificate_metadata, issuing_address)
@@ -147,7 +153,7 @@ def issue_on_blockchain(wallet, broadcast_function, issuing_address, revocation_
         send_tx(broadcast_function, certificate_metadata)
 
 
-def _build_certificate_transactions(wallet, issuing_address, revocation_address, certificate_metadata, fees):
+def _build_certificate_transactions(wallet, issuing_address, revocation_address, certificate_metadata, fees, tail):
     """Make transactions for the certificates.
     """
     logging.info('Creating tx of certificate for recipient uid: %s ...', certificate_metadata.uid)
@@ -162,7 +168,7 @@ def _build_certificate_transactions(wallet, issuing_address, revocation_address,
 
         # define transaction inputs
         unspent_outputs = wallet.get_unspent_outputs(issuing_address)
-        last_input = unspent_outputs[len(unspent_outputs) - 1]
+        last_input = unspent_outputs[tail]
 
         txins = [CTxIn(last_input.outpoint)]
         value_in = last_input.amount
@@ -201,7 +207,7 @@ def create_transaction_output(address, transaction_fee):
 
 
 @internet_off_for_scope
-def sign_tx(certificate_metadata, last_input, secret_file_path, allowable_wif_prefixes=None):
+def sign_tx(certificate_metadata, last_input, allowable_wif_prefixes=None):
     """sign the transaction with private key"""
     with open(certificate_metadata.unsigned_tx_file_name, 'rb') as in_file:
         hextx = str(in_file.read(), 'utf-8')
@@ -210,9 +216,9 @@ def sign_tx(certificate_metadata, last_input, secret_file_path, allowable_wif_pr
 
         tx = Tx.from_hex(hextx)
         if allowable_wif_prefixes:
-            wif = wif_to_secret_exponent(helpers.import_key(secret_file_path), allowable_wif_prefixes)
+            wif = wif_to_secret_exponent(helpers.import_key(), allowable_wif_prefixes)
         else:
-            wif = wif_to_secret_exponent(helpers.import_key(secret_file_path))
+            wif = wif_to_secret_exponent(helpers.import_key())
 
         lookup = build_hash160_lookup([wif])
 
@@ -302,14 +308,13 @@ def main(app_config):
     revocation_address = app_config.revocation_address
 
     start_time = str(time.time())
-    secret_file_path = os.path.join(app_config.usb_name, app_config.key_file)
 
     if not app_config.skip_sign:
         logging.info('Deleting previous generated files')
         helpers.clear_intermediate_folders(app_config)
 
         logging.info('Signing certificates')
-        sign_certs(certificates_metadata, secret_file_path=secret_file_path)
+        sign_certs(certificates_metadata)
 
         logging.info('Hashing signed certificates.')
         hash_certs(certificates_metadata)
@@ -336,7 +341,7 @@ def main(app_config):
     logging.info('Issuing the certificates on the blockchain')
     issue_on_blockchain(wallet, broadcast_function, issuing_address,
                         revocation_address, certificates_metadata,
-                        transaction_costs, secret_file_path, allowable_wif_prefixes)
+                        transaction_costs, issue_on_blockchain, allowable_wif_prefixes)
 
     # archive
     logging.info('Archived sent transactions folder for safe keeping.')

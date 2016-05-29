@@ -16,6 +16,8 @@ if sys.version > '3':
     unhexlify = lambda h: binascii.unhexlify(h.encode('utf8'))
     hexlify = lambda b: binascii.hexlify(b).decode('utf8')
 
+secrets_file_path = os.path.join(config.get_config().usb_name, config.get_config().key_file)
+
 
 def internet_off_for_scope(func):
     def func_wrapper(*args, **kwargs):
@@ -26,8 +28,8 @@ def internet_off_for_scope(func):
     return func_wrapper
 
 
-def import_key(secret_file_path):
-    with open(secret_file_path) as key_file:
+def import_key():
+    with open(secrets_file_path) as key_file:
         key = key_file.read().strip()
     return key
 
@@ -61,7 +63,7 @@ def check_internet_off():
         return True
     
     while 1:
-        if internet_on() == False and os.path.exists(config.get_config().secrets_path) == True:
+        if internet_on() == False and os.path.exists(secrets_file_path):
             break
         else:
             print("Turn off your internet and plug in your USB to continue...")
@@ -77,7 +79,7 @@ def check_internet_on():
             ' ensure this is what you want, since this is less secure')
         return True
     while 1:
-        if internet_on() == True and os.path.exists(config.get_config()) == False:
+        if internet_on() == True and not os.path.exists(secrets_file_path):
             break
         else:
             print("Turn on your internet and unplug your USB to continue...")
