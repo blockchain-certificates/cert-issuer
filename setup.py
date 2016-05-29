@@ -12,7 +12,7 @@ setup(
     url='https://github.com/digital-certificates/issuer',
     license='MIT',
     author='MIT Media Lab Digital Certificates',
-    author_email='coins@media.mit.edu',
+    author_email='certs@media.mit.edu',
     description='',
     packages=['issuer'],
     include_package_data=True,
