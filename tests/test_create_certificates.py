@@ -6,11 +6,12 @@ from mock import mock_open
 from mock import patch
 from issuer.models import CertificateMetadata
 from issuer import create_certificates
-from issuer import helpers
+from issuer import config
 
 class TestCertificateSigner(unittest.TestCase):
 
     def setUp(self):
+        config.get_config().skip_wifi_check = True
         mock = MagicMock()
         mock.uid = '34we3434'
         mock.name = 'Some Name'

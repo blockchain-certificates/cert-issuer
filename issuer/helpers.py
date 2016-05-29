@@ -7,12 +7,23 @@ import glob2
 import os
 import requests
 import shutil
+from issuer import config
+import logging
 
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
 if sys.version > '3':
     unhexlify = lambda h: binascii.unhexlify(h.encode('utf8'))
     hexlify = lambda b: binascii.hexlify(b).decode('utf8')
+
+
+def internet_off_for_scope(func):
+    def func_wrapper(*args, **kwargs):
+        check_internet_off()
+        result = func(*args, **kwargs)
+        check_internet_on()
+
+    return func_wrapper
 
 
 def import_key(secret_file_path):
@@ -41,10 +52,16 @@ def internet_on():
         return False
 
 
-def check_internet_off(secrets_path):
+def check_internet_off():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
+    if config.get_config().skip_wifi_check:
+        logging.warning(
+            'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
+            ' ensure this is what you want, since this is less secure')
+        return True
+    
     while 1:
-        if internet_on() == False and os.path.exists(secrets_path) == True:
+        if internet_on() == False and os.path.exists(config.get_config().secrets_path) == True:
             break
         else:
             print("Turn off your internet and plug in your USB to continue...")
@@ -52,10 +69,15 @@ def check_internet_off(secrets_path):
     return True
 
 
-def check_internet_on(secrets_paths):
-    """If internet is on and USB is not plugged in, returns true. Else, continues to wait..."""
+def check_internet_on():
+    """If internet off and USB plugged in, returns true. Else, continues to wait..."""
+    if config.get_config().skip_wifi_check:
+        logging.warning(
+            'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
+            ' ensure this is what you want, since this is less secure')
+        return True
     while 1:
-        if internet_on() == True and os.path.exists(secrets_paths) == False:
+        if internet_on() == True and os.path.exists(config.get_config()) == False:
             break
         else:
             print("Turn on your internet and unplug your USB to continue...")

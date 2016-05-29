@@ -85,9 +85,12 @@ corresponding private key for testing issuing certificates
     ```
 
 3. Run
+TODO (kim): there is an issuer in my Dockerfile and/or setup.py. The pip install here shouldn't be required.
+For now, these get it running:
 
     ```
     source /issuer/env/bin/activate
-    cd /issuer/issuer
-    python certificate_issuer.py -c /etc/issuer/conf.ini
+    cd issuer
+    pip install .
+    python issuer -c /etc/issuer/conf.ini
     ```

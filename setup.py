@@ -27,4 +27,10 @@ setup(
         'recommonmark==0.4.0',
         'Sphinx>=1.4.1',
         'sphinx-rtd-theme>=0.1.9'
-    ], )
+    ],
+    entry_points={
+        'console_scripts': [
+            'issuer = issuer.__main__:main'
+        ]
+    }
+)

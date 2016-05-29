@@ -73,7 +73,10 @@ from issuer.models import CertificateMetadata
 from issuer import connectors
 from issuer import wallet as wallet_helper
 from issuer.wallet import Wallet
-from issuer.__init__ import internet_off_for_scope
+from issuer import helpers
+from issuer.helpers import internet_off_for_scope
+from issuer.helpers import hexlify
+
 
 import bitcoin
 

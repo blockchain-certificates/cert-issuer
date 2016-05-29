@@ -1,5 +1,6 @@
 import configargparse
 import os
+import logging
 
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -46,3 +47,32 @@ def parse_args():
     p.add_argument('--archived_txs_file_pattern', default='../archive/txs/*.txt', help='archive txs file pattern')
 
     return p.parse_known_args()
+
+
+def configure_logger():
+    # Configure logging settings; create console handler and set level to info
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+ 
+ 
+parsed_config=None
+ 
+ 
+def get_config():
+    global parsed_config
+    if parsed_config:
+        return parsed_config
+    parsed_config, _ = parse_args()
+
+    if parsed_config.skip_wifi_check:
+        logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
+             'documentation to ensure this is what you want, since this is less secure')
+
+    configure_logger()
+
+    return parsed_config
