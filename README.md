@@ -2,12 +2,12 @@ Digital Certificates Issuer Project
 ===================================
 
 Takes digital certificates and issues them by creating a transaction from the issuing institution to the recipient
-on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/digital-certificates/schema)
+on the Bitcoin blockchain that includes the hash of the certificate itself. See the schema: <https://github.com/digital-certificates/schema>
 
 Documentation
 -------------
 
-[http://issuer.readthedocs.io/](http://issuer.readthedocs.io/)
+<http://issuer.readthedocs.io/>
 
 Quick start
 -----------
@@ -35,7 +35,7 @@ experimenting only.
              docker ps -l
              docker commit <container for your ml/issuer> my_cert_issuer
 
-4. When you're ready to run:
+4. When you're ready to run::
 
         docker run -it ml/issuer:1.0 bash
 
@@ -51,14 +51,14 @@ standard certficate issuing process. Do not use these addresses or private keys 
 
 Ensure your docker image is running and bitcoind process is started
 
-1. Create an 'issuing address' and save the output as follows:
+1. Create an 'issuing address' and save the output as follows::
 
         issuer=`bitcoin-cli getnewaddress
         sed -i.bak "s/<issuing-address>/$issuer/g" /etc/issuer/conf.ini
         bitcoin-cli dumpprivkey $issuer > /etc/issuer/pk_issuer.txt
 
 2. Create a 'revocation address' and save the output as follows. Note that we don't need to save this
-corresponding private key for testing issuing certificates
+corresponding private key for testing issuing certificates::
 
         revocation=`bitcoin-cli getnewaddress
         sed -i.bak "s/<revocation-address>/$revocation/g" /etc/issuer/conf.ini
@@ -72,20 +72,20 @@ Issuing certificates
 
 2. Make sure you have enough BTC in your issuing address.
 
-    a. You're using bitcoind in regtest mode, so you can print money. This should give you 50 (fake) BTC
+    a. You're using bitcoind in regtest mode, so you can print money. This should give you 50 (fake) BTC::
 
         bitcoin-cli generate 101
         bitcoin-cli getbalance
 
     b. Send the money to your issuing address -- note bitcoin-cli's standard denomination is bitcoins not satoshis! In our
-    app, the standard unit is satoshis.
+    app, the standard unit is satoshis. This sends 5 bitcoins to the address
 
-        bitcoin-cli sendtoaddress moH7X29kt5T8fbxTCjoxYzjfLeMR56Ju94 5  << bitcoins not satoshi!!!!
+        bitcoin-cli sendtoaddress moH7X29kt5T8fbxTCjoxYzjfLeMR56Ju94 5
 
 
 3. Run
 TODO: There is an issuer the Dockerfile and/or setup.py. The pip install here shouldn't be required.
-For now, these get it running:
+For now, these get it running::
 
         source /issuer/env/bin/activate
         cd issuer
