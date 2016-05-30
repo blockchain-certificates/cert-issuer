@@ -12,6 +12,8 @@ you're using as-is or modifying. It's easy to make mistakes with bitcoin transac
 
 [Using bitcoind](bitcoind.html)
 
+[README](../README.md)
+
 ## Additional considerations
 
 In a deployed environment, you'd want to use an additional storage address. You would transfer money from your storage address
