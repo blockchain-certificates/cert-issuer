@@ -85,7 +85,7 @@ corresponding private key for testing issuing certificates
     ```
 
 3. Run
-TODO (kim): there is an issuer in my Dockerfile and/or setup.py. The pip install here shouldn't be required.
+TODO: there is an issuer in the Dockerfile and/or setup.py. The pip install here shouldn't be required.
 For now, these get it running:
 
     ```
