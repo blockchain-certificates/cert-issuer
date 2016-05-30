@@ -16,15 +16,15 @@ This uses bitcoind in regtest mode. This route makes many simplifications to all
 experimenting only.
 
 
-1. Clone the repo::
+1. Clone the repo:
 
-    git clone https://github.com/digital-certificates/issuer.git
+       git clone https://github.com/digital-certificates/issuer.git
 
 
 2. From a command line in issuer dir, build your docker container
 
-    cd issuer
-    docker build -t ml/issuer:1.0 .
+       cd issuer
+       docker build -t ml/issuer:1.0 .
 
 3. Read before running!
 
@@ -32,16 +32,16 @@ experimenting only.
     mirrors what you would if you were issuing real certificates.
     - To avoid losing your work, you should create snapshots of your docker container. You can do this by running
 
-    docker ps -l
-    docker commit <container for your ml/issuer> my_cert_issuer
+          docker ps -l
+          docker commit <container for your ml/issuer> my_cert_issuer
 
 4. When you're ready to run:
 
-    docker run -it ml/issuer:1.0 bash
+       docker run -it ml/issuer:1.0 bash
 
 5. Start bitcoind. This will use the bitcoin.conf from the docker container, which runs in regtest mode
 
-    bitcoind -daemon
+       bitcoind -daemon
 
 Create issuing and revocation addresses
 ---------------------------------------
@@ -53,15 +53,15 @@ Ensure your docker image is running and bitcoind process is started
 
 1. Create an 'issuing address' and save the output as follows:
 
-    issuer=`bitcoin-cli getnewaddress`
-    sed -i.bak "s/<issuing-address>/$issuer/g" /etc/issuer/conf.ini
-    bitcoin-cli dumpprivkey $issuer > /etc/issuer/pk_issuer.txt
+       issuer=`bitcoin-cli getnewaddress
+       sed -i.bak "s/<issuing-address>/$issuer/g" /etc/issuer/conf.ini
+       bitcoin-cli dumpprivkey $issuer > /etc/issuer/pk_issuer.txt
 
 2. Create a 'revocation address' and save the output as follows. Note that we don't need to save this
 corresponding private key for testing issuing certificates
 
-    revocation=`bitcoin-cli getnewaddress`
-    sed -i.bak "s/<revocation-address>/$revocation/g" /etc/issuer/conf.ini
+       revocation=`bitcoin-cli getnewaddress
+       sed -i.bak "s/<revocation-address>/$revocation/g" /etc/issuer/conf.ini
 
 3. Don't forget to save snapshots so you don't lose your work (see step 3 of client setup)
 
@@ -87,10 +87,10 @@ Issuing certificates
 TODO: There is an issuer the Dockerfile and/or setup.py. The pip install here shouldn't be required.
 For now, these get it running:
 
-    source /issuer/env/bin/activate
-    cd issuer
-    pip install .
-    python issuer -c /etc/issuer/conf.ini
+       source /issuer/env/bin/activate
+       cd issuer
+       pip install .
+       python issuer -c /etc/issuer/conf.ini
 
 
 About the Digital Certificates project
