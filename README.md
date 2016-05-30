@@ -1,7 +1,7 @@
 Digital Certificates Issuer Project
 ===================================
 
-Takes digital certificates and issues them by creating a transaction from the issuing institution to the recipient
+Issues digital certificates by creating a transaction from the issuing institution to the recipient
 on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/digital-certificates/schema)
 
 Documentation
