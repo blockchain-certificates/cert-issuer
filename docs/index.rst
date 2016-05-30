@@ -12,8 +12,17 @@ our approach for future releases. Read more about the Digital Certificates Proje
 Get the code: https://github.com/digital-certificates/issuer
 
 
-Install and run
----------------
+Quick start
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   readme_link
+
+
+Details
+-------
 
 .. toctree::
    :maxdepth: 3
