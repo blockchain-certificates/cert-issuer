@@ -32,8 +32,8 @@ experimenting only.
     mirrors what you would if you were issuing real certificates.
     - To avoid losing your work, you should create snapshots of your docker container. You can do this by running
 
-           docker ps -l
-           docker commit <container for your ml/issuer> my_cert_issuer
+             docker ps -l
+             docker commit <container for your ml/issuer> my_cert_issuer
 
 4. When you're ready to run:
 
