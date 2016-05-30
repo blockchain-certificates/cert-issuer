@@ -33,7 +33,7 @@ class TestCertificateSigner(unittest.TestCase):
         with patch('issuer.create_certificates.open', mock_open(read_data='{"assertion":{"uid": "123"}}'), create=True) as m, \
                 patch('issuer.create_certificates.SignMessage', return_value=b'123'), \
                 patch('issuer.helpers.import_key', return_value='tcKK1A9Si73zG5ZFnA6XYyhAcb1BNrMVyG'):
-            create_certificates.sign_certs(cert_info, 'fake_path_to_secret.txt')
+            create_certificates.sign_certs(cert_info)
             handle = m()
             handle.write.assert_called_once_with(
                 bytes('{"assertion": {"uid": "123"}, "signature": "123"}', 'utf-8'))
