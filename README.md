@@ -96,7 +96,7 @@ Issuing certificates
     app, the standard unit is satoshis. This sends 5 bitcoins to the address
 
     ```
-    bitcoin-cli sendtoaddress @issuer 5
+    bitcoin-cli sendtoaddress $issuer 5
     ```
 
 3. Run
