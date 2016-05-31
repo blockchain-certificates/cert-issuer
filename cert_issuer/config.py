@@ -4,11 +4,12 @@ import logging
 
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_CONFIG = os.path.join(PATH, 'conf.ini')
 
 
 def parse_args():
-    p = configargparse.getArgumentParser(default_config_files=[DEFAULT_CONFIG, '/etc/issuer/conf.ini'])
+    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf.ini'),
+                                                               '/etc/cert-issuer/conf.ini',
+                                                               os.path.join(PATH, 'conf_regtest.ini')])
     p.add('-c', '--my-config', required=False, is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
     p.add_argument('--revocation_address', required=True, help='revocation address')

@@ -12,7 +12,6 @@ you're using as-is or modifying. It's easy to make mistakes with bitcoin transac
 
 [Using bitcoind](bitcoind.html)
 
-[README](../README.md)
 
 ## Additional considerations
 

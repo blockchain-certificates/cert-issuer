@@ -64,18 +64,18 @@ from pycoin.encoding import wif_to_secret_exponent
 from pycoin.tx import Tx, TxOut
 from pycoin.tx.pay_to import build_hash160_lookup
 
-from issuer import helpers
-from issuer.helpers import hexlify
-from issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
+from cert_issuer import helpers
+from cert_issuer.helpers import hexlify
+from cert_issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
 
-from issuer.models import CertificateMetadata
+from cert_issuer.models import CertificateMetadata
 
-from issuer import connectors
-from issuer import wallet as wallet_helper
-from issuer.wallet import Wallet
-from issuer import helpers
-from issuer.helpers import internet_off_for_scope
-from issuer.helpers import hexlify
+from cert_issuer import connectors
+from cert_issuer import wallet as wallet_helper
+from cert_issuer.wallet import Wallet
+from cert_issuer import helpers
+from cert_issuer.helpers import internet_off_for_scope
+from cert_issuer.helpers import hexlify
 
 
 import bitcoin

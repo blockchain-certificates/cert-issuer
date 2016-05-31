@@ -13,7 +13,7 @@
 
 3. Make sure you have enough BTC in your issuing address. Each certificate costs 15000 satoshi ($0.06 USD)
 
-    __Important note on denominations: If you are running a bitcoind node, note that the standard cli denomination is bitcoins not satoshis! In the issuer app, the standard unit is Satoshis (this is common in other apis), and the values are converted to bitcoin first.__
+    __Important note on denominations: If you are running a bitcoind node, note that the standard cli denomination is bitcoins not satoshis! In the cert-issuer app, the standard unit is Satoshis (this is common in other apis), and the values are converted to bitcoin first.__
 
     a. If you're using bitcoind, transfer money by the command line.
     ```
@@ -24,7 +24,7 @@
 
 4. Run the create-certificates.py script to create your certificates. If you've installed the package
 you can run:
-    `python issuer -c conf.ini`
+    `python cert-issuer -c conf.ini`
 
 
 

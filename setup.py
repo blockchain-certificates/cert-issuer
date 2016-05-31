@@ -7,14 +7,14 @@ with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
 setup(
-    name='issuer',
+    name='cert-issuer',
     version='0.0.1',
-    url='https://github.com/digital-certificates/issuer',
+    url='https://github.com/digital-certificates/cert-issuer',
     license='MIT',
     author='MIT Media Lab Digital Certificates',
     author_email='certs@media.mit.edu',
     description='',
-    packages=['issuer'],
+    packages=['cert_issuer'],
     include_package_data=True,
     install_requires=[
         'pycoin==0.62',
@@ -30,7 +30,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'issuer = issuer.__main__:main'
+            'cert-issuer = cert_issuer.__main__:main'
         ]
     }
 )

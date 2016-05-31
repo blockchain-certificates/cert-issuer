@@ -12,9 +12,9 @@ if __package__ is None and not hasattr(sys, 'frozen'):
 
 
 def main(args=None):
-    from issuer import config
+    from cert_issuer import config
     parsed_config = config.get_config()
-    from issuer import create_certificates
+    from cert_issuer import create_certificates
     create_certificates.main(parsed_config)
 
 

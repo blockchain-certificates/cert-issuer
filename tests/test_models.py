@@ -1,6 +1,6 @@
 import unittest
 
-from issuer.models import TransactionCosts
+from cert_issuer.models import TransactionCosts
 
 
 class TestModels(unittest.TestCase):

@@ -7,7 +7,7 @@ on the Bitcoin blockchain that includes the hash of the certificate itself. [See
 Documentation
 -------------
 
-[http://issuer.readthedocs.io/](http://issuer.readthedocs.io/)
+[http://cert-issuer.readthedocs.io/](http://cert-issuer.readthedocs.io/)
 
 Quick start
 -----------
@@ -19,15 +19,15 @@ experimenting only.
 1. Clone the repo:
 
     ```
-    git clone https://github.com/digital-certificates/issuer.git
+    git clone https://github.com/digital-certificates/cert-issuer.git
     ```
 
 
-2. From a command line in issuer dir, build your docker container:
+2. From a command line in cert-issuer dir, build your docker container:
     
     ```
-    cd issuer
-    docker build -t ml/issuer:1.0 .
+    cd cert-issuer
+    docker build -t ml/cert-issuer:1.0 .
     ```
 
 3. Read before running!
@@ -37,13 +37,13 @@ experimenting only.
 
         ```
         docker ps -l
-        docker commit <container for your ml/issuer> my_cert_issuer
+        docker commit <container for your ml/cert-issuer> my_cert_issuer
         ```
 
 4. When you're ready to run:
 
     ```
-    docker run -it ml/issuer:1.0 bash
+    docker run -it ml/cert-issuer:1.0 bash
     ```
 
 5. Start bitcoind. This will use the bitcoin.conf from the docker container, which runs in regtest mode:
@@ -64,8 +64,8 @@ Ensure your docker image is running and bitcoind process is started
 
     ```
     issuer=`bitcoin-cli getnewaddress`
-    sed -i.bak "s/<issuing-address>/$issuer/g" /etc/issuer/conf.ini
-    bitcoin-cli dumpprivkey $issuer > /etc/issuer/pk_issuer.txt
+    sed -i.bak "s/<issuing-address>/$issuer/g" /etc/cert-issuer/conf.ini
+    bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/pk_issuer.txt
     ```
 
 2. Create a 'revocation address' and save the output as follows. Note that we don't need to save this
@@ -73,7 +73,7 @@ corresponding private key for testing issuing certificates:
 
     ```
     revocation=`bitcoin-cli getnewaddress`
-    sed -i.bak "s/<revocation-address>/$revocation/g" /etc/issuer/conf.ini
+    sed -i.bak "s/<revocation-address>/$revocation/g" /etc/cert-issuer/conf.ini
     ```
 
 3. Don't forget to save snapshots so you don't lose your work (see step 3 of client setup)
@@ -96,18 +96,18 @@ Issuing certificates
     app, the standard unit is satoshis. This sends 5 bitcoins to the address
 
     ```
-    bitcoin-cli sendtoaddress moH7X29kt5T8fbxTCjoxYzjfLeMR56Ju94 5
+    bitcoin-cli sendtoaddress @issuer 5
     ```
 
 3. Run
-TODO: There is an issuer the Dockerfile and/or setup.py. The pip install here shouldn't be required.
+TODO: There is an cert-issuer the Dockerfile and/or setup.py. The pip install here shouldn't be required.
 For now, these get it running:
 
     ```
-    source /issuer/env/bin/activate
-    cd issuer
+    source /cert-issuer/env/bin/activate
+    cd cert-issuer
     pip install .
-    python issuer -c /etc/issuer/conf.ini
+    cert-issuer -c /etc/cert-issuer/conf.ini
     ```
 
 

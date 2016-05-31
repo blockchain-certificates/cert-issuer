@@ -9,9 +9,9 @@ from abc import abstractmethod, ABCMeta
 from bitcoin.core import *
 from bitcoin.core.script import *
 from bitcoin.wallet import CBitcoinAddress
-from issuer.errors import UnrecognizedConnectorError, ConnectorError, NotImplementedError
-from issuer.helpers import unhexlify, hexlify
-from issuer.models import TransactionOutput
+from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError, NotImplementedError
+from cert_issuer.helpers import unhexlify, hexlify
+from cert_issuer.models import TransactionOutput
 
 
 class WalletConnector:

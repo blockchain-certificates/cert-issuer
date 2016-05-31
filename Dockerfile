@@ -7,7 +7,7 @@ RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=18333\nregtest=1\n" > ~/.bitcoin
 
 RUN apt-get update
 
-# Install issuer app
+# Install cert-issuer app
 RUN apt-get install -y -q build-essential python-gdal python-simplejson --fix-missing
 RUN apt-get install -y python python-pip wget
 RUN apt-get install -y python-dev
@@ -22,24 +22,24 @@ RUN cd /opt/Python-3.4.3 & make install
 
 
 # Create a working directory.
-RUN mkdir issuer
+RUN mkdir cert-issuer
 
 # Install VirtualEnv.
 RUN pip install virtualenv
 
 # Add requirements file.
-ADD requirements.txt /issuer/requirements.txt
+ADD requirements.txt /cert-issuer/requirements.txt
 
 # Run VirtualEnv.
-RUN virtualenv -p /usr/local/bin/python3 /issuer/env/
-RUN /issuer/env/bin/pip install wheel
+RUN virtualenv -p /usr/local/bin/python3 /cert-issuer/env/
+RUN /cert-issuer/env/bin/pip install wheel
 
-COPY . /issuer
+COPY . /cert-issuer
 
-RUN /issuer/env/bin/pip install /issuer/.
+RUN /cert-issuer/env/bin/pip install /cert-issuer/.
 
 # Copy configuration file
-RUN mkdir /etc/issuer
-COPY conf_regtest.ini /etc/issuer/conf.ini
+RUN mkdir /etc/cert-issuer
+COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
 

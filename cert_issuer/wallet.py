@@ -3,8 +3,8 @@ import time
 from datetime import datetime
 
 import random
-from issuer.errors import InsufficientFundsError
-from issuer.models import TransactionCosts
+from cert_issuer.errors import InsufficientFundsError
+from cert_issuer.models import TransactionCosts
 
 COIN = 100000000   # satoshis in 1 btc
 BYTES_PER_INPUT = 180

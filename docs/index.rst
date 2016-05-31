@@ -1,4 +1,4 @@
-.. issuer documentation master file, created by
+.. cert-issuer documentation master file, created by
    sphinx-quickstart on Tue May 24 12:31:23 2016.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -9,7 +9,7 @@ The Issuer project is part of the MIT Media Lab Digital Certificates incubation 
 contributions, and general discussion. This is not currently intended for production release, but we are improving
 our approach for future releases. Read more about the Digital Certificates Project at http://certificates.media.mit.edu/.
 
-Get the code: https://github.com/digital-certificates/issuer
+Get the code: https://github.com/digital-certificates/cert-issuer
 
 
 Install and Run
@@ -34,9 +34,3 @@ API docs
 
    modules
 
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

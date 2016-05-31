@@ -6,11 +6,11 @@
 1. Clone the repo:
 
     ```
-    git clone https://github.com/digital-certificates/issuer.git
+    git clone https://github.com/digital-certificates/cert-issuer.git
     ```
 2. Create a Python 3 virtual environment and activate it
     ```
-    cd issuer
+    cd cert-issuer
     virtualenv venv -p python3.4
     source venv/bin/activate
     ```
