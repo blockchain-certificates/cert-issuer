@@ -7,7 +7,7 @@ import glob2
 import os
 import requests
 import shutil
-from issuer import config
+from cert_issuer import config
 import logging
 
 unhexlify = binascii.unhexlify

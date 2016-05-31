@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# issuer documentation build configuration file, created by
+# cert-issuer documentation build configuration file, created by
 # sphinx-quickstart on Tue May 24 12:31:23 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -60,7 +60,7 @@ source_parsers = {
 master_doc = 'index'
 
 # General information about the project.
-project = 'issuer'
+project = 'cert-issuer'
 copyright = '2016, MIT Media Lab Digital Certificates'
 author = 'MIT Media Lab Digital Certificates'
 
@@ -135,7 +135,7 @@ todo_include_todos = True
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
-#html_title = 'issuer v0.0.1'
+#html_title = 'cert-issuer v0.0.1'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -239,7 +239,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'issuer.tex', 'issuer Documentation',
+    (master_doc, 'cert-issuer.tex', 'cert-issuer Documentation',
      'MIT Media Lab Digital Certificates', 'manual'),
 ]
 
@@ -269,7 +269,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'issuer', 'issuer Documentation',
+    (master_doc, 'cert-issuer', 'cert-issuer Documentation',
      [author], 1)
 ]
 
@@ -283,8 +283,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'issuer', 'issuer Documentation',
-     author, 'issuer', 'One line description of project.',
+    (master_doc, 'cert-issuer', 'cert-issuer Documentation',
+     author, 'cert-issuer', 'One line description of project.',
      'Miscellaneous'),
 ]
 

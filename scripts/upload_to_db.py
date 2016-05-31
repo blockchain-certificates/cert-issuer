@@ -2,7 +2,7 @@ import csv
 import glob
 import json
 
-from issuer import config, helpers
+from cert_issuer import config, helpers
 
 with open('certs_dbdump.csv', 'w') as csvfile:
     fieldnames = ['_id', 'issued', 'pubkey', 'txid']

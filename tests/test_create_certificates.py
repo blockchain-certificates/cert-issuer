@@ -4,9 +4,9 @@ import unittest
 from mock import MagicMock
 from mock import mock_open
 from mock import patch
-from issuer.models import CertificateMetadata
-from issuer import create_certificates
-from issuer import config
+from cert_issuer.models import CertificateMetadata
+from cert_issuer import create_certificates
+from cert_issuer import config
 
 class TestCertificateSigner(unittest.TestCase):
 
@@ -30,9 +30,9 @@ class TestCertificateSigner(unittest.TestCase):
         cert_metadata = CertificateMetadata(self.mock_config, 'somecertificate', 'some_name', 'somekey')
         cert_info = {'somecertificate': cert_metadata}
 
-        with patch('issuer.create_certificates.open', mock_open(read_data='{"assertion":{"uid": "123"}}'), create=True) as m, \
-                patch('issuer.create_certificates.SignMessage', return_value=b'123'), \
-                patch('issuer.helpers.import_key', return_value='tcKK1A9Si73zG5ZFnA6XYyhAcb1BNrMVyG'):
+        with patch('cert_issuer.create_certificates.open', mock_open(read_data='{"assertion":{"uid": "123"}}'), create=True) as m, \
+                patch('cert_issuer.create_certificates.SignMessage', return_value=b'123'), \
+                patch('cert_issuer.helpers.import_key', return_value='tcKK1A9Si73zG5ZFnA6XYyhAcb1BNrMVyG'):
             create_certificates.sign_certs(cert_info)
             handle = m()
             handle.write.assert_called_once_with(
@@ -42,7 +42,7 @@ class TestCertificateSigner(unittest.TestCase):
 
         cert_metadata = CertificateMetadata(MagicMock(), 'someuid', 'some_name', 'somekey')
         cert_info = {'someuid': cert_metadata}
-        with patch('issuer.create_certificates.open', mock_open(read_data='bibble'.encode('utf-8')), create=True) as m:
+        with patch('cert_issuer.create_certificates.open', mock_open(read_data='bibble'.encode('utf-8')), create=True) as m:
             create_certificates.hash_certs(cert_info)
             handle = m()
             handle.read.assert_called_once()
@@ -52,7 +52,7 @@ class TestCertificateSigner(unittest.TestCase):
     def test__sign_cert(self):
         mock_privkey = MagicMock('test')
         mock_privkey.sign_compact = b'4545454'
-        with patch('issuer.create_certificates.SignMessage', return_value=b'123'):
+        with patch('cert_issuer.create_certificates.SignMessage', return_value=b'123'):
             signed_cert = create_certificates.do_sign('{"assertion":{"uid": "123"}}', mock_privkey)
             self.assertEqual(signed_cert, '{"assertion": {"uid": "123"}, "signature": "123"}')
 
