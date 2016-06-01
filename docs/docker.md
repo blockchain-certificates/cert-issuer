@@ -92,7 +92,7 @@ corresponding private key for testing issuing certificates
     ```
 
 3. Run
-TODO: there is an cert-issuer in the Dockerfile and/or setup.py. The pip install here shouldn't be required.
+TODO: there is an issue in the Dockerfile and/or setup.py. The pip install here shouldn't be required.
 For now, these get it running:
 
     ```

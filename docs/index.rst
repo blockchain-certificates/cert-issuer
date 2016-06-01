@@ -3,11 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Issuer's Documentation
-=================================
-The Issuer project is part of the MIT Media Lab Digital Certificates incubation project. We're looking for feedback,
-contributions, and general discussion. This is not currently intended for production release, but we are improving
-our approach for future releases. Read more about the Digital Certificates Project at http://certificates.media.mit.edu/.
+Welcome to cert-issuer's documentation
+======================================
+The cert-issuer project issues digital certificates by creating a transaction from the issuing institution to the
+recipient on the Bitcoin blockchain that includes the hash of the certificate itself.
+ [See the schema](https://github.com/digital-certificates/cert-schema)
+
 
 Get the code: https://github.com/digital-certificates/cert-issuer
 

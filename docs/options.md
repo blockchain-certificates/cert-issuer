@@ -2,7 +2,7 @@
 
 Reminder: This is an incubator project and is not currently intended for production deployment.
 
-## Issuer docker container
+## Cert-issuer docker container
 
 __This is the fastest way to experiment, but is not configured to issue real certificates on the blockchain__
 
