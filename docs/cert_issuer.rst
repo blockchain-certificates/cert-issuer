@@ -1,5 +1,5 @@
 cert_issuer package
-==========================
+===================
 
 Submodules
 ----------
@@ -13,7 +13,7 @@ Module contents
     :show-inheritance:
 
 cert_issuer.certificate_issuer module
---------------------------------
+-------------------------------------
 
 .. automodule:: cert_issuer.create_certificates
     :members:
@@ -21,7 +21,7 @@ cert_issuer.certificate_issuer module
     :show-inheritance:
 
 cert_issuer.wallet module
---------------------------------
+-------------------------
 
 .. automodule:: cert_issuer.wallet
     :members:
@@ -29,7 +29,7 @@ cert_issuer.wallet module
     :show-inheritance:
 
 cert_issuer.connectors module
-------------------------------------
+-----------------------------
 
 .. automodule:: cert_issuer.connectors
     :members:
@@ -37,7 +37,7 @@ cert_issuer.connectors module
     :show-inheritance:
 
 cert_issuer.models module
---------------------------------
+-------------------------
 
 .. automodule:: cert_issuer.models
     :members:
@@ -45,7 +45,7 @@ cert_issuer.models module
     :show-inheritance:
 
 cert_issuer.errors module
---------------------------------
+-------------------------
 
 .. automodule:: cert_issuer.errors
     :members:

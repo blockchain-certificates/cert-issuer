@@ -41,44 +41,35 @@ Planned changes:
 - Usability
 
 """
+import json
+import logging
 import sys
-
-if sys.version_info.major < 3:
-    sys.stderr.write('Sorry, Python 3.x required by this script.\n')
-    sys.exit(1)
-
-import glob2
 import time
 
+import bitcoin
+import glob2
 import hashlib
-import json
-import os
-import logging
-from bitcoin.core import *
-from bitcoin.core.script import *
+from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn
+from bitcoin.core.script import OP_RETURN
 from bitcoin.signmessage import BitcoinMessage, SignMessage
 from bitcoin.signmessage import VerifyMessage
 from bitcoin.wallet import CBitcoinAddress
 from bitcoin.wallet import CBitcoinSecret
+from cert_issuer import connectors
+from cert_issuer import helpers
+from cert_issuer import wallet as wallet_helper
+from cert_issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
+from cert_issuer.helpers import hexlify
+from cert_issuer.helpers import internet_off_for_scope
+from cert_issuer.models import CertificateMetadata
+from cert_issuer.wallet import Wallet
 from pycoin.encoding import wif_to_secret_exponent
 from pycoin.tx import Tx, TxOut
 from pycoin.tx.pay_to import build_hash160_lookup
 
-from cert_issuer import helpers
-from cert_issuer.helpers import hexlify
-from cert_issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
-
-from cert_issuer.models import CertificateMetadata
-
-from cert_issuer import connectors
-from cert_issuer import wallet as wallet_helper
-from cert_issuer.wallet import Wallet
-from cert_issuer import helpers
-from cert_issuer.helpers import internet_off_for_scope
-from cert_issuer.helpers import hexlify
-
-
-import bitcoin
+if sys.version_info.major < 3:
+    sys.stderr.write('Sorry, Python 3.x required by this script.\n')
+    sys.exit(1)
 
 
 def do_sign(certificate, secret_key):
@@ -138,7 +129,7 @@ def issue_on_blockchain(wallet, broadcast_function, issuing_address, revocation_
     for uid, certificate_metadata in certificates_to_issue.items():
         if transfer_from_storage_address:
             current_tail = tail
-            tail -=1
+            tail -= 1
         else:
             current_tail = -1
         last_input = _build_certificate_transactions(wallet, issuing_address, revocation_address,
@@ -156,15 +147,19 @@ def issue_on_blockchain(wallet, broadcast_function, issuing_address, revocation_
 def _build_certificate_transactions(wallet, issuing_address, revocation_address, certificate_metadata, fees, tail):
     """Make transactions for the certificates.
     """
-    logging.info('Creating tx of certificate for recipient uid: %s ...', certificate_metadata.uid)
+    logging.info('Creating tx of certificate for recipient uid: %s ...',
+                 certificate_metadata.uid)
 
     with open(certificate_metadata.certificate_hash_file_name, 'rb') as in_file:
-        # this is the recipient-specific hash that will be recorded on the blockchain
+        # this is the recipient-specific hash that will be recorded on the
+        # blockchain
         hashed_certificate = in_file.read()
         cert_out = CMutableTxOut(0, CScript([OP_RETURN, hashed_certificate]))
 
-        # send a transaction to the recipient's public key, and to a revocation address
-        txouts = create_recipient_outputs(certificate_metadata.pubkey, revocation_address, fees.min_per_transaction)
+        # send a transaction to the recipient's public key, and to a revocation
+        # address
+        txouts = create_recipient_outputs(
+            certificate_metadata.pubkey, revocation_address, fees.min_per_transaction)
 
         # define transaction inputs
         unspent_outputs = wallet.get_unspent_outputs(issuing_address)
@@ -173,7 +168,8 @@ def _build_certificate_transactions(wallet, issuing_address, revocation_address,
         txins = [CTxIn(last_input.outpoint)]
         value_in = last_input.amount
 
-        # very important! If we don't send the excess change back to ourselves, some lucky miner gets it!
+        # very important! If we don't send the excess change back to ourselves,
+        # some lucky miner gets it!
         amount = value_in - fees.cost_per_transaction
         if amount > 0:
             change_out = create_transaction_output(issuing_address, amount)
@@ -187,13 +183,15 @@ def _build_certificate_transactions(wallet, issuing_address, revocation_address,
         with open(certificate_metadata.unsigned_tx_file_name, 'wb') as out_file:
             out_file.write(bytes(hextx, 'utf-8'))
 
-        logging.info('Created unsigned tx for recipient; last_input=%s', last_input)
+        logging.info(
+            'Created unsigned tx for recipient; last_input=%s', last_input)
         return last_input
 
 
 def create_recipient_outputs(recipient_address, revocation_address, transaction_fee):
     """Create a pair of outputs: one to the recipient, and one to the revocation address."""
-    recipient_out = create_transaction_output(recipient_address, transaction_fee)
+    recipient_out = create_transaction_output(
+        recipient_address, transaction_fee)
     revoke_out = create_transaction_output(revocation_address, transaction_fee)
     recipient_outs = [recipient_out] + [revoke_out]
     return recipient_outs
@@ -212,24 +210,28 @@ def sign_tx(certificate_metadata, last_input, allowable_wif_prefixes=None):
     with open(certificate_metadata.unsigned_tx_file_name, 'rb') as in_file:
         hextx = str(in_file.read(), 'utf-8')
 
-        logging.info('Signing tx with private key for recipient id: %s ...', certificate_metadata.uid)
+        logging.info(
+            'Signing tx with private key for recipient id: %s ...', certificate_metadata.uid)
 
         tx = Tx.from_hex(hextx)
         if allowable_wif_prefixes:
-            wif = wif_to_secret_exponent(helpers.import_key(), allowable_wif_prefixes)
+            wif = wif_to_secret_exponent(
+                helpers.import_key(), allowable_wif_prefixes)
         else:
             wif = wif_to_secret_exponent(helpers.import_key())
 
         lookup = build_hash160_lookup([wif])
 
-        tx.set_unspents([TxOut(coin_value=last_input.amount, script=last_input.script_pub_key)])
+        tx.set_unspents(
+            [TxOut(coin_value=last_input.amount, script=last_input.script_pub_key)])
 
         signed_tx = tx.sign(lookup)
         signed_hextx = signed_tx.as_hex()
         with open(certificate_metadata.unsent_tx_file_name, 'wb') as out_file:
             out_file.write(bytes(signed_hextx, 'utf-8'))
 
-    logging.info('Finished signing transaction for certificate uid=%s', certificate_metadata.uid)
+    logging.info('Finished signing transaction for certificate uid=%s',
+                 certificate_metadata.uid)
 
 
 def send_tx(broadcaster, certificate_metadata):
@@ -243,11 +245,13 @@ def send_tx(broadcaster, certificate_metadata):
                 logging.info('Broadcast transaction for certificate id %s with a txid of %s', certificate_metadata.uid,
                              txid)
         else:
-            logging.warning('could not broadcast transaction but you can manually do it! hextx=%s', hextx)
+            logging.warning(
+                'could not broadcast transaction but you can manually do it! hextx=%s', hextx)
 
 
 def verify(certificate_metadata, issuing_address):
-    logging.info('verifying certificate with uid=%s:', certificate_metadata.uid)
+    logging.info('verifying certificate with uid=%s:',
+                 certificate_metadata.uid)
     with open(certificate_metadata.signed_certificate_file_name) as in_file:
         do_verify_signature(issuing_address, in_file.read())
         logging.info('verified signature')
@@ -278,7 +282,8 @@ def find_unsigned_certificates(app_config):
             certificate_metadata = CertificateMetadata(app_config,
                                                        uid,
                                                        cert_json['recipient']['givenName'] + ' ' +
-                                                       cert_json['recipient']['familyName'],
+                                                       cert_json['recipient'][
+                                                           'familyName'],
                                                        cert_json['recipient']['pubkey'])
             cert_info[uid] = certificate_metadata
 
@@ -294,7 +299,7 @@ def main(app_config):
 
     logging.info('Processing %d certificates', len(certificates_metadata))
 
-    if app_config.wallet_connector_type=='bitcoind' and not app_config.disable_regtest_mode:
+    if app_config.wallet_connector_type == 'bitcoind' and not app_config.disable_regtest_mode:
         bitcoin.SelectParams('regtest')
         allowable_wif_prefixes = [b'\x80', b'\xef']
     else:
@@ -320,19 +325,22 @@ def main(app_config):
         hash_certs(certificates_metadata)
 
         logging.info('Archiving signed certificates.')
-        helpers.archive_files(app_config.signed_certs_file_pattern, app_config.archived_certs_file_pattern, start_time)
+        helpers.archive_files(app_config.signed_certs_file_pattern,
+                              app_config.archived_certs_file_pattern, start_time)
 
     # calculate transaction costs
     transaction_costs = wallet_helper.get_cost_for_certificate_batch(app_config.dust_threshold, app_config.tx_fees,
-                                                              app_config.satoshi_per_byte, len(certificates_metadata),
-                                                              app_config.transfer_from_storage_address)
+                                                                     app_config.satoshi_per_byte,
+                                                                     len(certificates_metadata),
+                                                                     app_config.transfer_from_storage_address)
     logging.info('Total cost will be %d satoshis', transaction_costs.total)
 
     # ensure there is enough in our wallet at the storage/issuing address, transferring from the storage address
     # if configured (advanced option)
     if app_config.transfer_from_storage_address:
         storage_address = app_config.storage_address
-        wallet.transfer_balance(storage_address, issuing_address, transaction_costs)
+        wallet.transfer_balance(
+            storage_address, issuing_address, transaction_costs)
 
     logging.info('Checking there is enough balance in the wallet.')
     wallet.check_balance(issuing_address, transaction_costs)
@@ -345,7 +353,7 @@ def main(app_config):
 
     # archive
     logging.info('Archived sent transactions folder for safe keeping.')
-    helpers.archive_files(app_config.sent_txs_file_pattern, app_config.archived_txs_file_pattern, start_time)
+    helpers.archive_files(app_config.sent_txs_file_pattern,
+                          app_config.archived_txs_file_pattern, start_time)
 
     logging.info('Done!')
-
