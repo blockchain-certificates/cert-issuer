@@ -2,8 +2,9 @@ import configargparse
 import os
 import logging
 
-
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_PATH = os.path.join(PATH, 'data')
+ARCHIVE_PATH = os.path.join(PATH, 'archive')
 
 
 def parse_args():
@@ -37,16 +38,8 @@ def parse_args():
                    help='recommended tx fee (in BTC) for inclusion in next block. http://bitcoinexchangerate.org/fees')
     p.add_argument('--batch_size', default=10, type=int, help='Certificate batch size')
     p.add_argument('--satoshi_per_byte', default=41, type=int, help='Satoshi per byte')
-    p.add_argument('--unsigned_certs_file_pattern', default='../data/unsigned_certs/*.json',
-                   help='unsigned certs file pattern')
-    p.add_argument('--signed_certs_file_pattern', default='../data/signed_certs/*.json', help='signed certs file pattern')
-    p.add_argument('--hashed_certs_file_pattern', default='../data/hashed_certs/*.txt', help='hashed certs file pattern')
-    p.add_argument('--unsigned_txs_file_pattern', default='../data/unsigned_txs/*.txt', help='unsigned txs file pattern')
-    p.add_argument('--unsent_txs_file_pattern', default='../data/unsent_txs/*.txt', help='unsent txs file pattern')
-    p.add_argument('--sent_txs_file_pattern', default='../data/sent_txs/*.txt', help='sent txs file pattern')
-    p.add_argument('--archived_certs_file_pattern', default='../archive/certs/*.json', help='archive certs file pattern')
-    p.add_argument('--archived_txs_file_pattern', default='../archive/txs/*.txt', help='archive txs file pattern')
-
+    p.add_argument('--data_path', default=DATA_PATH, help='Default path to data directory, storing unsigned certs')
+    p.add_argument('--archive_path', default=ARCHIVE_PATH, help='Default path to data directory, storing issued certs')
     return p.parse_known_args()
 
 
@@ -59,20 +52,30 @@ def configure_logger():
     formatter = logging.Formatter("%(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
- 
- 
-parsed_config=None
- 
- 
+
+
+parsed_config = None
+
+
 def get_config():
     global parsed_config
     if parsed_config:
         return parsed_config
     parsed_config, _ = parse_args()
 
+    # populate data and archive subdirs
+    parsed_config.unsigned_certs_file_pattern = str(os.path.join(parsed_config.data_path, 'unsigned_certs/*.json'))
+    parsed_config.signed_certs_file_pattern=os.path.join(parsed_config.data_path, 'signed_certs/*.json')
+    parsed_config.hashed_certs_file_pattern=os.path.join(parsed_config.data_path, 'hashed_certs/*.txt')
+    parsed_config.unsigned_txs_file_pattern=os.path.join(parsed_config.data_path, 'unsigned_txs/*.txt')
+    parsed_config.unsent_txs_file_pattern=os.path.join(parsed_config.data_path, 'unsent_txs/*.txt')
+    parsed_config.sent_txs_file_pattern=os.path.join(parsed_config.data_path, 'sent_txs/*.txt')
+    parsed_config.archived_certs_file_pattern=os.path.join(parsed_config.archive_path, 'certs/*.json')
+    parsed_config.archived_txs_file_pattern=os.path.join(parsed_config.archive_path, 'txs/*.txt')
+
     if parsed_config.skip_wifi_check:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
-             'documentation to ensure this is what you want, since this is less secure')
+                        'documentation to ensure this is what you want, since this is less secure')
 
     configure_logger()
 
