@@ -22,7 +22,8 @@ def get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transacti
 
     # plus additional fees for splitting
     if allow_transfer:
-        split_transfer_fee = calculate_txfee(satoshi_per_byte, fee_per_transaction, 1, num_certificates)
+        split_transfer_fee = calculate_txfee(
+            satoshi_per_byte, fee_per_transaction, 1, num_certificates)
     else:
         split_transfer_fee = 0
 
@@ -39,12 +40,14 @@ def calculate_txfee(satoshi_per_byte, fee_per_transaction, num_inputs, num_outpu
     See explanation of constants above
 
     """
-    tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs * BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES + num_inputs
+    tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs *
+                                                BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES + num_inputs
     tx_fee = satoshi_per_byte * tx_size
     return max(tx_fee, fee_per_transaction)
 
 
 class Wallet:
+
     def __init__(self, connector):
         self.connector = connector
 
@@ -91,15 +94,19 @@ class Wallet:
         return self.connector.send_to_addresses(storage_address, temp_addresses)
 
     def wait_for_confirmation(self, address):
-        logging.info('Determining if there are pending transactions to be confirmed for address %s', address)
+        logging.info(
+            'Determining if there are pending transactions to be confirmed for address %s', address)
         benchmark = datetime.now()
+        confirmed_tx = False
         while True:
             confirmed_tx = self.is_confirmed(address)
             elapsed_time = str(datetime.now() - benchmark)
             if confirmed_tx:
-                logging.info('It took %s to process the transaction', elapsed_time)
+                logging.info(
+                    'It took %s to process the transaction', elapsed_time)
                 break
-            logging.info('Time: %s, waiting 30 seconds and then checking if transaction is confirmed', elapsed_time)
+            logging.info(
+                'Time: %s, waiting 30 seconds and then checking if transaction is confirmed', elapsed_time)
             time.sleep(30)
         return confirmed_tx
 
@@ -109,10 +116,10 @@ class Wallet:
         amount_needed = transaction_costs.difference(address_balance)
 
         if amount_needed > 0:
-            error_message = 'Please add {} satoshis to the address {}'.format(amount_needed, issuing_address)
+            error_message = 'Please add {} satoshis to the address {}'.format(
+                amount_needed, issuing_address)
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
-
 
     def transfer_balance(self, storage_address, issuing_address, transaction_costs):
         """Transfer balance to ensure enough is available for certificates. The temporary addresses are used to subdivide
@@ -121,21 +128,26 @@ class Wallet:
         the address). This is useful if issuing a larger number of certificates.
         """
 
-        # first make sure that there are no pending transactions for the storage address
+        # first make sure that there are no pending transactions for the
+        # storage address
         self.wait_for_confirmation(storage_address)
 
-        logging.info('Creating %d temporary addresses...', transaction_costs.number_of_transactions)
+        logging.info('Creating %d temporary addresses...',
+                     transaction_costs.number_of_transactions)
 
         temp_addresses = {}
         for i in range(transaction_costs.number_of_transactions):
             temp_address_in = 'temp-address-%s' % i
             temp_address = self.connector.create_temp_address(temp_address_in)
-            # we need to add enough to cover the fee of the subsequent spend from the temp address
-            temp_addresses[temp_address] = transaction_costs.cost_per_transaction + transaction_costs.fee_per_transaction
+            # we need to add enough to cover the fee of the subsequent spend
+            # from the temp address
+            temp_addresses[temp_address] = transaction_costs.cost_per_transaction + \
+                transaction_costs.fee_per_transaction
 
         logging.info('Transferring BTC to temporary addresses...')
 
-        self.connector.send_to_addresses(storage_address, temp_addresses, transaction_costs.transfer_split_fee)
+        self.connector.send_to_addresses(
+            storage_address, temp_addresses, transaction_costs.transfer_split_fee)
         logging.info('Waiting for confirmation of transfer...')
 
         random_address = random.choice(list(temp_addresses.keys()))
@@ -145,6 +157,7 @@ class Wallet:
         logging.info('Making transfer to issuing address...')
         for address in temp_addresses.keys():
             self.pay_and_archive(address, issuing_address, transaction_costs.cost_per_transaction,
-                                   transaction_costs.fee_per_transaction)
+                                 transaction_costs.fee_per_transaction)
         self.wait_for_confirmation(issuing_address)
-        logging.info('Transferred BTC needed for issuing certificates from issuing address...')
+        logging.info(
+            'Transferred BTC needed for issuing certificates from issuing address...')

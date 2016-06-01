@@ -3,13 +3,12 @@ import logging
 import sys
 import urllib.parse
 
+from abc import abstractmethod, ABCMeta
 import bitcoin.rpc
 import requests
-from abc import abstractmethod, ABCMeta
-from bitcoin.core import *
-from bitcoin.core.script import *
+from bitcoin.core import COutPoint, CScript, CTransaction
 from bitcoin.wallet import CBitcoinAddress
-from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError, NotImplementedError
+from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.models import TransactionOutput
 
@@ -30,10 +29,6 @@ class WalletConnector:
         return 0
 
     @abstractmethod
-    def archive(self, address):
-        return
-
-    @abstractmethod
     def pay(self, from_address, issuing_address, amount, fee):
         return
 
@@ -47,19 +42,22 @@ class WalletConnector:
 
 
 class BlockchainInfoConnector(WalletConnector):
+
     def __init__(self, config):
         self.wallet_guid = config.wallet_guid
         self.wallet_password = config.wallet_password
         self.api_key = config.api_key
 
     def get_balance(self, address, confirmations):
-        confirmed_url = self._make_url('address_balance', {'address': address, 'confirmations': confirmations})
+        confirmed_url = self._make_url(
+            'address_balance', {'address': address, 'confirmations': confirmations})
         confirmed_result = try_get(confirmed_url)
         confirmed_balance = confirmed_result.json().get("balance", 0)
         return confirmed_balance
 
     def create_temp_address(self, temp_address):
-        new_address_url = self._make_url('new_address', {"label": temp_address})
+        new_address_url = self._make_url(
+            'new_address', {"label": temp_address})
         confirmed_result = try_get(new_address_url)
         address = json.loads(confirmed_result.text)['address']
         return address
@@ -108,6 +106,7 @@ class BlockchainInfoConnector(WalletConnector):
 
 
 class BitcoindConnector(WalletConnector):
+
     def __init__(self, config):
         bitcoin.rpc.Proxy()
         self.proxy = bitcoin.rpc.Proxy()
@@ -129,7 +128,8 @@ class BitcoindConnector(WalletConnector):
     def pay(self, from_address, issuing_address, amount, fee):
         self.proxy.sendtoaddress(issuing_address, amount)
 
-    # These methods are used for temporary addresses, and they are not yet supported
+    # These methods are used for temporary addresses, and they are not yet
+    # supported
     def create_temp_address(self, address):
         raise NotImplementedError('create_temp_addresses is not yet supported')
 
@@ -141,9 +141,11 @@ class BitcoindConnector(WalletConnector):
 
 
 def insight_broadcast(hextx):
-    r = requests.post("https://insight.bitpay.com/api/tx/send", json={"rawtx": hextx})
+    r = requests.post("https://insight.bitpay.com/api/tx/send",
+                      json={"rawtx": hextx})
     if int(r.status_code) != 200:
-        sys.stderr.write("Error broadcasting the transaction through the Insight API. Error msg: %s" % r.text)
+        sys.stderr.write(
+            "Error broadcasting the transaction through the Insight API. Error msg: %s" % r.text)
         sys.exit(1)
     else:
         txid = r.json().get('txid', None)
@@ -151,10 +153,11 @@ def insight_broadcast(hextx):
 
 
 def blockr_broadcast(hextx):
-    import requests
-    r = requests.post('http://btc.blockr.io/api/v1/tx/push', json={'hex': hextx})
+    r = requests.post('http://btc.blockr.io/api/v1/tx/push',
+                      json={'hex': hextx})
     if int(r.status_code) != 200:
-        sys.stderr.write('Error broadcasting the transaction through the blockr.io API. Error msg: %s' % r.text)
+        sys.stderr.write(
+            'Error broadcasting the transaction through the blockr.io API. Error msg: %s' % r.text)
         sys.exit(1)
     else:
         txid = r.json().get('data', None)
@@ -162,7 +165,8 @@ def blockr_broadcast(hextx):
 
 
 def noop_broadcast(hextx):
-    logging.warning('app is configured not to broadcast, so no txid will be created for hextx=%s', hextx)
+    logging.warning(
+        'app is configured not to broadcast, so no txid will be created for hextx=%s', hextx)
     return None
 
 
@@ -179,7 +183,8 @@ def create_wallet_connector(config):
     elif wallet_connector_type == 'bitcoind':
         connector = BitcoindConnector(config)
     else:
-        error_message = 'unrecognized wallet connector: {}'.format(wallet_connector_type)
+        error_message = 'unrecognized wallet connector: {}'.format(
+            wallet_connector_type)
         raise UnrecognizedConnectorError(error_message)
     return connector
 
@@ -203,7 +208,8 @@ def try_get(url):
     """throw error if call fails"""
     r = requests.get(url)
     if int(r.status_code) != 200:
-        error_message = 'Error! status_code={}, error={}'.format(r.status_code, r.json()['error'])
+        error_message = 'Error! status_code={}, error={}'.format(
+            r.status_code, r.json()['error'])
         logging.error(error_message)
         raise ConnectorError(error_message)
     return r
