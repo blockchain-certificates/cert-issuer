@@ -51,20 +51,4 @@ cert_issuer.errors module
     :members:
     :undoc-members:
     :show-inheritance:
-
-cert_issuer.helpers module
----------------------------------
-
-.. automodule:: cert_issuer.helpers
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cert_issuer.config module
---------------------------------
-
-.. automodule:: cert_issuer.config
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+    

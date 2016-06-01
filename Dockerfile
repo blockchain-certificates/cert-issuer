@@ -42,4 +42,10 @@ RUN /cert-issuer/env/bin/pip install /cert-issuer/.
 RUN mkdir /etc/cert-issuer
 COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
+RUN echo '\ndata_path=/etc/cert-issuer/data\narchive_path=/etc/cert-issuer/archive\n' >> /etc/cert-issuer/conf.ini
+
+COPY ./data /etc/cert-issuer/data
+COPY ./archive /etc/cert-issuer/archive
+
+
 

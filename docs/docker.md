@@ -67,7 +67,14 @@ corresponding private key for testing issuing certificates
 
 ## Issuing certificates
 
-1. Add your certificates to data/unsigned_certs/
+1. Add your certificates to /etc/cert-issuer/data/unsigned_certs/
+
+    - To preview the certificate issuing workflow, you can add our sample unsigned certificate as follows. Note that
+    we are renaming the file to the uid field in the unsigned certificate
+
+    ```
+    cp /cert-issuer/docs/sample_unsigned_cert.json /etc/cert-issuer/data/unsigned_certs/68656c6c6f636f6d7077ffff.json
+    ```
 
 2. Make sure you have enough BTC in your issuing address.
 
