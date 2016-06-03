@@ -23,4 +23,4 @@ Digital Certificates project docs
 - [System overview](system_overview.md)
 - [Verifying a certificate](http://cert-viewer.readthedocs.io/en/latest/verify/)
 - [Creating a certificate](creating_cert.md)
-- [Bitcoin transaction questions](bitcoin_faq.md)
+- [About cert-issuer's Bitcoin transactions](bitcoin_faq.md)
