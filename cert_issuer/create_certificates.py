@@ -159,7 +159,7 @@ def _build_certificate_transactions(wallet, issuing_address, revocation_address,
         # send a transaction to the recipient's public key, and to a revocation
         # address
         txouts = create_recipient_outputs(
-            certificate_metadata.pubkey, revocation_address, fees.min_per_transaction)
+            certificate_metadata.pubkey, revocation_address, fees.min_per_output)
 
         # define transaction inputs
         unspent_outputs = wallet.get_unspent_outputs(issuing_address)
