@@ -13,7 +13,7 @@ pages:
 - System overview: system_overview.md
 - Debugging: debugging.md
 - Creating a certificate: creating_cert.md
-- About our bitcoin transactions: bitcoin_faq.md
+- About cert-issuer's Bitcoin transactions: bitcoin_faq.md
 
 
 theme: readthedocs
