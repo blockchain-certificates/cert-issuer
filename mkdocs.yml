@@ -10,6 +10,8 @@ pages:
 - Testing: testing.md
 - Bitcoind: bitcoind.md
 - Blockchain.info: blockchain_info.md
+- Architecture: architecture.md
+- Debugging: debugging.md
 
 
 theme: readthedocs
