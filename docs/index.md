@@ -15,3 +15,9 @@ Install and Run
 - [Creating addresses](make_addresses.md)
 - [Issuing certificates](issuing.md)
 - [Testing](testing.md)
+- [Debugging](debugging.md)
+
+Digital Certificates project docs
+---------------------------------
+
+- [Architecture](architecture.md)
