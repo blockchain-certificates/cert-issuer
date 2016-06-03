@@ -1,6 +1,8 @@
 About cert-issuer's Bitcoin transactions
 ========================================
-1. Exactly what is in the transaction?
+
+Exactly what are the transaction outputs?
+-----------------------------------------
 
 The current approach creates 1 transaction per certificate recipient. A transaction's outputs are:
 
@@ -20,7 +22,8 @@ Note that our additional transaction outputs complicate this. One of the other o
  amount going to the issuer’s revocation address. The latter is a convention we introduced to enable revocation.
 
 
-2. What is dust?
+What is dust?
+-------------
 
 It is the minimum amount a transaction output can be. I found the best description in
 [this Stack Overflow thread](http://bitcoin.stackexchange.com/questions/10986/what-is-meant-by-bitcoin-dust). See
@@ -34,11 +37,13 @@ Precisely, Bitcoin Core defines dust to be an output whose fees exceed 1/3 of it
 It is defined as 546 satoshis in the code.
 ```
 
-3. How did you come up with tx fee?
+How did you come up with the tx fee?
+------------------------------------
 
 We used the current value of 'To get in next block' of [Recommended Bitcoin Network Transaction Fees](http://bitcoinexchangerate.org/fees)
 
-4. Other resources that were helpful in creating raw bitcoin transactions and computing fees:
+Other resources that were helpful in creating raw bitcoin transactions and computing fees
+-----------------------------------------------------------------------------------------
 - [Calculating transaction size](http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending/3011#3011)
 - [Creating raw transactions](https://www.reddit.com/r/Bitcoin/comments/2zdwr0/how_do_i_create_a_raw_transaction/)
 - [Creating raw transactions](http://www.righto.com/2014/02/bitcoins-hard-way-using-raw-bitcoin.html)
