@@ -8,9 +8,9 @@ you're using as-is or modifying. It's easy to make mistakes with bitcoin transac
 
 ## Setup
 
-[Using Blockchain.info](blockchain_info.html)
+[Using Blockchain.info](blockchain_info.md)
 
-[Using bitcoind](bitcoind.html)
+[Using bitcoind](bitcoind.md)
 
 
 ## Additional considerations
