@@ -9,6 +9,7 @@ is using the Bitcoin blockchain.
 
 
 In the current implementation, these 2 tasks are performed by the certificate issuer:
+
 1.	Open badge signature
 2.	Issue on blockchain
 
@@ -16,7 +17,7 @@ In the current implementation, these 2 tasks are performed by the certificate is
 Because the open badge signature is independent from issuing the certificate as a transaction on the blockchain, this
 will likely be pulled out as a separate component in the future.
 
-The input is an unsigned certificate; its schema is described here.
+The input is an unsigned certificate; [see the schema description](http://cert-schema.readthedocs.io/en/latest/).
 
 In our implementation, the signing step signs the recipient UID field in the unsigned certificate, and places the
 signature in the signature section of the certificate. The signed certificate is retained as output, since the hash of
@@ -44,14 +45,12 @@ Lookup and storage requirements will vary according to the sensitivity of the da
 The outputs of the signed certificate and txid suffice to validate the certificate. The means of validating the
 certificate are open.
 
-
-
 Validation
 ----------
 Validation is clearly a core consideration but I call it out separately because the technique of validating a
 certificate is open.
 
-These steps show how you would independently verify a certificate. Note that these steps could have been done without
+[These steps show how you would independently verify a certificate](http://cert-viewer.readthedocs.io/en/latest/verify/). Note that these steps could have been done without
 involving the issuer’s (MIT’s) viewer page:
 - The recipient could directly provide the signed certificate and transaction id
 - The issuer and revocation keys are available in the bitcoin transaction. The from address is the issuer, and the
