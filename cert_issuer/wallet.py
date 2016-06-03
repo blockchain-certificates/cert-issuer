@@ -14,11 +14,11 @@ FIXED_EXTRA_BYTES = 10
 
 def get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction, satoshi_per_byte, num_certificates,
                                    allow_transfer):
-    """Per certificate, we pay 2*min_per_transaction (which is based on dust) + recommended fee. Note assumes 1 input
+    """Per certificate, we pay 2*min_per_output (which is based on dust) + recommended fee. Note assumes 1 input
     per tx. We may also need to pay additional fees for splitting into temp addresses
     """
     fee_per_transaction = recommended_fee_per_transaction * COIN
-    min_per_transaction = dust_threshold * COIN
+    min_per_output = dust_threshold * COIN
 
     # plus additional fees for splitting
     if allow_transfer:
@@ -27,7 +27,7 @@ def get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transacti
     else:
         split_transfer_fee = 0
 
-    return TransactionCosts(min_per_transaction, fee_per_transaction, num_certificates, split_transfer_fee)
+    return TransactionCosts(min_per_output, fee_per_transaction, num_certificates, split_transfer_fee)
 
 
 def calculate_txfee(satoshi_per_byte, fee_per_transaction, num_inputs, num_outputs):

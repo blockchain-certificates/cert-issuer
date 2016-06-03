@@ -1,0 +1,18 @@
+site_name: cert-issuer
+
+pages:
+- Home: index.md
+- Bitcoin client options: options.md
+- Quick start: docker.md
+- Live installation options: live.md
+- Creating addresses: make_addresses.md
+- Issuing certificates: issuing.md
+- Testing: testing.md
+- Bitcoind: bitcoind.md
+- Blockchain.info: blockchain_info.md
+
+
+theme: readthedocs
+
+
+

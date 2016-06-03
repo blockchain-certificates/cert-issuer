@@ -88,7 +88,8 @@ corresponding private key for testing issuing certificates
     b. Send the money to your issuing address -- note bitcoin-cli's standard denomination is bitcoins not satoshis! In our
     app, the standard unit is satoshis.
     ```
-    bitcoin-cli sendtoaddress $issuer 5  << bitcoins not satoshi!!!!
+    # note: bitcoins not satoshi!!!!
+    bitcoin-cli sendtoaddress $issuer 5
     ```
 
 3. Run

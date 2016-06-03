@@ -1,10 +1,14 @@
 import os
-
+from pip.req import parse_requirements
 from setuptools import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.md')) as f:
-    README = f.read()
+
+install_reqs = parse_requirements('requirements.txt', session=False)
+reqs = [str(ir.req) for ir in install_reqs]
+
+with open(os.path.join(here, 'README.md')) as fp:
+    long_description = fp.read()
 
 setup(
     name='cert-issuer',
@@ -13,21 +17,11 @@ setup(
     license='MIT',
     author='MIT Media Lab Digital Certificates',
     author_email='certs@media.mit.edu',
-    description='',
+    description='Issues digital certificates using the Bitcoin blockchain',
+    long_description=long_description,
     packages=['cert_issuer'],
     include_package_data=True,
-    install_requires=[
-        'pycoin==0.62',
-        'requests==2.9.1',
-        'glob2==0.4.1',
-        'configargparse==0.10.0',
-        'python-bitcoinlib==0.5.0',
-        'mock==2.0.0',
-        'tox==2.3.1',
-        'recommonmark==0.4.0',
-        'Sphinx>=1.4.1',
-        'sphinx-rtd-theme>=0.1.9'
-    ],
+    install_requires=reqs,
     entry_points={
         'console_scripts': [
             'cert-issuer = cert_issuer.__main__:main'
