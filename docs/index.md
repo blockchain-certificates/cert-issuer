@@ -20,4 +20,7 @@ Install and Run
 Digital Certificates project docs
 ---------------------------------
 
-- [Architecture](architecture.md)
+- [System overview](system_overview.md)
+- [Verifying a certificate](http://cert-viewer.readthedocs.io/en/latest/verify/)
+- [Creating a certificate](creating_cert.md)
+- [Bitcoin transaction questions](bitcoin_faq.md)
