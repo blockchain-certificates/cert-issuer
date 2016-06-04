@@ -3,36 +3,41 @@ Tools and Tips for the Bitcoin clients mentioned here
 
 Which client
 ------------
-In general, I found it easiest to run bitcoind locally. Running it in regtest mode (without real money) is the safest,
-easiest way to experiment with building a bitcoin app.
+
+In general, it was easiest to run bitcoind locally. Running it in regtest mode (without real money) is the safest,
+easiest way to experiment with building a bitcoin app. This project's docker container is configured this way.
 
 
 Bitcoind
 --------
 ###Importing addresses
+
 Addresses must be converted to hash160 to import them. This tool was helpful [http://bitcoinvalued.com/tools.php](http://bitcoinvalued.com/tools.php)
 
 ###Creating addresses
+
 Addresses can be created via commandline ```bitcoin-cli getnewaddress```.
 
 
 Blockchain.info
 ---------------
-Most of my problems were related to different functionality in the old/new API, and also old/new wallets available on
-the web site. The differences were primarily around the ability to import addresses (now more difficult). It was much
-easier when I switched to the old wallet UI. Then I found the new API gave me all the functionality I needed.
+Many testing difficulties were related to different functionality in the old/new API, and also the legacy/new wallets available on
+the web site. The differences were primarily around the ability to import addresses (more difficult in the new versions). After experimentation, the legacy wallet UI combined with the new API provided all the functionality we needed.
 
 ###Creating addresses
-We used the client-side generator [http://bitaddress.org/](http://bitaddress.org/)
+
+We used this client-side generator [http://bitaddress.org/](http://bitaddress.org/)
 
 
 ###Debugging error responses
+
 Each API call and error is logged by cert-issuer. If the error message isn't obvious, it's often easiest to try the
 API call that was logged via curl and so you can tweak the call and get answers with faster turnaround.
 
-The most common errors I experienced were:
-- addresses not belonging to the wallet I expected
-- api permissions not being set in my wallet
+The most common errors were:
+
+- addresses not belonging to the expected wallet 
+- api permissions not being set in the wallet
 
 ####Make sure you request 'Create wallet' permissions when getting a Blockchain.info api key
 Your api key needs this permission to use cert-issuer. If you messed this up, just request another one.
@@ -42,16 +47,14 @@ access' in Advanced Settings
 
 
 ####Example Error: "Authorization Required"
-```
-  {"initial_error":"Authorization Required. Please check your email."...}
-  ...
 
-  {"error":"Wallets that require email authorization are currently not supported in the Wallet API. Please disable
- this in your wallet settings, or add the IP address of this server to your wallet IP whitelist."}
-```
+> {"initial_error":"Authorization Required. Please check your email."...}
+> {"error":"Wallets that require email authorization are currently not supported in the Wallet API. Please disable
+> this in your wallet settings, or add the IP address of this server to your wallet IP whitelist."}
 
-Even after enabling API access in my wallet (via the legacy UI), I found I needed to add my IP address to the IP
-Whitelist in my wallet. I could do this through the UI at 'Security > Settings > Advanced Settings > IP Whitelist'.
+
+Even after enabling API access in your wallet (via the legacy UI), you need to add your IP address to the IP
+Whitelist in your wallet. See 'Security > Settings > Advanced Settings > IP Whitelist'.
 
 This was a great error message!
 
@@ -60,7 +63,7 @@ This was a great error message!
 cert-issuer needs the ability to spend from issuing address, and from a storage address (if you are using that).
 
 I couldn't find a way to import addresses with the new Blockchain.info wallet and API. This ability was present in
-the legacy versions. I worked around this by using the legacy wallet, which allows you to import addresses. On the
+the legacy versions. You can work around this by using the legacy wallet, which allows you to import addresses. On the
 'import/export' tab, use 'import private key'
 
 ##Looking up transactions
