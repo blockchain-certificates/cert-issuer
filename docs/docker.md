@@ -4,20 +4,27 @@ This uses bitcoind in regtest mode. This route makes many simplifications to all
 experimenting only.
 
 ## Install
-1. Clone the repo:
+
+1. [Install Docker Engine and Docker Compose](https://docs.docker.com/engine/installation)
+    - If you are using Mac OSX or Windows, your installation includes both Engine and Compose, so you can skip to the #installation anchor for your OS.
+        - Mac OSX: [https://docs.docker.com/engine/installation/mac/#installation](https://docs.docker.com/engine/installation/mac/#installatio)
+        - Windows: [https://docs.docker.com/engine/installation/windows/#installation](https://docs.docker.com/engine/installation/windows/#installation)
+    - If you already have Docker installed, ensure your version is >= 1.10.0, and that you have both Engine and Compose
+
+2. Clone the repo:
 
     ```
     git clone https://github.com/digital-certificates/cert-issuer.git
     ```
 
-2. From a command line in cert-issuer dir, build your docker container
+3. From a command line in cert-issuer dir, build your docker container
 
     ```
     cd cert-issuer
     docker build -t ml/cert-issuer:1.0 .
     ```
 
-3. Read before running!
+4. Read before running!
 
     - Once you launch the docker container, you will make some changes using your personal issuing information. This flow
     mirrors what you would if you were issuing real certificates.
@@ -28,14 +35,14 @@ experimenting only.
     docker commit <container for your ml/cert-issuer> my_cert_issuer
     ```
 
-4. When you're ready to run:
+5. When you're ready to run:
 
     ```
     docker run -it ml/cert-issuer:1.0 bash
 
     ```
 
-5. Start bitcoind. This will use the bitcoin.conf from the docker container, which runs in regtest mode
+6. Start bitcoind. This will use the bitcoin.conf from the docker container, which runs in regtest mode
 
     ```
     bitcoind -daemon
