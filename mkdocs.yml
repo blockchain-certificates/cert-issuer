@@ -15,6 +15,7 @@ pages:
 - Pre-commit hooks: precommit.md
 - Creating a certificate: creating_cert.md
 - About cert-issuer's Bitcoin transactions: bitcoin_faq.md
+- Privacy: privacy.md
 
 theme: readthedocs
 
