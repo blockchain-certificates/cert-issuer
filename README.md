@@ -4,6 +4,7 @@ Digital Certificates Issuer Project
 Issues digital certificates by creating a transaction from the issuing institution to the recipient
 on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/digital-certificates/cert-schema)
 
+[//]: # "start_docker_instructions"
 
 Quick start
 -----------
@@ -117,6 +118,8 @@ For now, these get it running:
     pip install .
     cert-issuer -c /etc/cert-issuer/conf.ini
     ```
+
+[//]: # "end_docker_instructions"
 
 Project Documentation
 ---------------------

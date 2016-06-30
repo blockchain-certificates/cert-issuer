@@ -12,9 +12,9 @@ pages:
 - Blockchain.info: blockchain_info.md
 - System overview: system_overview.md
 - Debugging: debugging.md
+- Pre-commit hooks: precommit.md
 - Creating a certificate: creating_cert.md
 - About cert-issuer's Bitcoin transactions: bitcoin_faq.md
-
 
 theme: readthedocs
 
