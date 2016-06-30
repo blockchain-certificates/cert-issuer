@@ -25,3 +25,4 @@ Digital Certificates project docs
 - [Verifying a certificate](http://cert-viewer.readthedocs.io/en/latest/verify/)
 - [Creating a certificate](creating_cert.md)
 - [About cert-issuer's Bitcoin transactions](bitcoin_faq.md)
+- [Privacy considerations in certificate deployments](privacy.md)
