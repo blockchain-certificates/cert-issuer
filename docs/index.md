@@ -16,6 +16,7 @@ Install and Run
 - [Issuing certificates](issuing.md)
 - [Testing](testing.md)
 - [Debugging](debugging.md)
+- [Pre-commit hooks for developers](precommit.md)
 
 Digital Certificates project docs
 ---------------------------------

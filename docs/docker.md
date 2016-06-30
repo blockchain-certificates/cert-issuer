@@ -1,9 +1,9 @@
-# Quick start in docker
+
+Quick start
+-----------
 
 This uses bitcoind in regtest mode. This route makes many simplifications to allow a quick start, and is intended for
 experimenting only.
-
-## Install
 
 1. [Install Docker Engine and Docker Compose](https://docs.docker.com/engine/installation)
     - If you are using Mac OSX or Windows, your installation includes both Engine and Compose, so you can skip to the #installation anchor for your OS.
@@ -17,8 +17,9 @@ experimenting only.
     git clone https://github.com/digital-certificates/cert-issuer.git
     ```
 
-3. From a command line in cert-issuer dir, build your docker container
 
+3. From a command line in cert-issuer dir, build your docker container:
+    
     ```
     cd cert-issuer
     docker build -t ml/cert-issuer:1.0 .
@@ -26,29 +27,28 @@ experimenting only.
 
 4. Read before running!
 
-    - Once you launch the docker container, you will make some changes using your personal issuing information. This flow
-    mirrors what you would if you were issuing real certificates.
-    - To avoid losing your work, you should create snapshots of your docker container. You can do this by running
+    - Once you launch the docker container, you will make some changes using your personal issuing information. This flow mirrors what you would if you were issuing real certificates.
+    - To avoid losing your work, you should create snapshots of your docker container. You can do this by running:
 
-    ```
-    docker ps -l
-    docker commit <container for your ml/cert-issuer> my_cert_issuer
-    ```
+        ```
+        docker ps -l
+        docker commit <container for your ml/cert-issuer> my_cert_issuer
+        ```
 
 5. When you're ready to run:
 
     ```
     docker run -it ml/cert-issuer:1.0 bash
-
     ```
 
-6. Start bitcoind. This will use the bitcoin.conf from the docker container, which runs in regtest mode
+6. Start bitcoind. This will use the bitcoin.conf from the docker container, which runs in regtest mode:
 
     ```
     bitcoind -daemon
     ```
 
-## Create issuing and revocation addresses
+Create issuing and revocation addresses
+---------------------------------------
 
 __Important__: this is a simplification to avoid using a USB, which needs to be inserted and removed during the
 standard certficate issuing process. Do not use these addresses or private keys for anything other than experimenting.
@@ -62,8 +62,9 @@ Ensure your docker image is running and bitcoind process is started
     sed -i.bak "s/<issuing-address>/$issuer/g" /etc/cert-issuer/conf.ini
     bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/pk_issuer.txt
     ```
+
 2. Create a 'revocation address' and save the output as follows. Note that we don't need to save this
-corresponding private key for testing issuing certificates
+corresponding private key for testing issuing certificates:
 
     ```
     revocation=`bitcoin-cli getnewaddress`
@@ -72,7 +73,8 @@ corresponding private key for testing issuing certificates
 
 3. Don't forget to save snapshots so you don't lose your work (see step 3 of client setup)
 
-## Issuing certificates
+Issuing certificates
+--------------------
 
 1. Add your certificates to /etc/cert-issuer/data/unsigned_certs/
 
@@ -85,7 +87,7 @@ corresponding private key for testing issuing certificates
 
 2. Make sure you have enough BTC in your issuing address.
 
-    a. If you're using bitcoind in regtest mode, you need to print some money first. This should give you 50 (fake) BTC
+    a. You're using bitcoind in regtest mode, so you can print money. This should give you 50 (fake) BTC:
 
     ```
     bitcoin-cli generate 101
@@ -93,14 +95,14 @@ corresponding private key for testing issuing certificates
     ```
 
     b. Send the money to your issuing address -- note bitcoin-cli's standard denomination is bitcoins not satoshis! In our
-    app, the standard unit is satoshis.
+    app, the standard unit is satoshis. This sends 5 bitcoins to the address
+
     ```
-    # note: bitcoins not satoshi!!!!
     bitcoin-cli sendtoaddress $issuer 5
     ```
 
 3. Run
-TODO: there is an issue in the Dockerfile and/or setup.py. The pip install here shouldn't be required.
+TODO: There is an cert-issuer the Dockerfile and/or setup.py. The pip install here shouldn't be required.
 For now, these get it running:
 
     ```

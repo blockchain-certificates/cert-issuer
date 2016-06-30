@@ -15,7 +15,6 @@ pages:
 - Creating a certificate: creating_cert.md
 - About cert-issuer's Bitcoin transactions: bitcoin_faq.md
 
-
 theme: readthedocs
 
 
