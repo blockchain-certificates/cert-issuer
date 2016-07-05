@@ -26,3 +26,4 @@ Digital Certificates project docs
 - [Creating a certificate](creating_cert.md)
 - [About cert-issuer's Bitcoin transactions](bitcoin_faq.md)
 - [Privacy considerations in certificate deployments](privacy.md)
+- [V1 Deployments](v1_deployments.md)
