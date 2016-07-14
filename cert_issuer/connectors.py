@@ -3,9 +3,9 @@ import logging
 import sys
 import urllib.parse
 
-from abc import abstractmethod, ABCMeta
 import bitcoin.rpc
 import requests
+from abc import abstractmethod, ABCMeta
 from bitcoin.core import COutPoint, CScript, CTransaction
 from bitcoin.wallet import CBitcoinAddress
 from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError
@@ -42,7 +42,6 @@ class WalletConnector:
 
 
 class BlockchainInfoConnector(WalletConnector):
-
     def __init__(self, config):
         self.wallet_guid = config.wallet_guid
         self.wallet_password = config.wallet_password
@@ -106,7 +105,6 @@ class BlockchainInfoConnector(WalletConnector):
 
 
 class BitcoindConnector(WalletConnector):
-
     def __init__(self, config):
         bitcoin.rpc.Proxy()
         self.proxy = bitcoin.rpc.Proxy()

@@ -13,6 +13,7 @@ data/hashed_certs/
 data/unsigned_txs/
 data/unsent_txs/
 data/sent_txs/
+data/proof/*.json
 archive/
 
 !data/unsigned_certs/.*
