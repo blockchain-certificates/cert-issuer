@@ -13,29 +13,38 @@ def convert_file_name(to_pattern, cert_uid):
 
 
 class CertificateMetadata:
+
     def __init__(self, config, uid, pubkey):
         self.uid = uid
         self.pubkey = pubkey
+        self.unsigned_certificate_file_name = convert_file_name(
+            config.unsigned_certs_file_pattern, uid)
         self.signed_certificate_file_name = convert_file_name(
             config.signed_certs_file_pattern, uid)
         self.certificate_hash_file_name = convert_file_name(
             config.hashed_certs_file_pattern, uid)
-        self.unsigned_tx_file_name = convert_file_name(
-            config.unsigned_txs_file_pattern, uid)
-        self.unsent_tx_file_name = convert_file_name(
-            config.unsent_txs_file_pattern, uid)
-        self.sent_tx_file_name = convert_file_name(
-            config.sent_txs_file_pattern, uid)
-        self.proof_file_name = convert_file_name(
-            config.proof_file_pattern, uid)
 
 
-class AllCosts:
-    def __init__(self, number_of_transactions, issuing_transaction_cost, transfer_cost):
-        self.number_of_transactions = number_of_transactions
+class TotalCosts:
+    """
+    Represents total costs for an issuing event, including the issuing transaction and any transfer
+    costs incurred.
+
+    On the issuing side, V1 uses 1 transaction per certificate, whereas V2 uses 1 transaction for the
+    entire certificate batch
+    """
+
+    def __init__(self, number_of_issuing_transactions,
+                 issuing_transaction_cost, transfer_cost):
+        self.number_of_transactions = number_of_issuing_transactions
         self.issuing_transaction_cost = issuing_transaction_cost
         self.transfer_cost = transfer_cost
-        self.total = number_of_transactions * issuing_transaction_cost.total + transfer_cost.total
+
+        cost_to_issue = number_of_issuing_transactions * issuing_transaction_cost.total
+        if transfer_cost:
+            self.total = cost_to_issue + transfer_cost.total
+        else:
+            self.total = cost_to_issue
 
     def difference(self, balance):
         if self.total <= balance:
@@ -45,7 +54,7 @@ class AllCosts:
 
 class TransactionCosts:
     """
-    Represents transaction costs
+    Represents cost of one transaction on the Bitcoin blockchain
     """
 
     def __init__(self, min_per_output, fee, total):

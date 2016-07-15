@@ -1,32 +1,33 @@
+"""
+About:
+
+Signs a certificate in accordance with the open badges spec.
+
+It signs the assertion uid, and populates the signature section.
+
+"""
 import json
 import logging
 import time
 
-import collections
 import glob2
 from bitcoin.signmessage import BitcoinMessage, SignMessage
 from bitcoin.wallet import CBitcoinSecret
 from cert_issuer import helpers
-from cert_issuer import models
 from cert_issuer.helpers import internet_off_for_scope
-
-Certificate = collections.namedtuple('Certificate',
-                                     'uid pubkey unsigned_certificate_file_name signed_certificate_file_name')
+from cert_issuer.models import CertificateMetadata
 
 
 def find_unsigned_certificates(app_config):
     cert_info = {}
-    for filename, (uid,) in glob2.iglob(app_config.unsigned_certs_file_pattern, with_matches=True):
+    for filename, (uid,) in glob2.iglob(
+            app_config.unsigned_certs_file_pattern, with_matches=True):
         with open(filename) as cert_file:
             cert_raw = cert_file.read()
             cert_json = json.loads(cert_raw)
-            certificate = Certificate(uid=uid,
-                                      pubkey=cert_json['recipient']['pubkey'],
-                                      unsigned_certificate_file_name=models.convert_file_name(
-                                          config.unsigned_certs_file_pattern, uid),
-                                      signed_certificate_file_name=models.convert_file_name(
-                                          config.signed_certs_file_pattern, uid)
-                                      )
+            certificate = CertificateMetadata(config=app_config,
+                                              uid=uid,
+                                              pubkey=cert_json['recipient']['pubkey'])
             cert_info[uid] = certificate
 
     return cert_info
@@ -75,7 +76,8 @@ def main(app_config):
 
     logging.info('Processing %d certificates', len(certificates))
 
-    # TODO: get revocation address per recipient revocation_address = app_config.revocation_address
+    # TODO: get revocation address per recipient revocation_address =
+    # app_config.revocation_address
 
     start_time = str(time.time())
 

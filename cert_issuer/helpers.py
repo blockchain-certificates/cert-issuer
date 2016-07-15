@@ -31,6 +31,7 @@ def internet_off_for_scope(func):
         check_internet_off()
         result = func(*args, **kwargs)
         check_internet_on()
+        return result
 
     return func_wrapper
 
@@ -65,7 +66,7 @@ def check_internet_off():
             ' ensure this is what you want, since this is less secure')
         return True
 
-    while 1:
+    while True:
         if internet_on() is False and os.path.exists(secrets_file_path):
             break
         else:
@@ -81,7 +82,7 @@ def check_internet_on():
             'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
             ' ensure this is what you want, since this is less secure')
         return True
-    while 1:
+    while True:
         if internet_on() is True and not os.path.exists(secrets_file_path):
             break
         else:

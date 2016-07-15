@@ -44,7 +44,7 @@ def parse_args():
                         'Only change this option for troubleshooting.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
-    p.add_argument('--tx_fees', default=0.0001, type=float,
+    p.add_argument('--tx_fee', default=0.0001, type=float,
                    help='recommended tx fee (in BTC) for inclusion in next block. http://bitcoinexchangerate.org/fees')
     p.add_argument('--batch_size', default=10, type=int,
                    help='Certificate batch size')
@@ -96,6 +96,8 @@ def get_config():
         parsed_config.archive_path, 'txs/*.txt')
     parsed_config.proof_file_pattern = os.path.join(
         parsed_config.data_path, 'proof/*.json')
+    parsed_config.tree_file_pattern = os.path.join(
+        parsed_config.data_path, 'tree/*.json')
 
     if parsed_config.skip_wifi_check:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '

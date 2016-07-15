@@ -1,44 +1,58 @@
 """
 About:
-Signs a certificate in accordance with the open badges spec and puts it on the blockchain
+Issues a signed certificate (see sign_certificates.py) on the blockchain
 
-How it works:
-This certificate issuer assumes the existence of an unsigned, obi-compliant certificate. It signs the assertion section,
-populates the signature section.
+V2 Highlights:
+The cost of issuing a batch of certificates has been lowered in V2 by issuing a batch of certificates as a single
+Bitcoin transaction. This is achieved by forming a Merkle tree of the hashed signed certificates, and placing that
+Merkle root on the blockchain.
 
-Next the certificate signature is hashed and processed as a bitcoin transaction, as follows.
-1. Hash signed certificate
-2. Ensure balance is available in the wallet (may involve transfering to issuing address)
-3. Prepare bitcoin transaction
-4. Sign bitcoin transaction
-5. Send (broadcast) bitcoin transaction -- the bitcoins are not spent until this step
+We use the chainpoint library (https://github.com/chainpoint/chainpoint) for building the Merkle tree.
 
-Transaction details:
-Each certificate corresponds to a bitcoin transaction with these outputs:
+Steps:
+1. Checks that there are signed certificates available to process
+2. Hash signed certificate
+3. Ensure balance is available in the wallet (may involve transferring to issuing address)
+    - In v1 this can optionally involve splitting the transfer transaction outputs to different addresses, to more
+    quickly issue the batch of certificates
+4. Prepare payload to put on the blockchain in the OP_RETURN field
+5. Create the Bitcoin transaction
+6. Sign bitcoin transaction
+7. Send (broadcast) Bitcoin transaction -- the Bitcoins are not spent until this step
+
+Transaction Details:
+In V1 each certificate corresponds to a Bitcoin transaction. In V2 all certificates are batched into a single Bitcoin
+transaction. The V2 batch size limit is derived from the max transaction size (100KB) -- estimated around 2K
+certificates.
+
 1. Recipient address receives dust amount
+    - in V1 there is 1 recipient address per transaction (and there is 1 transaction per certificate)
+    - in V2, this is an recipient address per certificate; multiple per transaction
 2. Revocation address receives dust amount
-3. OP_RETURN field contains signed, hashed assertion
+    - in V1, the issuer can reuse its revocation address since the transactions are per recipient
+    - in V2, the issuer needs a different revocation address per recipient
+3. OP_RETURN field
+    - in V1, this contains the SHA256 digest of the hashed signed certificate
+    - in V2, this contain the SHA256 digest of the Merkle root of a tree formed by the hashed signed certificate.
 4. Change address if the inputs are greater than above plus transaction fees
 
 Connectors:
-There are different connectors for wallets and broadcasting. By default, it uses blockchain.info for the wallet and
-btc.blockr.io for broadcasting. Bitcoind connector is still under development
+There are different connectors for wallets and broadcasting. By default, it uses the Bitcoin wallet connector (in
+ regtest mode) and btc.blockr.io for broadcasting.
 
 Use case:
-This script targets a primary use case of issuing an individual certificate or a relatively small batch of
-certificates (<100 -- this is for cost reasons). In the latter case there are some additional steps to speed up the
-transactions by splitting into temporary addresses.
+V1 targets a primary use case of issuing an individual certificate or a relatively small batch of certificates (<100 --
+this is for cost reasons). V2 can handle larger batches more economically.
+
+Costs:
+Both V1 and V2 depend on the number of certificates issued, but the multiplier is lower in V2. This is because V1 has
+[num_certificate] transactions, whereas V2 1 transaction with [num_certificate] outputs. TODO: give current estimates
+and examples
 
 About the recipient public key:
 This script assumes the recipient is assigned a public bitcoin address, located in the unsigned certificate as the
 recipient pubkey field. In past certificate issuing events, this was generated in 2 ways: (1) securely generated offline
-for the recipient, and (2) provided by the recipient via the certificate-viewer functionality. (1) and (2) have
-different characteristics that will be discussed in a whitepaper (link TODO)
-
-Planned changes:
-- Revocation is tricky
-- Debating different approach to make more economically
-- Usability
+for the recipient, and (2) provided by the recipient via the certificate-viewer functionality.
 
 """
 import json
@@ -49,8 +63,8 @@ import glob2
 from cert_issuer import cert_utils
 from cert_issuer import connectors
 from cert_issuer import helpers
-from cert_issuer.issuer import create_issuer
 from cert_issuer.models import CertificateMetadata
+from cert_issuer.v2_issuer import V2Issuer
 from cert_issuer.wallet import Wallet
 
 if sys.version_info.major < 3:
@@ -60,7 +74,8 @@ if sys.version_info.major < 3:
 
 def find_signed_certificates(app_config):
     cert_info = {}
-    for filename, (uid,) in glob2.iglob(app_config.signed_certs_file_pattern, with_matches=True):
+    for filename, (uid,) in glob2.iglob(
+            app_config.signed_certs_file_pattern, with_matches=True):
         with open(filename) as cert_file:
             cert_raw = cert_file.read()
             cert_json = json.loads(cert_raw)
@@ -73,10 +88,10 @@ def find_signed_certificates(app_config):
 
 
 def main(app_config):
-    issuer = create_issuer(v2=True, issuing_address=app_config.issuing_address)
+    issuer = V2Issuer(config=app_config)
 
     # find certificates to process
-    certificates = helpers.find_signed_certificates(app_config)
+    certificates = find_signed_certificates(app_config)
     if not certificates:
         logging.info('No certificates to process')
         exit(0)
@@ -106,31 +121,40 @@ def main(app_config):
     helpers.archive_files(app_config.signed_certs_file_pattern,
                           app_config.archived_certs_file_pattern, start_time)
 
-    # TODO: sort certificates
+    # TODO: certificate consistent ordering
 
     # calculate transaction costs
     all_costs = issuer.get_cost_for_certificate_batch(app_config.dust_threshold, app_config.tx_fee,
-                                                      app_config.satoshi_per_byte, len(certificates),
+                                                      app_config.satoshi_per_byte, len(
+            certificates),
                                                       app_config.transfer_from_storage_address)
 
     logging.info('Total cost will be %d satoshis', all_costs.total)
 
+    split_input_trxs = False
     if app_config.transfer_from_storage_address:
         # ensure there is enough in our wallet at the storage/issuing address, transferring from the storage address
         # if configured
         logging.info('Checking there is enough balance in the issuing address')
-        funds_needed = wallet.calculate_funds_needed(issuing_address, all_costs)
+        funds_needed = wallet.calculate_funds_needed(
+            issuing_address, all_costs)
         if funds_needed > 0:
             wallet.check_balance(app_config.storage_address, all_costs)
-            wallet.transfer_balance(app_config.storage_address, issuing_address, all_costs.transfer_cost)
+            wallet.transfer_balance(
+                app_config.storage_address,
+                issuing_address,
+                all_costs.transfer_cost)
+            split_input_trxs = True
 
     # ensure the issuing address now has sufficient balance
     wallet.check_balance(issuing_address, all_costs.issuing_transaction_cost)
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
-    issuer.issue_on_blockchain(wallet, broadcast_function, revocation_address, certificates,
-                               all_costs.issuing_transaction_cost, allowable_wif_prefixes)
+    issuer.issue_on_blockchain(wallet=wallet, revocation_address=revocation_address, certificates_to_issue=certificates,
+                               split_input_trxs=split_input_trxs,
+                               allowable_wif_prefixes=allowable_wif_prefixes, broadcast_function=broadcast_function,
+                               issuing_transaction_cost=all_costs.issuing_transaction_cost)
 
     # archive
     logging.info('Archived sent transactions folder for safe keeping.')

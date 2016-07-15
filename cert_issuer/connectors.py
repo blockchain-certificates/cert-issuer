@@ -37,11 +37,13 @@ class WalletConnector:
         return
 
     @abstractmethod
-    def send_to_addresses(self, storage_address, temp_addresses, transfer_split_fee):
+    def send_to_addresses(self, storage_address,
+                          temp_addresses, transfer_split_fee):
         return
 
 
 class BlockchainInfoConnector(WalletConnector):
+
     def __init__(self, config):
         self.wallet_guid = config.wallet_guid
         self.wallet_password = config.wallet_password
@@ -85,7 +87,8 @@ class BlockchainInfoConnector(WalletConnector):
         archive_url = self._make_url('archive_address', {'address': address})
         try_get(archive_url)
 
-    def send_to_addresses(self, storage_address, temp_addresses, transfer_split_fee):
+    def send_to_addresses(self, storage_address,
+                          temp_addresses, transfer_split_fee):
         payload = {'from': storage_address,
                    'recipients': urllib.parse.quote_plus(json.dumps(temp_addresses)),
                    'fee': transfer_split_fee}
@@ -105,6 +108,7 @@ class BlockchainInfoConnector(WalletConnector):
 
 
 class BitcoindConnector(WalletConnector):
+
     def __init__(self, config):
         bitcoin.rpc.Proxy()
         self.proxy = bitcoin.rpc.Proxy()
@@ -134,7 +138,8 @@ class BitcoindConnector(WalletConnector):
     def archive(self, address):
         raise NotImplementedError('archive is not yet supported')
 
-    def send_to_addresses(self, storage_address, temp_addresses, transfer_split_fee):
+    def send_to_addresses(self, storage_address,
+                          temp_addresses, transfer_split_fee):
         raise NotImplementedError('send_to_addresses is not yet supported')
 
 

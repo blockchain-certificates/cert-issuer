@@ -20,7 +20,8 @@ BYTES_PER_OUTPUT = 34
 FIXED_EXTRA_BYTES = 10
 
 
-def create_trx(op_return_val, issuing_transaction_cost, issuing_address, txouts, tx_input):
+def create_trx(op_return_val, issuing_transaction_cost,
+               issuing_address, txouts, tx_input):
     cert_out = CMutableTxOut(0, CScript([OP_RETURN, op_return_val]))
     txins = [CTxIn(tx_input.outpoint)]
     value_in = tx_input.amount
@@ -35,7 +36,8 @@ def create_trx(op_return_val, issuing_transaction_cost, issuing_address, txouts,
     return tx
 
 
-def create_recipient_outputs(recipient_address, revocation_address, transaction_fee):
+def create_recipient_outputs(
+        recipient_address, revocation_address, transaction_fee):
     """
     Create a pair of outputs: one to the recipient, and one to the revocation address.
     :param recipient_address:
@@ -110,10 +112,12 @@ def send_tx(broadcaster, hextx):
     return txid
 
 
-def get_cost(recommended_fee_per_transaction, dust_threshold, satoshi_per_byte, num_outputs):
+def get_cost(recommended_fee_per_transaction,
+             dust_threshold, satoshi_per_byte, num_outputs):
+    # note: assuming 1 input for now
     recommended_fee = recommended_fee_per_transaction * COIN
     min_per_output = dust_threshold * COIN
-    txfee = calculate_txfee(recommended_fee, satoshi_per_byte, 1, num_outputs)
+    txfee = calculate_txfee(satoshi_per_byte, 1, num_outputs, recommended_fee)
     total = calculate_total(min_per_output, num_outputs, txfee)
 
     return TransactionCosts(min_per_output, fee=txfee, total=total)
@@ -130,35 +134,15 @@ def calculate_total(min_per_output, num_outputs, txfee):
     return min_per_output * num_outputs + txfee
 
 
-def calculate_txfee(default_fee, satoshi_per_byte, num_inputs, num_outputs):
+def calculate_txfee(satoshi_per_byte, num_inputs, num_outputs, default_fee):
     """
-    The course grained (hard-coded value) of something like 0.0001 BTC works great for standard transactions
+     The course grained (hard-coded value) of something like 0.0001 BTC works great for standard transactions
     (one input, one output). However, it will cause a huge lag in more complex transactions (such as the one where the
-    script spends a little bit of money to 10 temporary addresses). So we calculate the raw tx fee for these more
+    script spends a little bit of money to 10 temporary addresses).  So we calculate the raw tx fee for these more
     complex transactions, then take the max of the default fee and the refined cost to ensure prompt processing.
 
-    :param default_fee:
-    :param satoshi_per_byte:
-    :param num_inputs:
-    :param num_outputs:
-    :return:
-    """
-    tx_fee = calculate_raw_txfee(satoshi_per_byte, num_inputs, num_outputs)
-    return max(tx_fee, default_fee)
-
-
-def calculate_raw_txfee(satoshi_per_byte, num_inputs, num_outputs):
-    """
-    To calculate the transaction size:
-        tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs * BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES +/- num_inputs
-
-    We'll choose the upper bound, so:
-        +/- num_inputs  =>  + num_inputs
-
-    The fee is:
+    The transaction fee is:
         fee = satoshi_per_byte * tx_size
-
-    See explanation of constants above.
 
     :param satoshi_per_byte: Satoshis per byte. This is an input rather than a constant because it may need to be
     updated dynamically
@@ -166,6 +150,25 @@ def calculate_raw_txfee(satoshi_per_byte, num_inputs, num_outputs):
     :param num_outputs:
     :return:
     """
-    tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs * BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES + num_inputs
+    tx_size = calculate_raw_tx_size(num_inputs, num_outputs)
     tx_fee = satoshi_per_byte * tx_size
-    return tx_fee
+    return max(tx_fee, default_fee)
+
+
+def calculate_raw_tx_size(num_inputs, num_outputs):
+    """
+    To calculate the transaction size:
+        tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs * BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES +/- num_inputs
+
+    We'll choose the upper bound, so:
+        +/- num_inputs  =>  + num_inputs
+
+    See explanation of constants above.
+
+    :param num_inputs:
+    :param num_outputs:
+    :return:
+    """
+    tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs *
+                                                BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES + num_inputs
+    return tx_size

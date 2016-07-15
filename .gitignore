@@ -13,7 +13,8 @@ data/hashed_certs/
 data/unsigned_txs/
 data/unsent_txs/
 data/sent_txs/
-data/proof/*.json
+data/proof/
+data/tree/
 archive/
 
 !data/unsigned_certs/.*
@@ -22,6 +23,8 @@ archive/
 !data/unsigned_txs/.*
 !data/unsent_txs/.*
 !data/sent_txs/.*
+!data/proof/.*
+!data/tree/.*
 
 .idea/*
 conf.ini

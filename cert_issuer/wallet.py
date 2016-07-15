@@ -7,6 +7,7 @@ from cert_issuer.errors import InsufficientFundsError
 
 
 class Wallet:
+
     def __init__(self, connector):
         self.connector = connector
 
@@ -50,7 +51,8 @@ class Wallet:
         self.connector.archive(from_address)
 
     def send_to_addresses(self, storage_address, temp_addresses):
-        return self.connector.send_to_addresses(storage_address, temp_addresses)
+        return self.connector.send_to_addresses(
+            storage_address, temp_addresses)
 
     def wait_for_confirmation(self, address):
         logging.info(
@@ -90,7 +92,8 @@ class Wallet:
             logging.warning(error_message)
         return amount_needed
 
-    def transfer_balance(self, storage_address, issuing_address, transaction_costs):
+    def transfer_balance(self, storage_address,
+                         issuing_address, transaction_costs):
         """Transfer balance to ensure enough is available for certificates. The temporary addresses are used to subdivide
         the payments in order to break them up into individual spends. This way, we do not have to wait for one large
         input to be spent on the blockchain and confirmed (i.e. a little bit of the money spent and the rest return to
@@ -111,7 +114,7 @@ class Wallet:
             # we need to add enough to cover the fee of the subsequent spend
             # from the temp address
             temp_addresses[temp_address] = transaction_costs.cost_per_transaction + \
-                                           transaction_costs.fee_per_transaction
+                transaction_costs.fee_per_transaction
 
         logging.info('Transferring BTC to temporary addresses...')
 

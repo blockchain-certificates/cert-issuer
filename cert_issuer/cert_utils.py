@@ -46,42 +46,40 @@ def do_verify_signature(address, signed_cert):
         raise UnverifiedSignatureError(error_message)
 
 
-def verify_transaction(op_return_value, signed_transaction_file_name):
+def verify_transaction(op_return_value, signed_hextx):
     # Throws an error if invalid
     logging.info('verifying op_return value for transaction')
-
-    with open(signed_transaction_file_name) as unsent_tx_file:
-        op_return_hash = unsent_tx_file.read()[-72:-8]
-        result = (op_return_value == op_return_hash)
-        if not result:
-            error_message = 'There was a problem verifying the transaction'
-            raise UnverifiedDocumentError(error_message)
+    op_return_hash = signed_hextx[-72:-8]
+    result = (op_return_value == op_return_hash)
+    if not result:
+        error_message = 'There was a problem verifying the transaction'
+        raise UnverifiedDocumentError(error_message)
     logging.info('verified OP_RETURN')
 
 
-def build_merkle_tree(certificates_to_issue):
+def build_merkle_tree(certificates_to_issue, output_file):
     tree = MerkleTree()
     for uid, certificate in certificates_to_issue.items():
         with open(certificate.signed_certificate_file_name, 'r') as in_file:
             certificate = in_file.read()
             tree.add_content(certificate)
     graph_json = tree.graph_json()
-    with open('tree.json', 'w') as out_file:
+    with open(output_file, 'w') as out_file:
         out_file.write(json.dumps(graph_json))
     return tree
 
 
-def build_receipts(certificates_to_issue, tree):
+# TODO: cleanup these APIs
+def print_receipt(certificate_contents, tree, receipt_file_name):
     root = tree.merkle_root()
-    for uid, certificate in certificates_to_issue.items():
-        with open(certificate.signed_certificate_file_name, 'r') as in_file:
-            certificate = in_file.read()
-            proof = tree.merkle_proof(sha256(certificate))
 
-            receipt = {'target': sha256(certificate),
-                       'root': root,
-                       'proof': json.loads(proof.get_json())
-                       }
+    proof = tree.merkle_proof(sha256(certificate_contents))
 
-            with open(certificate.proof_file_name, 'w') as out_file:
-                out_file.write(json.dumps(receipt))
+    receipt = {'target': sha256(certificate_contents),
+               'root': root,
+               'proof': json.loads(proof.get_json())
+               }
+
+    with open(receipt_file_name, 'w') as out_file:
+        out_file.write(json.dumps(receipt))
+    return receipt
