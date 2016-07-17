@@ -3,9 +3,9 @@ import logging
 import sys
 import urllib.parse
 
-from abc import abstractmethod, ABCMeta
 import bitcoin.rpc
 import requests
+from abc import abstractmethod, ABCMeta
 from bitcoin.core import COutPoint, CScript, CTransaction
 from bitcoin.wallet import CBitcoinAddress
 from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError
@@ -37,7 +37,8 @@ class WalletConnector:
         return
 
     @abstractmethod
-    def send_to_addresses(self, storage_address, temp_addresses, transfer_split_fee):
+    def send_to_addresses(self, storage_address,
+                          temp_addresses, transfer_split_fee):
         return
 
 
@@ -86,7 +87,8 @@ class BlockchainInfoConnector(WalletConnector):
         archive_url = self._make_url('archive_address', {'address': address})
         try_get(archive_url)
 
-    def send_to_addresses(self, storage_address, temp_addresses, transfer_split_fee):
+    def send_to_addresses(self, storage_address,
+                          temp_addresses, transfer_split_fee):
         payload = {'from': storage_address,
                    'recipients': urllib.parse.quote_plus(json.dumps(temp_addresses)),
                    'fee': transfer_split_fee}
@@ -136,7 +138,8 @@ class BitcoindConnector(WalletConnector):
     def archive(self, address):
         raise NotImplementedError('archive is not yet supported')
 
-    def send_to_addresses(self, storage_address, temp_addresses, transfer_split_fee):
+    def send_to_addresses(self, storage_address,
+                          temp_addresses, transfer_split_fee):
         raise NotImplementedError('send_to_addresses is not yet supported')
 
 

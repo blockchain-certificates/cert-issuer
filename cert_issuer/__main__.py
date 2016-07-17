@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+
 import os.path
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -11,12 +12,19 @@ if __package__ is None and not hasattr(sys, 'frozen'):
     sys.path.insert(0, os.path.dirname(os.path.dirname(path)))
 
 
-def main(args=None):
+def cert_issuer_main(args=None):
     from cert_issuer import config
     parsed_config = config.get_config()
-    from cert_issuer import create_certificates
-    create_certificates.main(parsed_config)
+    from cert_issuer import issue_certificates
+    issue_certificates.main(parsed_config)
+
+
+def cert_signer_main(args=None):
+    from cert_issuer import config
+    parsed_config = config.get_config()
+    from cert_issuer import sign_certificates
+    sign_certificates.main(parsed_config)
 
 
 if __name__ == '__main__':
-    main()
+    cert_issuer_main()

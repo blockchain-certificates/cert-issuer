@@ -3,7 +3,7 @@ MAINTAINER Kim Duffy "kimhd@mit.edu"
 
 # Add bitcoind.conf
 RUN mkdir ~/.bitcoin
-RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=18333\nregtest=1\n" > ~/.bitcoin/bitcoin.conf
+RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=18333\nregtest=1\nserver=1\n" > ~/.bitcoin/bitcoin.conf
 
 RUN apt-get update
 
@@ -20,23 +20,23 @@ RUN /opt/Python-3.4.3/configure
 RUN cd /opt/Python-3.4.3 & make
 RUN cd /opt/Python-3.4.3 & make install
 
-
 # Create a working directory.
 RUN mkdir cert-issuer
 
 # Install VirtualEnv.
 RUN pip install virtualenv
 
-# Add requirements file.
-ADD requirements.txt /cert-issuer/requirements.txt
-
-# Run VirtualEnv.
-RUN virtualenv -p /usr/local/bin/python3 /cert-issuer/env/
-RUN /cert-issuer/env/bin/pip install wheel
-
 COPY . /cert-issuer
 
-RUN /cert-issuer/env/bin/pip install /cert-issuer/.
+# Create and set up the virtualenv
+RUN virtualenv -p /usr/local/bin/python3 /cert-issuer/env/
+
+RUN chmod +x /cert-issuer/env/bin/activate
+
+RUN /bin/bash -c "source /cert-issuer/env/bin/activate && pip install /cert-issuer/."
+
+# Active this virtualenv when the container run interactively
+RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
 
 # Copy configuration file
 RUN mkdir /etc/cert-issuer
@@ -47,5 +47,4 @@ RUN echo '\ndata_path=/etc/cert-issuer/data\narchive_path=/etc/cert-issuer/archi
 COPY ./data /etc/cert-issuer/data
 COPY ./archive /etc/cert-issuer/archive
 
-
-
+ENTRYPOINT bitcoind -daemon && bash

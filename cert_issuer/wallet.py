@@ -4,46 +4,6 @@ from datetime import datetime
 
 import random
 from cert_issuer.errors import InsufficientFundsError
-from cert_issuer.models import TransactionCosts
-
-COIN = 100000000   # satoshis in 1 btc
-BYTES_PER_INPUT = 180
-BYTES_PER_OUTPUT = 34
-FIXED_EXTRA_BYTES = 10
-
-
-def get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction, satoshi_per_byte, num_certificates,
-                                   allow_transfer):
-    """Per certificate, we pay 2*min_per_output (which is based on dust) + recommended fee. Note assumes 1 input
-    per tx. We may also need to pay additional fees for splitting into temp addresses
-    """
-    fee_per_transaction = recommended_fee_per_transaction * COIN
-    min_per_output = dust_threshold * COIN
-
-    # plus additional fees for splitting
-    if allow_transfer:
-        split_transfer_fee = calculate_txfee(
-            satoshi_per_byte, fee_per_transaction, 1, num_certificates)
-    else:
-        split_transfer_fee = 0
-
-    return TransactionCosts(min_per_output, fee_per_transaction, num_certificates, split_transfer_fee)
-
-
-def calculate_txfee(satoshi_per_byte, fee_per_transaction, num_inputs, num_outputs):
-    """The course grained (hard-coded value) of something like 0.0001 BTC works great for standard transactions
-    (one input, one output). However, it will cause a huge lag in more complex transactions (such as the one where the
-    script spends a little bit of money to 10 temporary addresses). So the calculate_txfree is used to calculate the
-    fee for these more complex transactions. We take the max of the default_tx_fee and the refined cost to ensure
-    prompt processing
-
-    See explanation of constants above
-
-    """
-    tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs *
-                                                BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES + num_inputs
-    tx_fee = satoshi_per_byte * tx_size
-    return max(tx_fee, fee_per_transaction)
 
 
 class Wallet:
@@ -91,7 +51,8 @@ class Wallet:
         self.connector.archive(from_address)
 
     def send_to_addresses(self, storage_address, temp_addresses):
-        return self.connector.send_to_addresses(storage_address, temp_addresses)
+        return self.connector.send_to_addresses(
+            storage_address, temp_addresses)
 
     def wait_for_confirmation(self, address):
         logging.info(
@@ -110,18 +71,29 @@ class Wallet:
             time.sleep(30)
         return confirmed_tx
 
-    def check_balance(self, issuing_address, transaction_costs):
-        """Check there is enough balance in the wallet."""
-        address_balance = self.get_confirmed_balance(issuing_address)
+    def check_balance(self, address, transaction_costs):
+        """Check there is enough balance in the wallet. Throws error if funds are lacking"""
+        amount_needed = self.calculate_funds_needed(address, transaction_costs)
+
+        if amount_needed > 0:
+            error_message = 'Please add {} satoshis to the address {}'.format(
+                amount_needed, address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
+
+    def calculate_funds_needed(self, address, transaction_costs):
+        """Returns amount needed in wallet to perform transaction(s). A positive return value indicates funds are missing"""
+        address_balance = self.get_confirmed_balance(address)
         amount_needed = transaction_costs.difference(address_balance)
 
         if amount_needed > 0:
             error_message = 'Please add {} satoshis to the address {}'.format(
-                amount_needed, issuing_address)
-            logging.error(error_message)
-            raise InsufficientFundsError(error_message)
+                amount_needed, address)
+            logging.warning(error_message)
+        return amount_needed
 
-    def transfer_balance(self, storage_address, issuing_address, transaction_costs):
+    def transfer_balance(self, storage_address,
+                         issuing_address, transaction_costs):
         """Transfer balance to ensure enough is available for certificates. The temporary addresses are used to subdivide
         the payments in order to break them up into individual spends. This way, we do not have to wait for one large
         input to be spent on the blockchain and confirmed (i.e. a little bit of the money spent and the rest return to
