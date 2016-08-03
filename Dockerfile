@@ -8,7 +8,7 @@ RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=18333\nregtest=1\n" > ~/.bitcoin
 RUN apt-get update
 
 # Install cert-issuer app
-RUN apt-get install -y -q build-essential python-gdal python-simplejson --fix-missing
+RUN apt-get install -y -q build-essential
 RUN apt-get install -y python python-pip wget
 RUN apt-get install -y python-dev
 
