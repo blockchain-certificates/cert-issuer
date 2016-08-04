@@ -76,12 +76,11 @@ def main(app_config):
 
     logging.info('Processing %d certificates', len(certificates))
 
-    # TODO: get revocation address per recipient revocation_address =
-    # app_config.revocation_address
+    # TODO:
+    # - get revocation address per recipient revocation_address = app_config.revocation_address
+    # - clean up previous signed certs
 
     start_time = str(time.time())
-
-    # TODO: clean up previous signed certs
 
     logging.info('Signing certificates')
     sign_certs(certificates)
