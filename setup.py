@@ -1,6 +1,7 @@
 import os
 from pip.req import parse_requirements
 from setuptools import setup
+from cert_issuer import __version__
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -12,7 +13,7 @@ with open(os.path.join(here, 'README.md')) as fp:
 
 setup(
     name='cert-issuer',
-    version='0.0.1',
+    version=__version__,
     url='https://github.com/digital-certificates/cert-issuer',
     license='MIT',
     author='MIT Media Lab Digital Certificates',
@@ -28,3 +29,4 @@ setup(
         ]
     }
 )
+

@@ -48,12 +48,6 @@ experimenting only.
     docker run -it ml/cert-issuer:1.0 bash
     ```
 
-6. Start bitcoind. This will use the bitcoin.conf from the docker container, which runs in regtest mode:
-
-    ```
-    bitcoind -daemon
-    ```
-
 Create issuing and revocation addresses
 ---------------------------------------
 
@@ -109,8 +103,6 @@ Issuing certificates
     ```
 
 3. Run
-TODO: There is an cert-issuer the Dockerfile and/or setup.py. The pip install here shouldn't be required.
-For now, these get it running:
 
     ```
     source /cert-issuer/env/bin/activate
