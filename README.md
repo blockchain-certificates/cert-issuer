@@ -109,7 +109,7 @@ Issuing certificates
     cert-signer -c /etc/cert-issuer/conf.ini
     ```
 
-3. Issue the certificates on the blockchain
+4. Issue the certificates on the blockchain
 
     ```
     cert-issuer -c /etc/cert-issuer/conf.ini
