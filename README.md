@@ -102,14 +102,17 @@ Issuing certificates
     bitcoin-cli sendtoaddress $issuer 5
     ```
 
-3. Run
+3. Sign the certificates (open badge compliance step)
 
     ```
-    source /cert-issuer/env/bin/activate
     cd cert-issuer
-    pip install .
-    cert-issuer -c /etc/cert-issuer/conf.ini
+    cert-signer -c /etc/cert-issuer/conf.ini
     ```
+
+4. Issue the certificates on the blockchain
+
+    ```
+    cert-issuer -c /etc/cert-issuer/conf.ini
 
 [//]: # "end_docker_instructions"
 
