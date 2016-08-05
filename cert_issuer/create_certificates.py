@@ -96,19 +96,6 @@ def do_verify_signature(address, signed_cert):
         raise UnverifiedSignatureError(error_message)
 
 
-@internet_off_for_scope
-def sign_certs(certificates_metadata):
-    """Sign certificates. Internet should be off for the scope of this function."""
-    logging.info('signing certificates')
-    pk = helpers.import_key()
-    secret_key = CBitcoinSecret(pk)
-    for uid, certificate_metadata in certificates_metadata.items():
-        with open(certificate_metadata.unsigned_certificate_file_name, 'r') as cert_in, \
-                open(certificate_metadata.signed_certificate_file_name, 'wb') as signed_cert:
-            cert = do_sign(cert_in.read(), secret_key)
-            signed_cert.write(bytes(cert, 'utf-8'))
-
-
 def hash_certs(certificates_metadata):
     logging.info('hashing certificates')
     for uid, certificate_metadata in certificates_metadata.items():
@@ -273,17 +260,14 @@ def verify_doc(certificate_metadata):
                 raise UnverifiedDocumentError(error_message)
 
 
-def find_unsigned_certificates(app_config):
+def find_signed_certificates(app_config):
     cert_info = {}
-    for filename, (uid,) in glob2.iglob(app_config.unsigned_certs_file_pattern, with_matches=True):
+    for filename, (uid,) in glob2.iglob(app_config.signed_certs_file_pattern, with_matches=True):
         with open(filename) as cert_file:
             cert_raw = cert_file.read()
             cert_json = json.loads(cert_raw)
             certificate_metadata = CertificateMetadata(app_config,
                                                        uid,
-                                                       cert_json['recipient']['givenName'] + ' ' +
-                                                       cert_json['recipient'][
-                                                           'familyName'],
                                                        cert_json['recipient']['pubkey'])
             cert_info[uid] = certificate_metadata
 
@@ -292,19 +276,14 @@ def find_unsigned_certificates(app_config):
 
 def main(app_config):
     # find certificates to process
-    certificates_metadata = find_unsigned_certificates(app_config)
+    certificates_metadata = find_signed_certificates(app_config)
     if not certificates_metadata:
         logging.info('No certificates to process')
         exit(0)
 
     logging.info('Processing %d certificates', len(certificates_metadata))
 
-    if app_config.wallet_connector_type == 'bitcoind' and not app_config.disable_regtest_mode:
-        bitcoin.SelectParams('regtest')
-        allowable_wif_prefixes = [b'\x80', b'\xef']
-    else:
-        allowable_wif_prefixes = None
-    # configure bitcoin wallet and broadcast connectors
+    allowable_wif_prefixes = app_config.allowable_wif_prefixes
     wallet = Wallet(connectors.create_wallet_connector(app_config))
     broadcast_function = connectors.create_broadcast_function(app_config)
 
@@ -314,22 +293,19 @@ def main(app_config):
 
     start_time = str(time.time())
 
-    if not app_config.skip_sign:
-        logging.info('Deleting previous generated files')
-        helpers.clear_intermediate_folders(app_config)
+    # TODO: fix which folders
+    #logging.info('Deleting previous generated files')
+    #helpers.clear_intermediate_folders(app_config)
 
-        logging.info('Signing certificates')
-        sign_certs(certificates_metadata)
+    logging.info('Hashing signed certificates.')
+    hash_certs(certificates_metadata)
 
-        logging.info('Hashing signed certificates.')
-        hash_certs(certificates_metadata)
-
-        logging.info('Archiving signed certificates.')
-        helpers.archive_files(app_config.signed_certs_file_pattern,
-                              app_config.archived_certs_file_pattern, start_time)
+    logging.info('Archiving signed certificates.')
+    helpers.archive_files(app_config.signed_certs_file_pattern,
+                          app_config.archived_certs_file_pattern, start_time)
 
     # calculate transaction costs
-    transaction_costs = wallet_helper.get_cost_for_certificate_batch(app_config.dust_threshold, app_config.tx_fees,
+    transaction_costs = wallet_helper.get_cost_for_certificate_batch(app_config.dust_threshold, app_config.tx_fee,
                                                                      app_config.satoshi_per_byte,
                                                                      len(certificates_metadata),
                                                                      app_config.transfer_from_storage_address)

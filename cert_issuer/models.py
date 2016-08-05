@@ -9,9 +9,8 @@ TransactionOutput = namedtuple(
 
 class CertificateMetadata:
 
-    def __init__(self, config, uid, name, pubkey):
+    def __init__(self, config, uid, pubkey):
         self.uid = uid
-        self.name = name
         self.pubkey = pubkey
         self.unsigned_certificate_file_name = helpers.convert_file_name(
             config.unsigned_certs_file_pattern, uid)
