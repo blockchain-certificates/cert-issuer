@@ -96,19 +96,6 @@ def do_verify_signature(address, signed_cert):
         raise UnverifiedSignatureError(error_message)
 
 
-@internet_off_for_scope
-def sign_certs(certificates_metadata):
-    """Sign certificates. Internet should be off for the scope of this function."""
-    logging.info('signing certificates')
-    pk = helpers.import_key()
-    secret_key = CBitcoinSecret(pk)
-    for uid, certificate_metadata in certificates_metadata.items():
-        with open(certificate_metadata.unsigned_certificate_file_name, 'r') as cert_in, \
-                open(certificate_metadata.signed_certificate_file_name, 'wb') as signed_cert:
-            cert = do_sign(cert_in.read(), secret_key)
-            signed_cert.write(bytes(cert, 'utf-8'))
-
-
 def hash_certs(certificates_metadata):
     logging.info('hashing certificates')
     for uid, certificate_metadata in certificates_metadata.items():

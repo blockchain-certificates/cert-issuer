@@ -94,10 +94,6 @@ def get_config():
         parsed_config.archive_path, 'certs/*.json')
     parsed_config.archived_txs_file_pattern = os.path.join(
         parsed_config.archive_path, 'txs/*.txt')
-    parsed_config.proof_file_pattern = os.path.join(
-        parsed_config.data_path, 'proof/*.json')
-    parsed_config.tree_file_pattern = os.path.join(
-        parsed_config.data_path, 'tree/*.json')
 
     if parsed_config.skip_wifi_check:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '

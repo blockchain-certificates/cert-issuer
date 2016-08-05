@@ -6,12 +6,10 @@ from mock import MagicMock
 from mock import mock_open
 from mock import patch
 
-# unittest.TestCase
-class TestSignCertificates():
 
-    # test_
-    def sign_cert(self):
-        # TODO: update this test
+class TestSignCertificates(unittest.TestCase):
+
+    def test_sign_cert(self):
         cert_metadata = CertificateMetadata('test/unsigned.json', 'test/signed.json')
         cert_info = {'123452': cert_metadata}
 
@@ -24,8 +22,7 @@ class TestSignCertificates():
             handle.write.assert_called_once_with(
                 bytes('{"assertion": {"uid": "123"}, "signature": "123"}', 'utf-8'))
 
-    # test__
-    def sign_cert(self):
+    def test_sign_cert(self):
         mock_privkey = MagicMock('test')
         mock_privkey.sign_compact = b'4545454'
         with patch('cert_issuer.sign_certificates.SignMessage', return_value=b'123'):
@@ -33,5 +30,5 @@ class TestSignCertificates():
             self.assertEqual(signed_cert, '{"assertion": {"uid": "123"}, "signature": "123"}')
 
 
-#if __name__ == '__main__':
-#    unittest.main()
+if __name__ == '__main__':
+    unittest.main()
