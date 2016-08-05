@@ -1,14 +1,14 @@
 import binascii
 import glob
 import logging
-import os
-import time
-import shutil
 import sys
+import time
 
 import glob2
+import os
 import requests
-from cert_issuer import config
+import shutil
+from cert_issuer import config, models
 
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
@@ -21,10 +21,17 @@ secrets_file_path = os.path.join(
 
 
 def internet_off_for_scope(func):
+    """
+    Wraps func with check that internet is off, then on after the call to func
+    :param func:
+    :return:
+    """
+
     def func_wrapper(*args, **kwargs):
         check_internet_off()
         result = func(*args, **kwargs)
         check_internet_on()
+        return result
 
     return func_wrapper
 
@@ -35,12 +42,8 @@ def import_key():
     return key
 
 
-def convert_file_name(to_pattern, cert_uid):
-    return to_pattern.replace('*', cert_uid)
-
-
-def clear_folder(foldername):
-    files = glob.glob(foldername + '*')
+def clear_folder(folder_name):
+    files = glob.glob(folder_name + '*')
     for f in files:
         os.remove(f)
     return True
@@ -63,7 +66,7 @@ def check_internet_off():
             ' ensure this is what you want, since this is less secure')
         return True
 
-    while 1:
+    while True:
         if internet_on() is False and os.path.exists(secrets_file_path):
             break
         else:
@@ -79,7 +82,7 @@ def check_internet_on():
             'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
             ' ensure this is what you want, since this is less secure')
         return True
-    while 1:
+    while True:
         if internet_on() is True and not os.path.exists(secrets_file_path):
             break
         else:
@@ -89,8 +92,15 @@ def check_internet_on():
 
 
 def archive_files(from_pattern, to_pattern, timestamp):
+    """
+    Archives files matching from_pattern and renames to to_pattern based on uid
+    :param from_pattern:
+    :param to_pattern:
+    :param timestamp:
+    :return:
+    """
     [shutil.copyfile(filename,
-                     convert_file_name(to_pattern, uid) + '-' + timestamp)
+                     models.convert_file_name(to_pattern, uid) + '-' + timestamp)
      for filename, (uid,) in glob2.iglob(from_pattern, with_matches=True)]
 
 
@@ -102,3 +112,8 @@ def clear_intermediate_folders(app_config):
                         app_config.sent_txs_file_pattern]
     for folder in folders_to_clear:
         clear_folder(folder)
+
+
+def get_current_time_ms():
+    current_time = lambda: int(round(time.time() * 1000))
+    return current_time
