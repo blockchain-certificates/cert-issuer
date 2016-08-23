@@ -66,6 +66,8 @@ from cert_issuer import helpers
 from cert_issuer.models import CertificateMetadata
 from cert_issuer.v2_issuer import V2Issuer
 from cert_issuer.wallet import Wallet
+from cert_schema.schema_tools import schema_validator
+
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
@@ -101,6 +103,10 @@ def main(app_config):
     # get issuing and revocation addresses from config
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
+
+    # ensure certificates are valid v1.2 schema
+    for uid, certificate in certificates.items():
+        schema_validator.validate_v1_2_0(certificate)
 
     # verify signed certs are signed with issuing key
     [cert_utils.verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in

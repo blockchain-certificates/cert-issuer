@@ -20,7 +20,7 @@ setup(
     author_email='certs@media.mit.edu',
     description='Issues digital certificates using the Bitcoin blockchain',
     long_description=long_description,
-    packages=['cert_issuer', 'chainpoint'],
+    packages=['cert_issuer'],
     include_package_data=True,
     install_requires=reqs,
     entry_points={

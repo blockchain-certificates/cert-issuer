@@ -16,6 +16,7 @@ from bitcoin.wallet import CBitcoinSecret
 from cert_issuer import helpers
 from cert_issuer.helpers import internet_off_for_scope
 from cert_issuer.models import CertificateMetadata
+from cert_schema.schema_tools import schema_validator
 
 
 def find_unsigned_certificates(app_config):
@@ -75,6 +76,10 @@ def main(app_config):
         exit(0)
 
     logging.info('Processing %d certificates', len(certificates))
+
+    # TODO
+    for uid, certificate in certificates.items():
+        schema_validator.validate_v1_2_0(certificate)
 
     # TODO:
     # - get revocation address per recipient revocation_address = app_config.revocation_address

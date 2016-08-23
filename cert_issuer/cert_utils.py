@@ -9,7 +9,7 @@ import hashlib
 from bitcoin.signmessage import BitcoinMessage
 from bitcoin.signmessage import VerifyMessage
 from cert_issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
-from chainpoint.MerkleTree import MerkleTree, sha256
+from merkleproof import MerkleTree
 
 
 def hash_certs(certificates_metadata):
@@ -62,22 +62,22 @@ def build_merkle_tree(certificates_to_issue, output_file):
     for uid, certificate in certificates_to_issue.items():
         with open(certificate.signed_certificate_file_name, 'r') as in_file:
             certificate = in_file.read()
-            tree.add_content(certificate)
-    graph_json = tree.graph_json()
-    with open(output_file, 'w') as out_file:
-        out_file.write(json.dumps(graph_json))
+            tree.add_leaf(certificate, True)
+    tree.make_tree()
+    #graph_json = tree.graph_json()
+    #with open(output_file, 'w') as out_file:
+    #    out_file.write(json.dumps(graph_json))
     return tree
 
 
 # TODO: cleanup these APIs
-def print_receipt(certificate_contents, tree, receipt_file_name):
-    root = tree.merkle_root()
+def print_receipt(tree, index, receipt_file_name):
+    proof = tree.get_proof(index)
 
-    proof = tree.merkle_proof(sha256(certificate_contents))
-
-    receipt = {'target': sha256(certificate_contents),
-               'root': root,
-               'proof': json.loads(proof.get_json())
+    # TODO: fix
+    receipt = {'target': tree.get_leaf(index),
+               'root': tree.get_merkle_root(),
+               'proof': json.loads(proof)
                }
 
     with open(receipt_file_name, 'w') as out_file:
