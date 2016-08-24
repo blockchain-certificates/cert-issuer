@@ -55,19 +55,20 @@ recipient pubkey field. In past certificate issuing events, this was generated i
 for the recipient, and (2) provided by the recipient via the certificate-viewer functionality.
 
 """
+import collections
 import json
 import logging
 import sys
 
 import glob2
+from cert_schema.schema_tools import schema_validator
+
 from cert_issuer import cert_utils
 from cert_issuer import connectors
 from cert_issuer import helpers
 from cert_issuer.models import CertificateMetadata
 from cert_issuer.v2_issuer import V2Issuer
 from cert_issuer.wallet import Wallet
-from cert_schema.schema_tools import schema_validator
-
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
@@ -75,9 +76,9 @@ if sys.version_info.major < 3:
 
 
 def find_signed_certificates(app_config):
-    cert_info = {}
-    for filename, (uid,) in glob2.iglob(
-            app_config.signed_certs_file_pattern, with_matches=True):
+    cert_info = collections.OrderedDict()
+    for filename, (uid,) in sorted(glob2.iglob(
+            app_config.signed_certs_file_pattern, with_matches=True)):
         with open(filename) as cert_file:
             cert_raw = cert_file.read()
             cert_json = json.loads(cert_raw)
@@ -106,7 +107,9 @@ def main(app_config):
 
     # ensure certificates are valid v1.2 schema
     for uid, certificate in certificates.items():
-        schema_validator.validate_v1_2_0(certificate)
+        with open(certificate.signed_certificate_file_name) as cert:
+            cert_json = json.load(cert)
+            schema_validator.validate_v1_2_0(cert_json)
 
     # verify signed certs are signed with issuing key
     [cert_utils.verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
@@ -121,18 +124,11 @@ def main(app_config):
     start_time = str(helpers.get_current_time_ms())
 
     logging.info('Hashing signed certificates.')
-    cert_utils.hash_certs(certificates)
-
-    logging.info('Archiving signed certificates.')
-    helpers.archive_files(app_config.signed_certs_file_pattern,
-                          app_config.archived_certs_file_pattern, start_time)
-
-    # TODO: certificate consistent ordering
+    issuer.hash_certificates(certificates)
 
     # calculate transaction costs
     all_costs = issuer.get_cost_for_certificate_batch(app_config.dust_threshold, app_config.tx_fee,
-                                                      app_config.satoshi_per_byte, len(
-            certificates),
+                                                      app_config.satoshi_per_byte, len(certificates),
                                                       app_config.transfer_from_storage_address)
 
     logging.info('Total cost will be %d satoshis', all_costs.total)
@@ -163,6 +159,10 @@ def main(app_config):
                                issuing_transaction_cost=all_costs.issuing_transaction_cost)
 
     # archive
+    logging.info('Archiving signed certificates.')
+    helpers.archive_files(app_config.signed_certs_file_pattern,
+                          app_config.archived_signed_certs_file_pattern, start_time)
+
     logging.info('Archived sent transactions folder for safe keeping.')
     helpers.archive_files(app_config.sent_txs_file_pattern,
                           app_config.archived_txs_file_pattern, start_time)

@@ -8,3 +8,4 @@ tox==2.3.1
 mkdocs>=0.15.3
 merkle-proofs>=0.0.1
 cert-schema>=1.2.11
+pyld>=0.7.1

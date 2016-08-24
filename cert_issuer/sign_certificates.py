@@ -6,6 +6,7 @@ Signs a certificate in accordance with the open badges spec.
 It signs the assertion uid, and populates the signature section.
 
 """
+import collections
 import json
 import logging
 import time
@@ -20,9 +21,9 @@ from cert_schema.schema_tools import schema_validator
 
 
 def find_unsigned_certificates(app_config):
-    cert_info = {}
-    for filename, (uid,) in glob2.iglob(
-            app_config.unsigned_certs_file_pattern, with_matches=True):
+    cert_info = collections.OrderedDict()
+    for filename, (uid,) in sorted(glob2.iglob(
+            app_config.unsigned_certs_file_pattern, with_matches=True)):
         with open(filename) as cert_file:
             cert_raw = cert_file.read()
             cert_json = json.loads(cert_raw)
@@ -68,6 +69,8 @@ def _sign(certificate, secret_key):
     return sorted_cert
 
 
+# TODO:
+# before this, need a preprocessing step in which we populate with revocation address per recipient
 def main(app_config):
     # find certificates to process
     certificates = find_unsigned_certificates(app_config)
@@ -77,22 +80,29 @@ def main(app_config):
 
     logging.info('Processing %d certificates', len(certificates))
 
-    # TODO
+    # validate schema
     for uid, certificate in certificates.items():
-        schema_validator.validate_v1_2_0(certificate)
+        with open(certificate.unsigned_certificate_file_name) as cert:
+            cert_json = json.load(cert)
+            schema_validator.validate_v1_2_0(cert_json)
 
-    # TODO:
-    # - get revocation address per recipient revocation_address = app_config.revocation_address
-    # - clean up previous signed certs
+    # ensure they are not already signed. We want the user to know about this in case there
+    # is a failure from a previous run
+    for uid, certificate in certificates.items():
+        with open(certificate.unsigned_certificate_file_name) as cert:
+            cert_json = json.load(cert)
+            if 'signature' in cert_json and cert_json['signature']:
+                logging.warning('Certificate with uid=%s has already been signed.', uid)
+                exit(0)
 
     start_time = str(time.time())
 
-    logging.info('Signing certificates')
+    logging.info('Signing certificates and writing to folder %s', app_config.signed_certs_file_pattern)
     sign_certs(certificates)
 
-    logging.info('Archiving signed certificates.')
-    helpers.archive_files(app_config.signed_certs_file_pattern,
-                          app_config.archived_certs_file_pattern, start_time)
+    logging.info('Archiving unsigned files')
+    helpers.archive_files(app_config.unsigned_certs_file_pattern,
+                          app_config.archived_unsigned_certs_file_pattern, start_time)
 
 
 if __name__ == '__main__':

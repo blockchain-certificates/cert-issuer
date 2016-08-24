@@ -99,6 +99,7 @@ def archive_files(from_pattern, to_pattern, timestamp):
     :param timestamp:
     :return:
     """
+    # todo: change to move
     [shutil.copyfile(filename,
                      models.convert_file_name(to_pattern, uid) + '-' + timestamp)
      for filename, (uid,) in glob2.iglob(from_pattern, with_matches=True)]
