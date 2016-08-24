@@ -1,4 +1,6 @@
 from abc import abstractmethod
+import logging
+
 from cert_issuer import cert_utils
 from cert_issuer import trx_utils
 from cert_issuer.helpers import hexlify
@@ -34,6 +36,19 @@ class Issuer:
 
         return TotalCosts(num_issuing_transactions,
                           issuing_transaction_cost=issuing_costs, transfer_cost=transfer_costs)
+
+    @abstractmethod
+    def do_hash_certificate(self, certificate):
+        return
+
+    def hash_certificates(self, certificates):
+        logging.info('hashing certificates')
+        for uid, certificate_metadata in certificates.items():
+            with open(certificate_metadata.signed_certificate_file_name, 'rb') as in_file, \
+                    open(certificate_metadata.certificate_hash_file_name, 'wb') as out_file:
+                cert = in_file.read()
+                hashed_cert = self.do_hash_certificate(cert)
+                out_file.write(hashed_cert)
 
     @abstractmethod
     def create_transactions(self, wallet, revocation_address, certificates_to_issue, issuing_transaction_cost,

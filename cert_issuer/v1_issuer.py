@@ -1,5 +1,7 @@
 import sys
 
+import hashlib
+
 from cert_issuer import trx_utils
 from cert_issuer.helpers import hexlify
 from cert_issuer.issuer import Issuer
@@ -14,6 +16,9 @@ if sys.version_info.major < 3:
 class V1Issuer(Issuer):
     def __init__(self, config):
         Issuer.__init__(self, config)
+
+    def do_hash_certificate(self, certificate):
+        return hashlib.sha256(certificate).digest()
 
     def get_cost_for_certificate_batch(self, dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
                                        num_certificates, allow_transfer):
