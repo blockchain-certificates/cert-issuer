@@ -86,8 +86,8 @@ def get_config():
         parsed_config.data_path, 'hashed_certs/*.txt')
     parsed_config.unsigned_txs_file_pattern = os.path.join(
         parsed_config.data_path, 'unsigned_txs/*.txt')
-    parsed_config.unsent_txs_file_pattern = os.path.join(
-        parsed_config.data_path, 'unsent_txs/*.txt')
+    parsed_config.signed_txs_file_pattern = os.path.join(
+        parsed_config.data_path, 'signed_txs/*.txt')
     parsed_config.sent_txs_file_pattern = os.path.join(
         parsed_config.data_path, 'sent_txs/*.txt')
     parsed_config.archived_unsigned_certs_file_pattern = os.path.join(
@@ -96,8 +96,10 @@ def get_config():
         parsed_config.archive_path, 'signed_certs/*.json')
     parsed_config.archived_txs_file_pattern = os.path.join(
         parsed_config.archive_path, 'sent_txs/*.txt')
-    parsed_config.proof_file_pattern = os.path.join(
-        parsed_config.data_path, 'proof/*.json')
+    parsed_config.receipts_file_pattern = os.path.join(
+        parsed_config.data_path, 'receipts/*.json')
+    parsed_config.cifs_file_pattern = os.path.join(
+        parsed_config.data_path, 'cifs/*.json')
     parsed_config.tree_file_pattern = os.path.join(
         parsed_config.data_path, 'tree/*.json')
 

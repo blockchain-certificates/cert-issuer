@@ -1,5 +1,5 @@
-from abc import abstractmethod
 import logging
+from abc import abstractmethod
 
 from cert_issuer import cert_utils
 from cert_issuer import trx_utils
@@ -10,9 +10,10 @@ OUTPUTS_PER_CERTIFICATE = 2
 
 
 class Issuer:
-    def __init__(self, config):
+    def __init__(self, config, certificates_to_issue):
         self.config = config
         self.issuing_address = config.issuing_address
+        self.certificates_to_issue = certificates_to_issue
 
     @staticmethod
     def get_num_outputs(num_certificates):
@@ -39,43 +40,52 @@ class Issuer:
 
     @abstractmethod
     def do_hash_certificate(self, certificate):
+        """
+        Subclasses must return hex strings, not byte arrays
+        :param certificate: certificate to hash, byte array
+        :return: hash as hex string
+        """
         return
 
-    def hash_certificates(self, certificates):
+    @abstractmethod
+    def create_transactions(self, wallet, revocation_address, issuing_transaction_cost,
+                            transfer_from_storage_address):
+        return
+
+    def hash_certificates(self):
         logging.info('hashing certificates')
-        for uid, certificate_metadata in certificates.items():
+        for uid, certificate_metadata in self.certificates_to_issue.items():
+            # we need to keep the signed certificate read binary for backwards compatibility with v1
             with open(certificate_metadata.signed_certificate_file_name, 'rb') as in_file, \
-                    open(certificate_metadata.certificate_hash_file_name, 'wb') as out_file:
+                    open(certificate_metadata.certificate_hash_file_name, 'w') as out_file:
                 cert = in_file.read()
                 hashed_cert = self.do_hash_certificate(cert)
                 out_file.write(hashed_cert)
 
-    @abstractmethod
-    def create_transactions(self, wallet, revocation_address, certificates_to_issue, issuing_transaction_cost,
-                            transfer_from_storage_address):
-        return
+    def finish_tx(self, sent_tx_file_name, txid):
+        with open(sent_tx_file_name, 'w') as out_file:
+            out_file.write(txid)
 
-    def issue_on_blockchain(self, wallet, revocation_address, certificates_to_issue, split_input_trxs,
+    def issue_on_blockchain(self, wallet, revocation_address, split_input_trxs,
                             allowable_wif_prefixes, broadcast_function, issuing_transaction_cost):
 
-        trxs = self.create_transactions(wallet, revocation_address, certificates_to_issue, issuing_transaction_cost,
+        trxs = self.create_transactions(wallet, revocation_address, issuing_transaction_cost,
                                         split_input_trxs)
         for td in trxs:
             # persist tx
             hextx = hexlify(td.tx.serialize())
-            with open(td.unsigned_tx_file_name, 'wb') as out_file:
-                out_file.write(bytes(hextx, 'utf-8'))
+            with open(td.unsigned_tx_file_name, 'w') as out_file:
+                out_file.write(hextx)
 
             # sign transaction and persist result
             signed_hextx = trx_utils.sign_tx(
                 hextx, td.tx_input, allowable_wif_prefixes)
-            with open(td.signed_tx_file_name, 'wb') as out_file:
-                out_file.write(bytes(signed_hextx, 'utf-8'))
+            with open(td.signed_tx_file_name, 'w') as out_file:
+                out_file.write(signed_hextx)
 
             # verify
             cert_utils.verify_transaction(td.op_return_value, signed_hextx)
 
             # send tx and persist txid
             txid = trx_utils.send_tx(broadcast_function, signed_hextx)
-            with open(td.sent_tx_file_name, 'wb') as out_file:
-                out_file.write(bytes(txid, 'utf-8'))
+            self.finish_tx(td.sent_tx_file_name, txid)

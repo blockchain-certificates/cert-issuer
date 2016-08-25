@@ -14,27 +14,28 @@ if sys.version_info.major < 3:
 
 
 class V1Issuer(Issuer):
-    def __init__(self, config):
-        Issuer.__init__(self, config)
+    def __init__(self, config, certificates_to_issue):
+        Issuer.__init__(self, config, certificates_to_issue)
 
     def do_hash_certificate(self, certificate):
-        return hashlib.sha256(certificate).digest()
+        return hashlib.sha256(certificate).hexdigest()
 
     def get_cost_for_certificate_batch(self, dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
-                                       num_certificates, allow_transfer):
+                                       allow_transfer):
+        num_certificates = len(self.certificates_to_issue)
         num_outputs = Issuer.get_num_outputs(num_certificates)
         return Issuer.get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction,
                                                      satoshi_per_byte, num_outputs, allow_transfer, num_certificates,
                                                      num_certificates)
 
-    def create_transactions(self, wallet, revocation_address, certificates_to_issue, issuing_transaction_cost,
+    def create_transactions(self, wallet, revocation_address, issuing_transaction_cost,
                             split_input_trxs):
 
         unspent_outputs = wallet.get_unspent_outputs(self.issuing_address)
         current_tail = -1
 
         txs = []
-        for uid, certificate_metadata in certificates_to_issue.items():
+        for uid, certificate_metadata in self.certificates_to_issue.items():
             last_output = unspent_outputs[current_tail]
 
             with open(certificate_metadata.certificate_hash_file_name, 'rb') as in_file:
@@ -51,7 +52,7 @@ class V1Issuer(Issuer):
             unsigned_tx_file_name = convert_file_name(
                 self.config.unsigned_txs_file_pattern, uid)
             unsent_tx_file_name = convert_file_name(
-                self.config.unsent_txs_file_pattern, uid)
+                self.config.signed_txs_file_pattern, uid)
             sent_tx_file_name = convert_file_name(
                 self.config.sent_txs_file_pattern, uid)
             td = TransactionData(uid=certificate_metadata.uid,

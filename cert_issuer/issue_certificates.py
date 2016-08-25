@@ -91,7 +91,6 @@ def find_signed_certificates(app_config):
 
 
 def main(app_config):
-    issuer = V2Issuer(config=app_config)
 
     # find certificates to process
     certificates = find_signed_certificates(app_config)
@@ -104,6 +103,8 @@ def main(app_config):
     # get issuing and revocation addresses from config
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
+
+    issuer = V2Issuer(config=app_config, certificates_to_issue=certificates)
 
     # ensure certificates are valid v1.2 schema
     for uid, certificate in certificates.items():
@@ -124,11 +125,12 @@ def main(app_config):
     start_time = str(helpers.get_current_time_ms())
 
     logging.info('Hashing signed certificates.')
-    issuer.hash_certificates(certificates)
+    issuer.hash_certificates()
 
     # calculate transaction costs
-    all_costs = issuer.get_cost_for_certificate_batch(app_config.dust_threshold, app_config.tx_fee,
-                                                      app_config.satoshi_per_byte, len(certificates),
+    all_costs = issuer.get_cost_for_certificate_batch(app_config.dust_threshold,
+                                                      app_config.tx_fee,
+                                                      app_config.satoshi_per_byte,
                                                       app_config.transfer_from_storage_address)
 
     logging.info('Total cost will be %d satoshis', all_costs.total)
@@ -153,7 +155,7 @@ def main(app_config):
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
-    issuer.issue_on_blockchain(wallet=wallet, revocation_address=revocation_address, certificates_to_issue=certificates,
+    issuer.issue_on_blockchain(wallet=wallet, revocation_address=revocation_address,
                                split_input_trxs=split_input_trxs,
                                allowable_wif_prefixes=allowable_wif_prefixes, broadcast_function=broadcast_function,
                                issuing_transaction_cost=all_costs.issuing_transaction_cost)

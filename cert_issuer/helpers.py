@@ -109,7 +109,7 @@ def clear_intermediate_folders(app_config):
     folders_to_clear = [app_config.signed_certs_file_pattern,
                         app_config.hashed_certs_file_pattern,
                         app_config.unsigned_txs_file_pattern,
-                        app_config.unsent_txs_file_pattern,
+                        app_config.signed_txs_file_pattern,
                         app_config.sent_txs_file_pattern]
     for folder in folders_to_clear:
         clear_folder(folder)
