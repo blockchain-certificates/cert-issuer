@@ -29,3 +29,13 @@ to experiment without spending money.
     bitcoind -daemon -conf=your-bitcoin.conf
     ```
 
+## Testnet mode
+
+```
+rpcuser=bitcoinrpc
+rpcpassword=6c8a25acd56561b2a039197e86d07c97
+testnet=1
+server=1
+rpctimeout=30
+rpcport=8332
+```

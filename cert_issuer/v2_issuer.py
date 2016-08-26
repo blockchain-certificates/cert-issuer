@@ -27,6 +27,7 @@ class V2Issuer(Issuer):
         self.batch_id = '%024x' % random.randrange(16 ** 24)
         self.tree = MerkleTree(hash_f=sha256)
 
+    # TODO: duplicated with cert-verifier
     def do_hash_certificate(self, certificate):
         cert_utf8 = certificate.decode('utf-8')
         cert_json = json.loads(cert_utf8)

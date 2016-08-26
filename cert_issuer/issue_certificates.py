@@ -151,7 +151,7 @@ def main(app_config):
             split_input_trxs = True
 
     # ensure the issuing address now has sufficient balance
-    wallet.check_balance(issuing_address, all_costs.issuing_transaction_cost)
+    # TODO wallet.check_balance(issuing_address, all_costs.issuing_transaction_cost)
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')

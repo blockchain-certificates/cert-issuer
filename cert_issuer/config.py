@@ -25,10 +25,8 @@ def parse_args():
                    help='connector to use for wallet')
     p.add_argument('--broadcaster_type', default='bitcoind',
                    help='connector to use for broadcast')
-    p.add_argument('--disable_regtest_mode', action='store_true',
-                   help='Use regtest mode of bitcoind (default: 0). Warning! Only change this if you have a local '
-                        'bitcoind client (not the included Docker container) and you are sure you want to spend money. '
-                        'Our included docker container is configured to run only in regtest mode.')
+    p.add_argument('--bitcoin_chain', default='regtest',
+                   help='Which bitcoin chain to use. Default is regtest (which is how the docker container is configured). Other options are testnet and mainnet.')
     p.add_argument('--storage_address', required=False,
                    help='storage address. Not needed for bitcoind deployment')
     p.add_argument('--wallet_guid', required=False,
@@ -107,12 +105,13 @@ def get_config():
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
-    if parsed_config.wallet_connector_type == 'bitcoind' and not parsed_config.disable_regtest_mode:
-        bitcoin.SelectParams('regtest')
-        parsed_config.allowable_wif_prefixes = [b'\x80', b'\xef']
-    else:
-        # use default prefixes
-        parsed_config.allowable_wif_prefixes = None
+    if parsed_config.wallet_connector_type == 'bitcoind':
+        bitcoin.SelectParams(parsed_config.bitcoin_chain)
+        if parsed_config.bitcoin_chain == 'mainnet':
+            # use default prefixes
+            parsed_config.allowable_wif_prefixes = None
+        else:
+            parsed_config.allowable_wif_prefixes = [b'\x80', b'\xef']
 
     configure_logger()
 
