@@ -110,7 +110,7 @@ def main(app_config):
     for uid, certificate in certificates.items():
         with open(certificate.signed_certificate_file_name) as cert:
             cert_json = json.load(cert)
-            schema_validator.validate_v1_2_0(cert_json)
+            schema_validator.validate_unsigned_v1_2_0(cert_json)
 
     # verify signed certs are signed with issuing key
     [cert_utils.verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in

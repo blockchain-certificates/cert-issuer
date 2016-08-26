@@ -84,7 +84,7 @@ def main(app_config):
     for uid, certificate in certificates.items():
         with open(certificate.unsigned_certificate_file_name) as cert:
             cert_json = json.load(cert)
-            schema_validator.validate_v1_2_0(cert_json)
+            schema_validator.validate_unsigned_v1_2_0(cert_json)
 
     # ensure they are not already signed. We want the user to know about this in case there
     # is a failure from a previous run

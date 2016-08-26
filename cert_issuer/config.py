@@ -98,8 +98,8 @@ def get_config():
         parsed_config.archive_path, 'sent_txs/*.txt')
     parsed_config.receipts_file_pattern = os.path.join(
         parsed_config.data_path, 'receipts/*.json')
-    parsed_config.cifs_file_pattern = os.path.join(
-        parsed_config.data_path, 'cifs/*.json')
+    parsed_config.blockchain_certificates_file_pattern = os.path.join(
+        parsed_config.data_path, 'blockchain_certificates/*.json')
     parsed_config.tree_file_pattern = os.path.join(
         parsed_config.data_path, 'tree/*.json')
 

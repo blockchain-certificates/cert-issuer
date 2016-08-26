@@ -81,11 +81,16 @@ class V2Issuer(Issuer):
             with open(signed_cert_file_name, 'r') as in_file:
                 signed_cert = json.load(in_file)
 
-            signed_cert['blockchainreceipt'] = receipt
-            cif_file_name = convert_file_name(self.config.cifs_file_pattern, uid)
+            blockchain_cert = {
+                '@context': 'https://w3id.org/blockcerts/context#',
+                '@type': 'BlockchainCertificate',
+                'document': signed_cert,
+                'receipt': receipt
+            }
+            blockchain_cert_file_name = convert_file_name(self.config.blockchain_certificates_file_pattern, uid)
 
-            with open(cif_file_name, 'w') as out_file:
-                out_file.write(json.dumps(signed_cert))
+            with open(blockchain_cert_file_name, 'w') as out_file:
+                out_file.write(json.dumps(blockchain_cert))
 
             index+=1
 

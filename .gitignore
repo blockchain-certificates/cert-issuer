@@ -11,9 +11,10 @@ data/unsigned_certs/
 data/signed_certs/
 data/hashed_certs/
 data/unsigned_txs/
-data/unsent_txs/
+data/signed_txs/
 data/sent_txs/
-data/proof/
+data/receipts/
+data/blockchain_certificates/
 data/tree/
 archive/
 
@@ -24,7 +25,7 @@ archive/
 !data/signed_txs/.*
 !data/sent_txs/.*
 !data/receipts/.*
-!data/cifs/.*
+!data/blockchain_certificates/.*
 !data/tree/.*
 
 .idea/*
