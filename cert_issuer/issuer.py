@@ -39,6 +39,10 @@ class Issuer:
                           issuing_transaction_cost=issuing_costs, transfer_cost=transfer_costs)
 
     @abstractmethod
+    def validate_schema(self):
+        return
+
+    @abstractmethod
     def do_hash_certificate(self, certificate):
         """
         Subclasses must return hex strings, not byte arrays

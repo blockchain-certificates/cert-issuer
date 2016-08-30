@@ -3,7 +3,7 @@ import sys
 import hashlib
 
 from cert_issuer import trx_utils
-from cert_issuer.helpers import hexlify
+from cert_issuer.helpers import hexlify, unhexlify
 from cert_issuer.issuer import Issuer
 from cert_issuer.models import TransactionData
 from cert_issuer.models import convert_file_name
@@ -16,6 +16,9 @@ if sys.version_info.major < 3:
 class V1Issuer(Issuer):
     def __init__(self, config, certificates_to_issue):
         Issuer.__init__(self, config, certificates_to_issue)
+
+    def validate_schema(self):
+        return
 
     def do_hash_certificate(self, certificate):
         return hashlib.sha256(certificate).hexdigest()
@@ -38,7 +41,7 @@ class V1Issuer(Issuer):
         for uid, certificate_metadata in self.certificates_to_issue.items():
             last_output = unspent_outputs[current_tail]
 
-            with open(certificate_metadata.certificate_hash_file_name, 'rb') as in_file:
+            with open(certificate_metadata.certificate_hash_file_name, 'r') as in_file:
                 op_return_value = in_file.read()
 
             # send a transaction to the recipient's public key, and to a
@@ -46,7 +49,7 @@ class V1Issuer(Issuer):
             txouts = trx_utils.create_recipient_outputs(certificate_metadata.pubkey, revocation_address,
                                                         issuing_transaction_cost.min_per_output)
 
-            tx = trx_utils.create_trx(op_return_value, issuing_transaction_cost, self.issuing_address, txouts,
+            tx = trx_utils.create_trx(unhexlify(op_return_value), issuing_transaction_cost, self.issuing_address, txouts,
                                       last_output)
 
             unsigned_tx_file_name = convert_file_name(
@@ -58,7 +61,7 @@ class V1Issuer(Issuer):
             td = TransactionData(uid=certificate_metadata.uid,
                                  tx=tx,
                                  tx_input=last_output,
-                                 op_return_value=hexlify(op_return_value),
+                                 op_return_value=op_return_value,
                                  unsigned_tx_file_name=unsigned_tx_file_name,
                                  signed_tx_file_name=unsent_tx_file_name,
                                  sent_tx_file_name=sent_tx_file_name)

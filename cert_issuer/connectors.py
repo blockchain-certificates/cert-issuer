@@ -11,7 +11,7 @@ from bitcoin.wallet import CBitcoinAddress
 from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.models import TransactionOutput
-
+import struct
 
 class WalletConnector:
     __metaclass__ = ABCMeta
@@ -133,14 +133,19 @@ class BitcoindConnector(WalletConnector):
     # These methods are used for temporary addresses, and they are not yet
     # supported
     def create_temp_address(self, address):
-        raise NotImplementedError('create_temp_addresses is not yet supported')
+        address = self.proxy.getnewaddress()
+        return address
 
     def archive(self, address):
-        raise NotImplementedError('archive is not yet supported')
+        # ToDO
+        #raise NotImplementedError('archive is not yet supported')
+        return
 
     def send_to_addresses(self, storage_address,
                           temp_addresses, transfer_split_fee):
-        raise NotImplementedError('send_to_addresses is not yet supported')
+        for address in temp_addresses:
+            self.proxy.sendtoaddress(address, transfer_split_fee)
+        #raise NotImplementedError('send_to_addresses is not yet supported')
 
 
 def insight_broadcast(hextx):
@@ -176,7 +181,8 @@ def noop_broadcast(hextx):
 def bitcoind_broadcast(hextx):
     tx = CTransaction.deserialize(unhexlify(hextx))
     txid = bitcoin.rpc.Proxy().sendrawtransaction(tx)
-    return hexlify(txid)
+    # reverse endianness for bitcoind
+    return hexlify(bytearray(txid)[::-1])
 
 
 def create_wallet_connector(config):

@@ -93,7 +93,7 @@ class Wallet:
         return amount_needed
 
     def transfer_balance(self, storage_address,
-                         issuing_address, transaction_costs):
+                         issuing_address, total_costs):
         """Transfer balance to ensure enough is available for certificates. The temporary addresses are used to subdivide
         the payments in order to break them up into individual spends. This way, we do not have to wait for one large
         input to be spent on the blockchain and confirmed (i.e. a little bit of the money spent and the rest return to
@@ -105,21 +105,20 @@ class Wallet:
         self.wait_for_confirmation(storage_address)
 
         logging.info('Creating %d temporary addresses...',
-                     transaction_costs.number_of_transactions)
+                     total_costs.number_of_transactions)
 
         temp_addresses = {}
-        for i in range(transaction_costs.number_of_transactions):
+        for i in range(total_costs.number_of_transactions):
             temp_address_in = 'temp-address-%s' % i
             temp_address = self.connector.create_temp_address(temp_address_in)
             # we need to add enough to cover the fee of the subsequent spend
             # from the temp address
-            temp_addresses[temp_address] = transaction_costs.cost_per_transaction + \
-                transaction_costs.fee_per_transaction
+            temp_addresses[temp_address] = total_costs.issuing_transaction_cost.total
 
         logging.info('Transferring BTC to temporary addresses...')
 
         self.connector.send_to_addresses(
-            storage_address, temp_addresses, transaction_costs.transfer_split_fee)
+            storage_address, temp_addresses, total_costs.transfer_split_fee)
         logging.info('Waiting for confirmation of transfer...')
 
         random_address = random.choice(list(temp_addresses.keys()))
@@ -128,8 +127,8 @@ class Wallet:
 
         logging.info('Making transfer to issuing address...')
         for address in temp_addresses.keys():
-            self.pay_and_archive(address, issuing_address, transaction_costs.cost_per_transaction,
-                                 transaction_costs.fee_per_transaction)
+            self.pay_and_archive(address, issuing_address, total_costs.issuing_transaction_cost.min_per_output,
+                                 total_costs.issuing_transaction_cost.fee)
         self.wait_for_confirmation(issuing_address)
         logging.info(
             'Transferred BTC needed for issuing certificates from issuing address...')

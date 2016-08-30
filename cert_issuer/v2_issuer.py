@@ -10,15 +10,12 @@ from cert_issuer.models import TransactionData
 from cert_issuer.models import convert_file_name
 from merkleproof.MerkleTree import MerkleTree
 from merkleproof.MerkleTree import sha256
+from cert_schema.schema_tools import schema_validator
 
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
-
-unsigned_tx_file_name = 'unsigned_tx.txt'
-signed_tx_file_name = 'signed_tx.txt'
-sent_tx_file_name = 'sent_tx.txt'
 
 
 class V2Issuer(Issuer):
@@ -27,13 +24,20 @@ class V2Issuer(Issuer):
         self.batch_id = '%024x' % random.randrange(16 ** 24)
         self.tree = MerkleTree(hash_f=sha256)
 
+    def validate_schema(self):
+        # ensure certificates are valid v1.2 schema
+        for uid, certificate in self.certificates_to_issue.items():
+            with open(certificate.signed_certificate_file_name) as cert:
+                cert_json = json.load(cert)
+                schema_validator.validate_unsigned_v1_2_0(cert_json)
+
     # TODO: duplicated with cert-verifier
     def do_hash_certificate(self, certificate):
         cert_utf8 = certificate.decode('utf-8')
         cert_json = json.loads(cert_utf8)
         normalized = jsonld.normalize(cert_json, {'algorithm': 'URDNA2015', 'format': 'application/nquads'})
         hashed = sha256(normalized)
-        self.tree.add_leaf(hashed, True)
+        self.tree.add_leaf(hashed, False)
         return hashed
 
     def get_cost_for_certificate_batch(self, dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
@@ -47,32 +51,12 @@ class V2Issuer(Issuer):
         return Issuer.get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
                                                      num_outputs, allow_transfer, 1, 1)
 
-    # TODO: move to merkleproof utils
-    def make_receipt(self, index, txid):
-
-        receipt = {
-            '@type': 'BlockchainReceipt',
-            'type': 'ChainpointSHA256v2',
-            'targetHash': hexlify(self.tree.get_leaf(index)),
-            'merkleRoot': self.tree.get_merkle_root(),
-            'proof': self.tree.get_proof(index),
-            'anchors': [
-                {
-                    'type': 'BTCOpReturn',
-                    'sourceId': txid
-                }
-            ]
-        }
-        return receipt
-
-
     def finish_tx(self, sent_tx_file_name, txid):
         Issuer.finish_tx(self, sent_tx_file_name, txid)
         # note that certificates are stored in an ordered dictionary, so we will iterate in the same order
         index = 0
         for uid, certificate in self.certificates_to_issue.items():
-
-            receipt = self.make_receipt(index, txid)
+            receipt = self.tree.make_receipt(index, txid)
 
             receipt_file_name = convert_file_name(self.config.receipts_file_pattern, uid)
             with open(receipt_file_name, 'w') as out_file:

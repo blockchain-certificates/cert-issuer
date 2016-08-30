@@ -61,13 +61,14 @@ import logging
 import sys
 
 import glob2
-from cert_schema.schema_tools import schema_validator
 
 from cert_issuer import cert_utils
 from cert_issuer import connectors
 from cert_issuer import helpers
 from cert_issuer.models import CertificateMetadata
 from cert_issuer.v2_issuer import V2Issuer
+from cert_issuer.v1_issuer import V1Issuer
+
 from cert_issuer.wallet import Wallet
 
 if sys.version_info.major < 3:
@@ -106,11 +107,7 @@ def main(app_config):
 
     issuer = V2Issuer(config=app_config, certificates_to_issue=certificates)
 
-    # ensure certificates are valid v1.2 schema
-    for uid, certificate in certificates.items():
-        with open(certificate.signed_certificate_file_name) as cert:
-            cert_json = json.load(cert)
-            schema_validator.validate_unsigned_v1_2_0(cert_json)
+    issuer.validate_schema()
 
     # verify signed certs are signed with issuing key
     [cert_utils.verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
@@ -147,11 +144,11 @@ def main(app_config):
             wallet.transfer_balance(
                 app_config.storage_address,
                 issuing_address,
-                all_costs.transfer_cost)
+                all_costs)
             split_input_trxs = True
 
     # ensure the issuing address now has sufficient balance
-    # TODO wallet.check_balance(issuing_address, all_costs.issuing_transaction_cost)
+    wallet.check_balance(issuing_address, all_costs.issuing_transaction_cost)
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
