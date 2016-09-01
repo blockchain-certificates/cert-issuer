@@ -14,7 +14,7 @@ experimenting only.
 2. Clone the repo:
 
     ```
-    git clone https://github.com/digital-certificates/cert-issuer.git
+    git clone https://github.com/blockchain-certificates/cert-issuer.git
     ```
 
 

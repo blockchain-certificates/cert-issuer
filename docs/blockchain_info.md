@@ -6,7 +6,7 @@
 1. Clone the repo:
 
     ```
-    git clone https://github.com/digital-certificates/cert-issuer.git
+    git clone https://github.com/blockchain-certificates/cert-issuer.git
     ```
 2. Create a Python 3 virtual environment and activate it
     ```

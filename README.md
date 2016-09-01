@@ -2,7 +2,7 @@ Digital Certificates Issuer Project
 ===================================
 
 Issues digital certificates by creating a transaction from the issuing institution to the recipient
-on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/digital-certificates/cert-schema)
+on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/blockchain-certificates/cert-schema)
 
 [//]: # "start_docker_instructions"
 
@@ -21,7 +21,7 @@ experimenting only.
 2. Clone the repo:
 
     ```
-    git clone https://github.com/digital-certificates/cert-issuer.git
+    git clone https://github.com/blockchain-certificates/cert-issuer.git
     ```
 
 
