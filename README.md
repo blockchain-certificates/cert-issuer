@@ -128,7 +128,7 @@ Project documentation is under docs/ and summarized here: [docs/index.md](/docs/
 About the Blockchain Certificates project
 --------------------------------------
 
-[MIT Media Lab Blockchain Certificates](http://certificates.media.mit.edu/) is an incubation project. We're looking for feedback, contributions, and general
+[MIT Media Lab Blockchain Certificates](http://www.blockcerts.org/) is an incubation project. We're looking for feedback, contributions, and general
 discussion. This is not currently intended for production release, but we are improving our approach for future releases.
 
 
