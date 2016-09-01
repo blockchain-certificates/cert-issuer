@@ -1,7 +1,7 @@
-Digital Certificates Issuer Project
+Blockchain Certificates Issuer Project
 ===================================
 
-Issues digital certificates by creating a transaction from the issuing institution to the recipient
+Issues blockchain certificates by creating a transaction from the issuing institution to the recipient
 on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/blockchain-certificates/cert-schema)
 
 [//]: # "start_docker_instructions"
@@ -125,10 +125,10 @@ Project documentation is under docs/ and summarized here: [docs/index.md](/docs/
 
 
 
-About the Digital Certificates project
+About the Blockchain Certificates project
 --------------------------------------
 
-[MIT Media Lab Digital Certificates](http://certificates.media.mit.edu/) is an incubation project. We're looking for feedback, contributions, and general
+[MIT Media Lab Blockchain Certificates](http://certificates.media.mit.edu/) is an incubation project. We're looking for feedback, contributions, and general
 discussion. This is not currently intended for production release, but we are improving our approach for future releases.
 
 
