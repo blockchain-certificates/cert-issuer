@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Privacy Notes &middot; cert-issuer
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/cert-issuer/public/css/poole.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/syntax.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/cert-issuer/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="/cert-issuer/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/site_config/atom.xml">
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="/cert-issuer/">
+          cert-issuer
+        </a>
+        </h1>
+      <p class="lead">A Blockchain Certificates Project</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="/cert-issuer/">Home</a>
+
+      
+
+      
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//about/">About</a>
+          
+        
+      
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//bitcoin_faq/">Bitcoin FAQ</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//blockchain_info/">Blockchain.info instructions</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//creating_cert/">Creating a certificate</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//debugging/">Debugging</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//docker/">Quick start with Docker</a>
+          
+        
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//issuing/">Issuing Certificates</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//live/">Live issuing</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//make_addresses/">Creating Issuing and Revocation Addresses</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//options/">Options</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//precommit/">Pre-commit Hooks</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item active" href="/cert-issuer//privacy/">Privacy Notes</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//system_overview/">System Overview</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//testing/">Tests</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//v1_deployments/">Findings from our V1 Deployments</a>
+          
+        
+      
+
+      <a class="sidebar-nav-item" href="https://github.com/blockchain-certificates/cert-issuer">GitHub project</a>
+      <span class="sidebar-nav-item">Currently v0.0.1</span>
+    </nav>
+
+    <p>&copy; 2016. All rights reserved.</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="page">
+  <h1 class="page-title">Privacy Notes</h1>
+  <p>What’s stored on the blockchain is a 1-way hash; you can’t feasibly recover the original data unless:
+1. the recipient reveals the original contents, or
+2. the issuer maintains an external db with the certificate contents, and lookup is possible.</p>
+
+<p>In our current deployments, we have included capability #2: we copied the certificates to mongodb and indexed them
+by certificate uid. We allow cert-viewer to retrieve and display the certificate from a url containing the certificate uid.
+Furthermore, we&#39;ve included &quot;Recently Issued&quot; certificate links on the home page. This sort of disclosure was done only
+because the certificates didn&#39;t contain sensitive information.</p>
+
+<p>It&#39;s crucial to consider the sensitivity of the data before including a capability like #2. For example, if the
+certificates we issued contained personal information such as the recipient&#39;s address, we would certainly avoid
+disclosure via the &quot;Recently Issued&quot; links.</p>
+
+<p>One option that avoids disclosing any information (except when the recipient chooses) is an approach like
+https://proofofexistence.com/. In this scheme, verification could work as follows: the recipient reveals the certificate
+contents only to whom they choose. Then it can be verified that the certificate hash matches what&#39;s on the blockchain.</p>
+
+<p>In general, anticipate the need for a range of solutions balancing convenience, privacy, and security. For example,
+a recipient may want it to be easy for 3rd parties to view and verify that they graduated with a B.A. from a university,
+but would only want to expose their transcript contents if required.</p>
+
+</div>
+
+    </div>
+
+  </body>
+</html>

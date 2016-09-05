@@ -1,5 +1,7 @@
-Welcome to cert-issuer's documentation
-======================================
+---
+layout: page
+title: About
+---
 The cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
 recipient on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/blockchain-certificates/cert-schema)
 

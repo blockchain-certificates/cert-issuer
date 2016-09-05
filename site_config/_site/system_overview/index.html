@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      System Overview &middot; cert-issuer
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/cert-issuer/public/css/poole.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/syntax.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/cert-issuer/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="/cert-issuer/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/site_config/atom.xml">
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="/cert-issuer/">
+          cert-issuer
+        </a>
+        </h1>
+      <p class="lead">A Blockchain Certificates Project</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="/cert-issuer/">Home</a>
+
+      
+
+      
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//about/">About</a>
+          
+        
+      
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//bitcoin_faq/">Bitcoin FAQ</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//blockchain_info/">Blockchain.info instructions</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//creating_cert/">Creating a certificate</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//debugging/">Debugging</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//docker/">Quick start with Docker</a>
+          
+        
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//issuing/">Issuing Certificates</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//live/">Live issuing</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//make_addresses/">Creating Issuing and Revocation Addresses</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//options/">Options</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//precommit/">Pre-commit Hooks</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//privacy/">Privacy Notes</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item active" href="/cert-issuer//system_overview/">System Overview</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//testing/">Tests</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//v1_deployments/">Findings from our V1 Deployments</a>
+          
+        
+      
+
+      <a class="sidebar-nav-item" href="https://github.com/blockchain-certificates/cert-issuer">GitHub project</a>
+      <span class="sidebar-nav-item">Currently v0.0.1</span>
+    </nav>
+
+    <p>&copy; 2016. All rights reserved.</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="page">
+  <h1 class="page-title">System Overview</h1>
+  <h2>Certificate issuing</h2>
+
+<p>The cert-issuer component is responsible for issuing certificates on the blockchain. As described in our Medium post, V1
+is using the Bitcoin blockchain.</p>
+
+<p><img src="/images/cert-issuer.png" alt="Certificate Issuer" title="Certificate Issuer"></p>
+
+<p>In the current implementation, these 2 tasks are performed by the certificate issuer:</p>
+
+<ol>
+<li> Open badge signature</li>
+<li> Issue on blockchain</li>
+</ol>
+
+<p>Because the open badge signature is independent from issuing the certificate as a transaction on the blockchain, this
+will likely be pulled out as a separate component in the future.</p>
+
+<p>The input is an unsigned certificate; <a href="http://cert-schema.readthedocs.io/en/latest/">see the schema description</a>.</p>
+
+<p>In our implementation, the signing step signs the recipient UID field in the unsigned certificate, and places the
+signature in the signature section of the certificate. The signed certificate is retained as output, since the hash of
+this document is what it stored on the blockchain.</p>
+
+<p>The next step creates a Bitcoin transaction with the signed certificate hash and outputs to the recipient and the
+revocation address.</p>
+
+<p>Cert-issuer’s output is the signed certificate, and the Bitcoin Transaction ID. These two suffice to validate the
+certificate.</p>
+
+<h2>Certificate viewing, storage, and validation</h2>
+
+<p>We provided an additional level of convenience by storing, looking up, and performing validation of the certificates we
+issued in a webapp. This is technically optional; with the signed certificate and the Bitcoin transaction id, the
+recipient could provide these to any 3rd party they choose, and that 3rd party could independently validate the
+certificate. As this project evolves, these different concerns will be pulled into separate components.</p>
+
+<p><img src="/images/cert-viewer.png" alt="Certificate Viewer" title="Certificate Viewer"></p>
+
+<p>Lookup and storage requirements will vary according to the sensitivity of the data. In this digital certificate
+ scenario, recipients preferred the convenience.</p>
+
+<p>The outputs of the signed certificate and txid suffice to validate the certificate. The means of validating the
+certificate are open.</p>
+
+<h2>Validation</h2>
+
+<p>Validation is clearly a core consideration but I call it out separately because the technique of validating a
+certificate is open.</p>
+
+<p><a href="http://cert-viewer.readthedocs.io/en/latest/verify/">These steps show how you would independently verify a certificate</a>. Note that these steps could have been done without
+involving the issuer’s (MIT’s) viewer page:
+- The recipient could directly provide the signed certificate and transaction id
+- The issuer and revocation keys are available in the bitcoin transaction. The from address is the issuer, and the
+revocation address is the output that is not the recipient address (there may also be a change output going back to the
+ issuer)</p>
+
+</div>
+
+    </div>
+
+  </body>
+</html>

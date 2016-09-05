@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Bitcoin FAQ &middot; cert-issuer
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/cert-issuer/public/css/poole.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/syntax.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/cert-issuer/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="/cert-issuer/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/site_config/atom.xml">
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="/cert-issuer/">
+          cert-issuer
+        </a>
+        </h1>
+      <p class="lead">A Blockchain Certificates Project</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="/cert-issuer/">Home</a>
+
+      
+
+      
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//about/">About</a>
+          
+        
+      
+        
+      
+        
+          
+            <a class="sidebar-nav-item active" href="/cert-issuer//bitcoin_faq/">Bitcoin FAQ</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//blockchain_info/">Blockchain.info instructions</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//creating_cert/">Creating a certificate</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//debugging/">Debugging</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//docker/">Quick start with Docker</a>
+          
+        
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//issuing/">Issuing Certificates</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//live/">Live issuing</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//make_addresses/">Creating Issuing and Revocation Addresses</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//options/">Options</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//precommit/">Pre-commit Hooks</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//privacy/">Privacy Notes</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//system_overview/">System Overview</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//testing/">Tests</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//v1_deployments/">Findings from our V1 Deployments</a>
+          
+        
+      
+
+      <a class="sidebar-nav-item" href="https://github.com/blockchain-certificates/cert-issuer">GitHub project</a>
+      <span class="sidebar-nav-item">Currently v0.0.1</span>
+    </nav>
+
+    <p>&copy; 2016. All rights reserved.</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="page">
+  <h1 class="page-title">Bitcoin FAQ</h1>
+  <h2>Exactly what are the transaction outputs?</h2>
+
+<p>The current approach creates 1 transaction per certificate recipient. A transaction&#39;s outputs are:</p>
+
+<ul>
+<li>1 output to the recipient&#39;s address, dust amount</li>
+<li>1 output to the revocation address, dust amount</li>
+<li>Optionally change to the issuer address</li>
+<li>OP_RETURN field, storing 1-way hash of the signed certificate</li>
+</ul>
+
+<p>The OP_RETURN field is the most important w.r.t certificates on the blockchain. This is the field that we use to store
+the hash, and in turn we can look it up on the blockchain at any time to validate.</p>
+
+<p>This field was introduced because bitcoin core developers to address (<a href="https://en.bitcoin.it/wiki/OP_RETURN">but not necessarily endorse</a>) the increasing desire
+ of people to store non-financial transactions on the blockchain. OP_RETURN signifies that an output is provably
+  unspendable, allowing transactions to be pruned from the UXTO database.</p>
+
+<p>Note that our additional transaction outputs complicate this. One of the other outputs has a very small amount of money going to the recipient’s address, and the other has a same
+ amount going to the issuer’s revocation address. The latter is a convention we introduced to enable revocation.</p>
+
+<h2>What is dust?</h2>
+
+<p>It is the minimum amount a transaction output can be. I found the best description in
+<a href="http://bitcoin.stackexchange.com/questions/10986/what-is-meant-by-bitcoin-dust">this Stack Overflow thread</a>. See
+especially Murch’s statements:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">A transaction output is considered dust when the cost of spending it is close to its value.
+Precisely, Bitcoin Core defines dust to be an output whose fees exceed 1/3 of its value. This computes to everything
+ smaller than 546 satoshis being considered dust by Bitcoin Core
+ ...
+It is defined as 546 satoshis in the code.
+</code></pre></div>
+<h2>How did you come up with the tx fee?</h2>
+
+<p>We used the current value of &#39;To get in next block&#39; of <a href="http://bitcoinexchangerate.org/fees">Recommended Bitcoin Network Transaction Fees</a></p>
+
+<h2>Other resources that were helpful in creating raw bitcoin transactions and computing fees</h2>
+
+<ul>
+<li><a href="http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending/3011#3011">Calculating transaction size</a></li>
+<li><a href="https://www.reddit.com/r/Bitcoin/comments/2zdwr0/how_do_i_create_a_raw_transaction/">Creating raw transactions</a></li>
+<li><a href="http://www.righto.com/2014/02/bitcoins-hard-way-using-raw-bitcoin.html">Creating raw transactions</a></li>
+<li><a href="https://www.reddit.com/r/Bitcoin/comments/2unzen/what_is_bitcoins_dust_limit_precisely/">Dust limit</a></li>
+</ul>
+
+</div>
+
+    </div>
+
+  </body>
+</html>

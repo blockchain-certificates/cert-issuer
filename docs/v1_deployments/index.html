@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Findings from our V1 Deployments &middot; cert-issuer
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/cert-issuer/public/css/poole.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/syntax.css">
+  <link rel="stylesheet" href="/cert-issuer/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/cert-issuer/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="/cert-issuer/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/site_config/atom.xml">
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="/cert-issuer/">
+          cert-issuer
+        </a>
+        </h1>
+      <p class="lead">A Blockchain Certificates Project</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="/cert-issuer/">Home</a>
+
+      
+
+      
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//about/">About</a>
+          
+        
+      
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//bitcoin_faq/">Bitcoin FAQ</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//blockchain_info/">Blockchain.info instructions</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//creating_cert/">Creating a certificate</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//debugging/">Debugging</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//docker/">Quick start with Docker</a>
+          
+        
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//issuing/">Issuing Certificates</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//live/">Live issuing</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//make_addresses/">Creating Issuing and Revocation Addresses</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//options/">Options</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//precommit/">Pre-commit Hooks</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//privacy/">Privacy Notes</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//system_overview/">System Overview</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/cert-issuer//testing/">Tests</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item active" href="/cert-issuer//v1_deployments/">Findings from our V1 Deployments</a>
+          
+        
+      
+
+      <a class="sidebar-nav-item" href="https://github.com/blockchain-certificates/cert-issuer">GitHub project</a>
+      <span class="sidebar-nav-item">Currently v0.0.1</span>
+    </nav>
+
+    <p>&copy; 2016. All rights reserved.</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="page">
+  <h1 class="page-title">Findings from our V1 Deployments</h1>
+  <h2>About</h2>
+
+<p>This describes our v1 deployments, their workflows, and usability feedback from both recipients and issuers.</p>
+
+<h2>Deployments</h2>
+
+<p>There are two types of workflows in our v1 deployments: recipient-initiated and batch. Here are descriptions of these workflows in practice:</p>
+
+<ol>
+<li><p>Recipient-initiated</p>
+
+<p>The recipient requests their certificate through a form on the issuer&#39;s website. (This form is included in the cert-viewer source). The recipient enters information required for the issuing process, such as their name, cohort/group that is eligible for a certificate, and submits their request. </p>
+
+<p>This workflow requires a approval step to weed out invalid requests. In our deployments, in fact, the approval step is performed by someone other than the issuer. To improve this coordination, our deployments used Zapier to export requests from MongoDB to Google sheets. But note that a variety of automated export mechanisms could have been used.</p>
+
+<p>An approver reviews the sheet at time intervals they choose, toggle a field in the spreadsheet indicating if the certificate should be issued. </p>
+
+<p>The issuer monitors for updates to this spreadsheet, then issues the approved certificates, and exports to MongoDB.</p>
+
+<p>The issuer issues certificates one at a time, or possibly as a batch if several approved requests have queued up.</p></li>
+<li><p>Batch (&quot;cohort&quot;)</p>
+
+<p>In this deployment, the issuer creates a roster of all recipients and their associated data as a batch. For us, the roster was a simple csv file with each recipient&#39;s name, certificate details, etc. </p>
+
+<p>This workflow doesn&#39;t request a separate approval step, since everything in the roster is already approved. So all that&#39;s needed is to issue the certificates from the roster and add them to MongoDB.</p></li>
+</ol>
+
+<h2>Automation and current limitations</h2>
+
+<p>The above deployments use scripts that we didn&#39;t include in the initial release. We need to consolidate/generalize these scripts and add them to the open source repositories.</p>
+
+<p>These do the following:</p>
+
+<ul>
+<li>Importing certificates into MongoDB</li>
+<li>Creating certificates from a roster</li>
+<li>Copying unsigned certificates to the issuer</li>
+</ul>
+
+<p>Some steps remain very custom at the moment. For example, the step of creating a new type of certificate involves adding the logo, certificate image, and signature image (all base64-encoded pngs) to the raw json. This is tedious and manual at the moment, but it&#39;s only required 1 time per new certificate type; i.e. we script the population of individual recipients&#39; certificates from that template.</p>
+
+<p>Note that a certificate &quot;designer&quot; (i.e. that allows you to upload a logo image) could improve the process of creating a certificate template. </p>
+
+<h2>Recipient Bitcoin address</h2>
+
+<p>In one of the deployment types described above, the recipient requests their certificate online. One of the fields we request -- their public Bitcoin address -- has caused a lot of confusion. Some common interpretations/reactions include:</p>
+
+<ul>
+<li>looks like a freeform field; i.e. I should be make up and enter any identifier I want such as myname123</li>
+<li>pointless/redundant; i.e. why should I have to enter this when I&#39;ve entered a different identifier like email?</li>
+</ul>
+
+<p>This pointed out that our form lacked Bitcoin address validation, which could have helped catch these issues at request time. But there remains a more fundamental confusion over this field. We had already gotten feedback that
+this is a nuisance for the issuer in that they need to wait for input from the recipient. In fact, in the second deployment type we do not request Bitcoin addresses from the user; instead,
+we generate Bitcoin addresses on the recipient&#39;s behalf and then destroy the private keys<sup><a href="#footnote1">1</a></sup>. This means the recipients cannot revoke the certificate by themselves, and does not allow a strong ownership claim, but was viewed as the best tradeoff for this low stakes certificate.</p>
+
+<p>For context, here is how/why we use the recipient&#39;s Bitcoin address. We issue the certificate as a Bitcoin transaction to the recipient. This allows the recipient to revoke their certificate. Note that this address is simply any Bitcoin address the recipient owns. Our approach does not solve the identity problem and, in fact, this allows the recipient flexibility to manage their addresses as they please. For example:</p>
+
+<ul>
+<li>the recipient can use the same Bitcoin address for all their certificates</li>
+<li>they can use a different Bitcoin address for every certificate, for increased privacy</li>
+<li>they can use an external identity provider and attach certificates</li>
+</ul>
+
+<p>In any case, the recipient&#39;s Bitcoin address allows the recipient to make a cryptographically strong ownership claim, as opposed
+to claims verified by name, DOB, etc.</p>
+
+<p>In v2 we need to improve this experience. For example a certificate management tool (i.e. &quot;wallet&quot;) could help manage and
+hide this complexity from the user. We may need to allow the recipient address to be optional in some cases, but the
+verification steps would need to reflect this.</p>
+
+<p>Footnotes:</p>
+
+<p><a name="footnote1">1</a>: We could have attempted to securely transfer the private key to its owner but doing this correctly is incredibly risky. An attempt would look something like this: remaining offline, print each private key to a connected printer (ensuring the printer didn&#39;t cache), hand the paper to the recipient. This already is a lot of work, and I&#39;ve probably left out some exploits in this brief description.</p>
+
+</div>
+
+    </div>
+
+  </body>
+</html>
