@@ -26,20 +26,21 @@ class TestCertUtils(unittest.TestCase):
 
         self.mock_config = mock
 
-    def test_hash_certs(self):
-        cert_metadata = CertificateMetadata(MagicMock(), 'someuid', 'somekey')
-        cert_info = {'someuid': cert_metadata}
-        with patch('cert_issuer.cert_utils.open', mock_open(read_data='bibble'.encode('utf-8')), create=True) as m:
-            cert_utils.hash_certs(cert_info)
-            handle = m()
-            handle.read.assert_called_once()
-            handle.write.assert_called_once_with(
-                b'\xf1\x93\x13\xb9D\x94\x9e\x16\xb8\xf8\x12,\x05`u\x13\xa2\xa8\x1f\xfc\xd4\x87\x10\xe2\xd8\x98\xc1\x9f\x17\xa0\x83\xfa')
+    # TODO: these should move to issuer tests
+    #def test_hash_certs(self):
+    #    cert_metadata = CertificateMetadata(MagicMock(), 'someuid', 'somekey')
+    #    cert_info = {'someuid': cert_metadata}
+    #    with patch('cert_issuer.cert_utils.open', mock_open(read_data='bibble'.encode('utf-8')), create=True) as m:
+    #        cert_utils.hash_certs(cert_info)
+    #        handle = m()
+    #        handle.read.assert_called_once()
+    #        handle.write.assert_called_once_with(
+    #            b'\xf1\x93\x13\xb9D\x94\x9e\x16\xb8\xf8\x12,\x05`u\x13\xa2\xa8\x1f\xfc\xd4\x87\x10\xe2\xd8\x98\xc1\x9f\x17\xa0\x83\xfa')
 
-    def test__hash_cert(self):
-        hashed_cert = cert_utils._hash_cert('bibble'.encode('utf-8'))
-        self.assertEqual(hashed_cert,
-                         b'\xf1\x93\x13\xb9D\x94\x9e\x16\xb8\xf8\x12,\x05`u\x13\xa2\xa8\x1f\xfc\xd4\x87\x10\xe2\xd8\x98\xc1\x9f\x17\xa0\x83\xfa')
+    #def test__hash_cert(self):
+    #    hashed_cert = cert_utils._hash_cert('bibble'.encode('utf-8'))
+    #    self.assertEqual(hashed_cert,
+    #                     b'\xf1\x93\x13\xb9D\x94\x9e\x16\xb8\xf8\x12,\x05`u\x13\xa2\xa8\x1f\xfc\xd4\x87\x10\xe2\xd8\x98\xc1\x9f\x17\xa0\x83\xfa')
 
 
 if __name__ == '__main__':
