@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/blockchain-certificates/cert-issuer.svg?branch=master)](https://travis-ci.org/blockchain-certificates/cert-issuer)
+
 Blockchain Certificates Issuer Project
 ===================================
 
