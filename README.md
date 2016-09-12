@@ -1,15 +1,12 @@
 [![Build Status](https://travis-ci.org/blockchain-certificates/cert-issuer.svg?branch=master)](https://travis-ci.org/blockchain-certificates/cert-issuer)
 
-Blockchain Certificates Issuer Project
-===================================
+# cert-issuer
 
 Issues blockchain certificates by creating a transaction from the issuing institution to the recipient
 on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/blockchain-certificates/cert-schema)
 
 [//]: # "start_docker_instructions"
-
-Quick start
------------
+## Quick start using Docker
 
 This uses bitcoind in regtest mode. This route makes many simplifications to allow a quick start, and is intended for
 experimenting only.
@@ -45,8 +42,7 @@ experimenting only.
     docker run -it ml/cert-issuer:1.0 bash
     ```
 
-Create issuing and revocation addresses
----------------------------------------
+## Create issuing and revocation addresses
 
 __Important__: this is a simplification to avoid using a USB, which needs to be inserted and removed during the
 standard certficate issuing process. Do not use these addresses or private keys for anything other than experimenting.
@@ -71,8 +67,7 @@ corresponding private key for testing issuing certificates:
 
 3. Don't forget to save snapshots so you don't lose your work (see step 3 of client setup)
 
-Issuing certificates
---------------------
+## Issuing certificates
 
 1. Add your certificates to /etc/cert-issuer/data/unsigned_certs/
 
@@ -113,24 +108,8 @@ Issuing certificates
 
 [//]: # "end_docker_instructions"
 
-Project Documentation
----------------------
 
-Project documentation is under docs/ and summarized here: [docs/index.md](/docs/index.md)
+## Contact
 
-[http://cert-issuer.readthedocs.io/](http://cert-issuer.readthedocs.io/)
-
-
-
-About the Blockchain Certificates project
---------------------------------------
-
-[MIT Media Lab Blockchain Certificates](http://www.blockcerts.org/) is an incubation project. We're looking for feedback, contributions, and general
-discussion. This is not currently intended for production release, but we are improving our approach for future releases.
-
-
-Contact
--------
-
-Contact [certs@media.mit.edu](mailto:certs@media.mit.edu) with questions
+Contact [certs@mit.edu](mailto:certs@media.mit.edu) with questions
 
