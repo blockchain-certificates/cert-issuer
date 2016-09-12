@@ -111,5 +111,5 @@ corresponding private key for testing issuing certificates:
 
 ## Contact
 
-Contact [certs@mit.edu](mailto:certs@media.mit.edu) with questions
+Contact [certs@mit.edu](mailto:certs@mit.edu) with questions
 
