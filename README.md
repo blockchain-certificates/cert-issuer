@@ -14,23 +14,18 @@ Quick start
 This uses bitcoind in regtest mode. This route makes many simplifications to allow a quick start, and is intended for
 experimenting only.
 
-1. [Install Docker Engine and Docker Compose](https://docs.docker.com/engine/installation)
-    - If you are using Mac OSX or Windows, your installation includes both Engine and Compose, so you can skip to the #installation anchor for your OS.
-        - Mac OSX: [https://docs.docker.com/engine/installation/mac/#installation](https://docs.docker.com/engine/installation/mac/#installatio)
-        - Windows: [https://docs.docker.com/engine/installation/windows/#installation](https://docs.docker.com/engine/installation/windows/#installation)
-    - If you already have Docker installed, ensure your version is >= 1.10.0, and that you have both Engine and Compose
+1. First ensure you have Docker installed. [See our Docker installation help](https://github.com/blockchain-certificates/developer-common-docs/blob/master/docker_install.md).
 
-2. Clone the repo:
+2. Clone the repo and change to the directory
 
     ```
-    git clone https://github.com/blockchain-certificates/cert-issuer.git
+    git clone https://github.com/blockchain-certificates/cert-issuer.git && cd cert-issuer
     ```
 
 
 3. From a command line in cert-issuer dir, build your docker container:
     
     ```
-    cd cert-issuer
     docker build -t ml/cert-issuer:1.0 .
     ```
 
