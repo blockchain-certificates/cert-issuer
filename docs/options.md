@@ -1,7 +1,4 @@
----
-layout: page
-title: Options
----
+# Deployment Options
 
 ## Cert-issuer docker container
 

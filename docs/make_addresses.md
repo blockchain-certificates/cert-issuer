@@ -1,7 +1,4 @@
----
-layout: page
-title: Creating Issuing and Revocation Addresses
----
+# Creating Issuing and Revocation Addresses
 
 __These steps involve storing secure information on a USB. Do not plug in this USB when your computer's wifi is on.__
 

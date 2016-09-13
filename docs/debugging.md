@@ -1,37 +1,33 @@
----
-layout: page
-title: Debugging
----
+# Debugging
 
-Which client
-------------
+## Choosing a client
 
 In general, it was easiest to run bitcoind locally. Running it in regtest mode (without real money) is the safest,
 easiest way to experiment with building a bitcoin app. This project's docker container is configured this way.
 
 
-Bitcoind
---------
-###Importing addresses
+## Bitcoind
+
+### Importing addresses
 
 Addresses must be converted to hash160 to import them. This tool was helpful [http://bitcoinvalued.com/tools.php](http://bitcoinvalued.com/tools.php)
 
-###Creating addresses
+### Creating addresses
 
 Addresses can be created via commandline ```bitcoin-cli getnewaddress```.
 
 
-Blockchain.info
----------------
+## Blockchain.info
+
 Many testing difficulties were related to different functionality in the old/new API, and also the legacy/new wallets available on
 the web site. The differences were primarily around the ability to import addresses (more difficult in the new versions). After experimentation, the legacy wallet UI combined with the new API provided all the functionality we needed.
 
-###Creating addresses
+### Creating addresses
 
 We used this client-side generator [http://bitaddress.org/](http://bitaddress.org/)
 
 
-###Debugging error responses
+### Debugging error responses
 
 Each API call and error is logged by cert-issuer. If the error message isn't obvious, it's often easiest to try the
 API call that was logged via curl and so you can tweak the call and get answers with faster turnaround.
