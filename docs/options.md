@@ -2,7 +2,6 @@
 layout: page
 title: Options
 ---
-Reminder: This is an incubator project and is not currently intended for production deployment.
 
 ## Cert-issuer docker container
 

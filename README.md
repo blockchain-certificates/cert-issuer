@@ -2,10 +2,9 @@
 
 # cert-issuer
 
-Issues blockchain certificates by creating a transaction from the issuing institution to the recipient
-on the Bitcoin blockchain that includes the hash of the certificate itself. [See the schema](https://github.com/blockchain-certificates/cert-schema)
+he cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
+recipient on the Bitcoin blockchain that includes the hash of the certificate itself. 
 
-[//]: # "start_docker_instructions"
 ## Quick start using Docker
 
 This uses bitcoind in regtest mode. This route makes many simplifications to allow a quick start, and is intended for
@@ -106,7 +105,24 @@ corresponding private key for testing issuing certificates:
     ```
     cert-issuer -c /etc/cert-issuer/conf.ini
 
-[//]: # "end_docker_instructions"
+## Unit tests
+
+This project uses tox to validate against several python environments.
+
+1. Ensure you have an python environment. [Recommendations](https://github.com/blockchain-certificates/developer-common-docs/blob/master/virtualenv.md)
+
+2. Run tests
+    ```
+    ./run_tests.sh
+    ```
+
+## Advanced Docs
+
+- [Bitcoin client options](docs/options.md)
+- [Live installation options](docs/live.md)
+- [Creating addresses](docs/make_addresses.md)
+- [Issuing certificates](docs/issuing.md)
+- [Debugging](docs/debugging.md)
 
 
 ## Contact
