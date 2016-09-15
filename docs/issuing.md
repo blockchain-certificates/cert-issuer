@@ -1,7 +1,4 @@
----
-layout: page
-title: Issuing Certificates
----
+# Issuing Certificates
 
 1. Prerequisites
 

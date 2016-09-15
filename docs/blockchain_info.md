@@ -1,7 +1,4 @@
----
-layout: page
-title: Blockchain.info instructions
----
+# Blockchain.info instructions
 
 ## Installation
 

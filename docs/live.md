@@ -1,7 +1,4 @@
----
-layout: page
-title: Live issuing
----
+# Live issuing
 
 These are the steps to issue real certificates on the bitcoin blockchain in our v1 approach.
 
