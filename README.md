@@ -102,6 +102,7 @@ corresponding private key for testing issuing certificates:
 
     ```
     cert-issuer -c /etc/cert-issuer/conf.ini
+    ```
 
 ## Unit tests
 
