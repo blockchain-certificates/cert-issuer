@@ -72,7 +72,7 @@ corresponding private key for testing issuing certificates:
     we are renaming the file to the uid field in the unsigned certificate
 
     ```
-    cp /cert-issuer/docs/sample_unsigned_cert.json /etc/cert-issuer/data/unsigned_certs/5d3086e9-de06-42e8-9c2b-d653213b53ce.json
+    cp /cert-issuer/docs/sample_unsigned_cert.json /etc/cert-issuer/data/unsigned_certs/3a4452c9-0e2b-4a96-b2f5-41dd84606b07.json
     ```
 
 2. Make sure you have enough BTC in your issuing address.
