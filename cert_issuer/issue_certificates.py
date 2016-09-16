@@ -58,6 +58,7 @@ for the recipient, and (2) provided by the recipient via the certificate-viewer 
 import collections
 import json
 import logging
+import os
 import sys
 
 import glob2
@@ -99,7 +100,8 @@ def main(app_config):
         logging.info('No certificates to process')
         exit(0)
 
-    logging.info('Processing %d certificates', len(certificates))
+    batch_id = helpers.get_batch_id(list(certificates.keys()))
+    logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
 
     # get issuing and revocation addresses from config
     issuing_address = app_config.issuing_address
@@ -160,13 +162,30 @@ def main(app_config):
     # archive
     logging.info('Archiving signed certificates.')
     helpers.archive_files(app_config.signed_certs_file_pattern,
-                          app_config.archived_signed_certs_file_pattern, start_time)
+                          app_config.archive_path,
+                          app_config.signed_certs_file_part,
+                          batch_id)
 
-    logging.info('Archived sent transactions folder for safe keeping.')
+    logging.info('Archiving sent transactions.')
     helpers.archive_files(app_config.sent_txs_file_pattern,
-                          app_config.archived_txs_file_pattern, start_time)
+                          app_config.archive_path,
+                          app_config.txs_file_part,
+                          batch_id)
 
-    logging.info('Done!')
+    logging.info('Archiving receipts.')
+    helpers.archive_files(app_config.receipts_file_pattern,
+                          app_config.archive_path,
+                          app_config.receipts_file_part,
+                          batch_id)
+
+    logging.info('Archiving blockchain certificates.')
+    helpers.archive_files(app_config.blockchain_certificates_file_pattern,
+                          app_config.archive_path,
+                          app_config.blockchain_certificates_file_part,
+                          batch_id)
+
+    archive_folder = os.path.join(app_config.archive_path, batch_id)
+    logging.info('Your Blockchain Certificates are in %s', archive_folder)
 
 
 if __name__ == '__main__':

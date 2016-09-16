@@ -10,9 +10,9 @@ ARCHIVE_PATH = os.path.join(PATH, 'archive')
 
 
 def parse_args():
-    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf.ini'),
-                                                               '/etc/cert-issuer/conf.ini',
-                                                               os.path.join(PATH, 'conf_regtest.ini')])
+    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf_regtest.ini'),
+                                                               os.path.join(PATH, 'conf.ini'),
+                                                               '/etc/cert-issuer/conf.ini'])
     p.add('-c', '--my-config', required=False,
           is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
@@ -76,10 +76,16 @@ def get_config():
     parsed_config, _ = parse_args()
 
     # populate data and archive subdirs
+
+    parsed_config.unsigned_certs_file_part = 'unsigned_certs/*.json'
+    parsed_config.signed_certs_file_part = 'signed_certs/*.json'
+    parsed_config.txs_file_part = 'sent_txs/*.txt'
+    parsed_config.receipts_file_part = 'receipts/*.json'
+    parsed_config.blockchain_certificates_file_part = 'blockchain_certificates/*.json'
     parsed_config.unsigned_certs_file_pattern = str(
-        os.path.join(parsed_config.data_path, 'unsigned_certs/*.json'))
+        os.path.join(parsed_config.data_path, parsed_config.unsigned_certs_file_part))
     parsed_config.signed_certs_file_pattern = os.path.join(
-        parsed_config.data_path, 'signed_certs/*.json')
+        parsed_config.data_path, parsed_config.signed_certs_file_part)
     parsed_config.hashed_certs_file_pattern = os.path.join(
         parsed_config.data_path, 'hashed_certs/*.txt')
     parsed_config.unsigned_txs_file_pattern = os.path.join(
@@ -87,19 +93,15 @@ def get_config():
     parsed_config.signed_txs_file_pattern = os.path.join(
         parsed_config.data_path, 'signed_txs/*.txt')
     parsed_config.sent_txs_file_pattern = os.path.join(
-        parsed_config.data_path, 'sent_txs/*.txt')
-    parsed_config.archived_unsigned_certs_file_pattern = os.path.join(
-        parsed_config.archive_path, 'unsigned_certs/*.json')
-    parsed_config.archived_signed_certs_file_pattern = os.path.join(
-        parsed_config.archive_path, 'signed_certs/*.json')
-    parsed_config.archived_txs_file_pattern = os.path.join(
-        parsed_config.archive_path, 'sent_txs/*.txt')
+        parsed_config.data_path, parsed_config.txs_file_part)
     parsed_config.receipts_file_pattern = os.path.join(
-        parsed_config.data_path, 'receipts/*.json')
+        parsed_config.data_path, parsed_config.receipts_file_part)
     parsed_config.blockchain_certificates_file_pattern = os.path.join(
-        parsed_config.data_path, 'blockchain_certificates/*.json')
+        parsed_config.data_path, parsed_config.blockchain_certificates_file_part)
     parsed_config.tree_file_pattern = os.path.join(
         parsed_config.data_path, 'tree/*.json')
+
+
 
     if parsed_config.skip_wifi_check:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '

@@ -3,6 +3,7 @@ import glob
 import logging
 import sys
 import time
+import hashlib
 
 import glob2
 import os
@@ -91,17 +92,26 @@ def check_internet_on():
     return True
 
 
-def archive_files(from_pattern, to_pattern, timestamp):
+def archive_files(from_pattern, archive_dir, to_pattern, batch_id):
     """
-    Archives files matching from_pattern and renames to to_pattern based on uid
+    Archives files matching from_pattern and renames to to_pattern based on uid in a batch folder
     :param from_pattern:
     :param to_pattern:
     :param timestamp:
     :return:
     """
-    # todo: change to move
-    [shutil.copyfile(filename,
-                     models.convert_file_name(to_pattern, uid) + '-' + timestamp)
+    # place archived files in a timestamped folder
+    archive_folder = os.path.join(archive_dir, batch_id)
+    if not os.path.isdir(archive_folder):
+        os.mkdir(archive_folder)
+        os.mkdir(os.path.join(archive_folder, 'unsigned_certs'))
+        os.mkdir(os.path.join(archive_folder, 'signed_certs'))
+        os.mkdir(os.path.join(archive_folder, 'sent_txs'))
+        os.mkdir(os.path.join(archive_folder, 'receipts'))
+        os.mkdir(os.path.join(archive_folder, 'blockchain_certificates'))
+
+    archived_file_pattern = os.path.join(archive_folder, to_pattern)
+    [shutil.move(filename, models.convert_file_name(archived_file_pattern, uid))
      for filename, (uid,) in glob2.iglob(from_pattern, with_matches=True)]
 
 
@@ -116,5 +126,12 @@ def clear_intermediate_folders(app_config):
 
 
 def get_current_time_ms():
-    current_time = lambda: int(round(time.time() * 1000))
+    current_time = int(round(time.time() * 1000))
     return current_time
+
+def get_batch_id(uids):
+    """
+    Need to get a deterministic batch id from file names. uids are assumed to be sorted. Throughout this app we store
+    certificates in OrderedDicts.
+    """
+    return hashlib.md5(''.join(uids).encode('utf-8')).hexdigest()

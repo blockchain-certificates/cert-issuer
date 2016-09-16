@@ -68,13 +68,11 @@ corresponding private key for testing issuing certificates:
 
 ## Issuing certificates
 
-1. Add your certificates to /etc/cert-issuer/data/unsigned_certs/
-
-    - To preview the certificate issuing workflow, you can add our sample unsigned certificate as follows. Note that
+1. Add your certificates to /etc/cert-issuer/data/unsigned_certs/. To preview the certificate issuing workflow, you can add our sample unsigned certificate as follows. Note that
     we are renaming the file to the uid field in the unsigned certificate
 
     ```
-    cp /cert-issuer/docs/sample_unsigned_cert.json /etc/cert-issuer/data/unsigned_certs/68656c6c6f636f6d7077ffff.json
+    cp /cert-issuer/docs/sample_unsigned_cert.json /etc/cert-issuer/data/unsigned_certs/5d3086e9-de06-42e8-9c2b-d653213b53ce.json
     ```
 
 2. Make sure you have enough BTC in your issuing address.
@@ -86,14 +84,14 @@ corresponding private key for testing issuing certificates:
     bitcoin-cli getbalance
     ```
 
-    b. Send the money to your issuing address -- note bitcoin-cli's standard denomination is bitcoins not satoshis! In our
-    app, the standard unit is satoshis. This sends 5 bitcoins to the address
+    b. Send the money to your issuing address -- note that bitcoin-cli's standard denomination is bitcoins not satoshis! (In our
+    app, the standard unit is satoshis.) This command sends 5 bitcoins to the address
 
     ```
     bitcoin-cli sendtoaddress $issuer 5
     ```
 
-3. Sign the certificates (open badge compliance step)
+3. Sign the certificates (open badge compliance step). After this step, the unsigned certificates will be archived (moved to the 'archive' folder) and the signed certificates will be added to 'data/signed_certificates'
 
     ```
     cd cert-issuer

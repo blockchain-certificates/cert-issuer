@@ -7,9 +7,9 @@ It signs the assertion uid, and populates the signature section.
 
 """
 import collections
+import hashlib
 import json
 import logging
-import time
 
 import glob2
 from bitcoin.signmessage import BitcoinMessage, SignMessage
@@ -78,13 +78,15 @@ def main(app_config):
         logging.info('No certificates to process')
         exit(0)
 
-    logging.info('Processing %d certificates', len(certificates))
+    batch_id = helpers.get_batch_id(list(certificates.keys()))
+    logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
+
 
     # validate schema
     for uid, certificate in certificates.items():
         with open(certificate.unsigned_certificate_file_name) as cert:
             cert_json = json.load(cert)
-            schema_validator.validate_unsigned_v1_2_0(cert_json)
+            schema_validator.validate_unsigned_v1_2(cert_json)
 
     # ensure they are not already signed. We want the user to know about this in case there
     # is a failure from a previous run
@@ -95,14 +97,14 @@ def main(app_config):
                 logging.warning('Certificate with uid=%s has already been signed.', uid)
                 exit(0)
 
-    start_time = str(time.time())
-
     logging.info('Signing certificates and writing to folder %s', app_config.signed_certs_file_pattern)
     sign_certs(certificates)
 
-    logging.info('Archiving unsigned files')
+    logging.info('Archiving unsigned files to archive folder %s', batch_id)
     helpers.archive_files(app_config.unsigned_certs_file_pattern,
-                          app_config.archived_unsigned_certs_file_pattern, start_time)
+                          app_config.archive_path,
+                          app_config.unsigned_certs_file_part,
+                          batch_id)
 
 
 if __name__ == '__main__':

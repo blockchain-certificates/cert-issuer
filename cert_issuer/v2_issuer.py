@@ -29,7 +29,7 @@ class V2Issuer(Issuer):
         for uid, certificate in self.certificates_to_issue.items():
             with open(certificate.signed_certificate_file_name) as cert:
                 cert_json = json.load(cert)
-                schema_validator.validate_unsigned_v1_2_0(cert_json)
+                schema_validator.validate_unsigned_v1_2(cert_json)
 
     # TODO: duplicated with cert-verifier
     def do_hash_certificate(self, certificate):
