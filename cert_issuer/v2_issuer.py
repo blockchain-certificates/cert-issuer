@@ -79,8 +79,6 @@ class V2Issuer(Issuer):
 
             index+=1
 
-
-
     def create_transactions(self, wallet, revocation_address, issuing_transaction_cost,
                             split_input_trxs):
         # finish tree

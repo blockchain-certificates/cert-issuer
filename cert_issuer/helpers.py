@@ -116,8 +116,7 @@ def archive_files(from_pattern, archive_dir, to_pattern, batch_id):
 
 
 def clear_intermediate_folders(app_config):
-    folders_to_clear = [app_config.signed_certs_file_pattern,
-                        app_config.hashed_certs_file_pattern,
+    folders_to_clear = [app_config.hashed_certs_file_pattern,
                         app_config.unsigned_txs_file_pattern,
                         app_config.signed_txs_file_pattern,
                         app_config.sent_txs_file_pattern]

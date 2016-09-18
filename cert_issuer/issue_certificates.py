@@ -103,6 +103,8 @@ def main(app_config):
     batch_id = helpers.get_batch_id(list(certificates.keys()))
     logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
 
+    helpers.clear_intermediate_folders(app_config)
+
     # get issuing and revocation addresses from config
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
