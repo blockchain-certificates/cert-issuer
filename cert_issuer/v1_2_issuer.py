@@ -84,9 +84,10 @@ class V1_2_Issuer(Issuer):
         unspent_outputs = wallet.get_unspent_outputs(self.issuing_address)
         last_output = unspent_outputs[-1]
 
-        txouts = self.build_txouts(
-            issuing_transaction_cost,
-            revocation_address)
+        txouts = self.build_txouts(issuing_transaction_cost)
+        txouts = txouts + [trx_utils.create_transaction_output(revocation_address,
+                                                              issuing_transaction_cost.min_per_output)]
+
         tx = trx_utils.create_trx(
             op_return_value,
             issuing_transaction_cost,
@@ -111,10 +112,10 @@ class V1_2_Issuer(Issuer):
 
         return [td]
 
-    def build_txouts(self, issuing_transaction_cost, revocation_address):
+    def build_txouts(self, issuing_transaction_cost):
         txouts = []
         for uid, certificate in self.certificates_to_issue.items():
             txouts = txouts + trx_utils.create_recipient_outputs(
-                certificate.publicKey, revocation_address, issuing_transaction_cost.min_per_output)
+                issuing_transaction_cost.min_per_output, certificate.public_key, certificate.revocation_key)
 
         return txouts

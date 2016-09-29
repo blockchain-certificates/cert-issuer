@@ -14,9 +14,10 @@ def convert_file_name(to_pattern, cert_uid):
 
 class CertificateMetadata:
 
-    def __init__(self, config, uid, public_key):
+    def __init__(self, config, uid, public_key, revocation_key=None):
         self.uid = uid
-        self.publicKey = public_key
+        self.public_key = public_key
+        self.revocation_key = revocation_key
         self.unsigned_certificate_file_name = convert_file_name(
             config.unsigned_certs_file_pattern, uid)
         self.signed_certificate_file_name = convert_file_name(

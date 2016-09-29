@@ -43,8 +43,8 @@ class V1_1_Issuer(Issuer):
 
             # send a transaction to the recipient's public key, and to a
             # revocation address
-            txouts = trx_utils.create_recipient_outputs(certificate_metadata.public_key, revocation_address,
-                                                        issuing_transaction_cost.min_per_output)
+            txouts = trx_utils.create_recipient_outputs(issuing_transaction_cost.min_per_output,
+                                                        certificate_metadata.public_key, revocation_address)
 
             tx = trx_utils.create_trx(unhexlify(op_return_value), issuing_transaction_cost, self.issuing_address, txouts,
                                       last_output)

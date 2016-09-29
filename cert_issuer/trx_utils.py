@@ -37,19 +37,21 @@ def create_trx(op_return_val, issuing_transaction_cost,
     return tx
 
 
-def create_recipient_outputs(
-        recipient_address, revocation_address, transaction_fee):
+def create_recipient_outputs(transaction_fee, recipient_address, revocation_address):
     """
-    Create a pair of outputs: one to the recipient, and one to the revocation address.
+    Create per-recipient outputs: one to the recipient's address, and optionally one to the revocation address.
+
+    :param transaction_fee:
     :param recipient_address:
     :param revocation_address:
-    :param transaction_fee:
     :return:
     """
-    recipient_out = create_transaction_output(
-        recipient_address, transaction_fee)
-    revoke_out = create_transaction_output(revocation_address, transaction_fee)
-    recipient_outs = [recipient_out] + [revoke_out]
+    recipient_out = create_transaction_output(recipient_address, transaction_fee)
+    if revocation_address:
+        revoke_out = create_transaction_output(revocation_address, transaction_fee)
+        recipient_outs = [recipient_out] + [revoke_out]
+    else:
+        recipient_outs = [recipient_out]
     return recipient_outs
 
 

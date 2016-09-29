@@ -81,9 +81,13 @@ def find_signed_certificates(app_config):
         with open(filename) as cert_file:
             cert_raw = cert_file.read()
             cert_json = json.loads(cert_raw)
+            revocation_key = None
+            if 'revocationKey' in cert_json['recipient']:
+                revocation_key = cert_json['recipient']['revocationKey']
             certificate_metadata = CertificateMetadata(app_config,
                                                        uid,
-                                                       cert_json['recipient']['publicKey'])
+                                                       cert_json['recipient']['publicKey'],
+                                                       revocation_key)
             cert_info[uid] = certificate_metadata
 
     return cert_info
