@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-
 import os.path
+import sys
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_CONFIG = os.path.join(PATH, 'conf.ini')

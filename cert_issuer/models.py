@@ -14,9 +14,9 @@ def convert_file_name(to_pattern, cert_uid):
 
 class CertificateMetadata:
 
-    def __init__(self, config, uid, pubkey):
+    def __init__(self, config, uid, public_key):
         self.uid = uid
-        self.pubkey = pubkey
+        self.publicKey = public_key
         self.unsigned_certificate_file_name = convert_file_name(
             config.unsigned_certs_file_pattern, uid)
         self.signed_certificate_file_name = convert_file_name(
@@ -30,7 +30,7 @@ class TotalCosts:
     Represents total costs for an issuing event, including the issuing transaction and any transfer
     costs incurred.
 
-    On the issuing side, V1 uses 1 transaction per certificate, whereas V2 uses 1 transaction for the
+    On the issuing side, V1.1 uses 1 transaction per certificate, whereas V1.2 uses 1 transaction for the
     entire certificate batch
     """
 

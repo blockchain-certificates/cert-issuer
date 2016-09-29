@@ -1,3 +1,4 @@
+"""Base class for building blockchain transactions to issue Blockchain Certificates. """
 import logging
 from abc import abstractmethod
 

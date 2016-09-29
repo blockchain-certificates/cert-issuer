@@ -1,24 +1,19 @@
-import sys
-
-import random
-from pyld import jsonld
 import json
+import random
+
+from cert_schema.schema_tools import schema_validator
+from merkleproof.MerkleTree import MerkleTree
+from merkleproof.MerkleTree import sha256
+from pyld import jsonld
+
 from cert_issuer import trx_utils
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.issuer import Issuer
 from cert_issuer.models import TransactionData
 from cert_issuer.models import convert_file_name
-from merkleproof.MerkleTree import MerkleTree
-from merkleproof.MerkleTree import sha256
-from cert_schema.schema_tools import schema_validator
 
 
-if sys.version_info.major < 3:
-    sys.stderr.write('Sorry, Python 3.x required by this script.\n')
-    sys.exit(1)
-
-
-class V2Issuer(Issuer):
+class V1_2_Issuer(Issuer):
     def __init__(self, config, certificates_to_issue):
         Issuer.__init__(self, config, certificates_to_issue)
         self.batch_id = '%024x' % random.randrange(16 ** 24)
@@ -83,7 +78,6 @@ class V2Issuer(Issuer):
                             split_input_trxs):
         # finish tree
         self.tree.make_tree()
-        # convert_file_name(self.config.tree_file_pattern, self.batch_id)
 
         op_return_value = unhexlify(self.tree.get_merkle_root())
 
@@ -121,6 +115,6 @@ class V2Issuer(Issuer):
         txouts = []
         for uid, certificate in self.certificates_to_issue.items():
             txouts = txouts + trx_utils.create_recipient_outputs(
-                certificate.pubkey, revocation_address, issuing_transaction_cost.min_per_output)
+                certificate.publicKey, revocation_address, issuing_transaction_cost.min_per_output)
 
         return txouts

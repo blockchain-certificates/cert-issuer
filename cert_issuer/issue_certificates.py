@@ -1,39 +1,38 @@
 """
 About:
-Issues a signed certificate (see sign_certificates.py) on the blockchain
+Issues a signed Blockchain Certificate on the Bitcoin blockchain
 
-V2 Highlights:
-The cost of issuing a batch of certificates has been lowered in V2 by issuing a batch of certificates as a single
-Bitcoin transaction. This is achieved by forming a Merkle tree of the hashed signed certificates, and placing that
-Merkle root on the blockchain.
+Highlights:
+In v1.2 we reduced the cost of issuing a batch of certificates by issuing a batch as a single Bitcoin transaction. This
+is achieved by forming a Merkle tree of the hashed signed certificates, and placing that Merkle root on the blockchain.
 
-We use the chainpoint library (https://github.com/chainpoint/chainpoint) for building the Merkle tree.
+We use the merkle-proofs library (https://github.com/blockchain-certificates/merkle-proofs) for building the Merkle tree
+and generating a receipt in a Chainpoint v2 compliant format (https://www.chainpoint.org/)
 
 Steps:
 1. Checks that there are signed certificates available to process
-2. Hash signed certificate
+2. Hash signed certificates
 3. Ensure balance is available in the wallet (may involve transferring to issuing address)
-    - In v1 this can optionally involve splitting the transfer transaction outputs to different addresses, to more
-    quickly issue the batch of certificates
 4. Prepare payload to put on the blockchain in the OP_RETURN field
 5. Create the Bitcoin transaction
 6. Sign bitcoin transaction
 7. Send (broadcast) Bitcoin transaction -- the Bitcoins are not spent until this step
+8. Generate receipts per recipient so the Blockchain Certificate can be verified.
 
 Transaction Details:
-In V1 each certificate corresponds to a Bitcoin transaction. In V2 all certificates are batched into a single Bitcoin
-transaction. The V2 batch size limit is derived from the max transaction size (100KB) -- estimated around 2K
+In V1.1 each certificate corresponds to a Bitcoin transaction. In V1.2 all certificates are batched into a single
+Bitcoin transaction. The V1.2 batch size limit is derived from the max transaction size (100KB) -- estimated around 2K
 certificates.
 
 1. Recipient address receives dust amount
-    - in V1 there is 1 recipient address per transaction (and there is 1 transaction per certificate)
-    - in V2, this is an recipient address per certificate; multiple per transaction
+    - in V1.1 there is 1 recipient address per transaction (and there is 1 transaction per certificate)
+    - in V1.2, this is an recipient address per certificate; multiple per transaction
 2. Revocation address receives dust amount
-    - in V1, the issuer can reuse its revocation address since the transactions are per recipient
-    - in V2, the issuer needs a different revocation address per recipient
+    - in V1.1, the issuer can reuse its revocation address since the transactions are per recipient
+    - in V1.2, the issuer needs a different revocation address per recipient
 3. OP_RETURN field
-    - in V1, this contains the SHA256 digest of the hashed signed certificate
-    - in V2, this contain the SHA256 digest of the Merkle root of a tree formed by the hashed signed certificate.
+    - in V1.1, this contains the SHA256 digest of the hashed signed certificate
+    - in V1.2, this contains the SHA256 digest of the Merkle root of a tree formed by the hashed signed certificate.
 4. Change address if the inputs are greater than above plus transaction fees
 
 Connectors:
@@ -41,18 +40,18 @@ There are different connectors for wallets and broadcasting. By default, it uses
  regtest mode) and btc.blockr.io for broadcasting.
 
 Use case:
-V1 targets a primary use case of issuing an individual certificate or a relatively small batch of certificates (<100 --
-this is for cost reasons). V2 can handle larger batches more economically.
+V1.1 targets a primary use case of issuing an individual certificate or a relatively small batch of certificates (<100--
+this is for cost reasons). V1.2 can handle larger batches more economically.
 
 Costs:
-Both V1 and V2 depend on the number of certificates issued, but the multiplier is lower in V2. This is because V1 has
-[num_certificate] transactions, whereas V2 1 transaction with [num_certificate] outputs. TODO: give current estimates
-and examples
+Both V1.1 and V1.2 depend on the number of certificates issued, but the multiplier is lower in V1.2. This is because
+V1.1 has [num_certificate] transactions, whereas V1.2 has 1 transaction with [num_certificate] outputs. TODO: give
+current estimate and examples
 
 About the recipient public key:
 This script assumes the recipient is assigned a public bitcoin address, located in the unsigned certificate as the
-recipient pubkey field. In past certificate issuing events, this was generated in 2 ways: (1) securely generated offline
-for the recipient, and (2) provided by the recipient via the certificate-viewer functionality.
+recipient publicKey field. In past certificate issuing events, this was generated in 2 ways: (1) securely generated
+offline for the recipient, and (2) provided by the recipient via the certificate-viewer functionality.
 
 """
 import collections
@@ -67,9 +66,7 @@ from cert_issuer import cert_utils
 from cert_issuer import connectors
 from cert_issuer import helpers
 from cert_issuer.models import CertificateMetadata
-from cert_issuer.v2_issuer import V2Issuer
-from cert_issuer.v1_issuer import V1Issuer
-
+from cert_issuer.v1_2_issuer import V1_2_Issuer
 from cert_issuer.wallet import Wallet
 
 if sys.version_info.major < 3:
@@ -86,7 +83,7 @@ def find_signed_certificates(app_config):
             cert_json = json.loads(cert_raw)
             certificate_metadata = CertificateMetadata(app_config,
                                                        uid,
-                                                       cert_json['recipient']['pubkey'])
+                                                       cert_json['recipient']['publicKey'])
             cert_info[uid] = certificate_metadata
 
     return cert_info
@@ -109,7 +106,7 @@ def main(app_config):
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
 
-    issuer = V2Issuer(config=app_config, certificates_to_issue=certificates)
+    issuer = V1_2_Issuer(config=app_config, certificates_to_issue=certificates)
 
     issuer.validate_schema()
 
@@ -122,8 +119,6 @@ def main(app_config):
     # configure bitcoin wallet and broadcast connectors
     wallet = Wallet(connectors.create_wallet_connector(app_config))
     broadcast_function = connectors.create_broadcast_function(app_config)
-
-    start_time = str(helpers.get_current_time_ms())
 
     logging.info('Hashing signed certificates.')
     issuer.hash_certificates()

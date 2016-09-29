@@ -7,8 +7,8 @@ import logging
 
 from bitcoin.signmessage import BitcoinMessage
 from bitcoin.signmessage import VerifyMessage
+
 from cert_issuer.errors import UnverifiedDocumentError, UnverifiedSignatureError
-from merkleproof import MerkleTree
 
 
 def verify_signature(uid, signed_certificate_file_name, issuing_address):

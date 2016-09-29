@@ -1,14 +1,15 @@
 import binascii
 import glob
+import hashlib
 import logging
+import os
+import shutil
 import sys
 import time
-import hashlib
 
 import glob2
-import os
 import requests
-import shutil
+
 from cert_issuer import config, models
 
 unhexlify = binascii.unhexlify

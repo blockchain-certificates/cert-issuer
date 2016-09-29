@@ -7,12 +7,13 @@ import logging
 from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn
 from bitcoin.core.script import OP_RETURN
 from bitcoin.wallet import CBitcoinAddress
-from cert_issuer import helpers
-from cert_issuer.helpers import internet_off_for_scope
-from cert_issuer.models import TransactionCosts
 from pycoin.encoding import wif_to_secret_exponent
 from pycoin.tx import Tx, TxOut
 from pycoin.tx.pay_to import build_hash160_lookup
+
+from cert_issuer import helpers
+from cert_issuer.helpers import internet_off_for_scope
+from cert_issuer.models import TransactionCosts
 
 COIN = 100000000  # satoshis in 1 btc
 BYTES_PER_INPUT = 148  # assuming compressed public key

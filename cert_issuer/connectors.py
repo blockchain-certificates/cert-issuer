@@ -1,19 +1,24 @@
+"""
+Connectors wrap the details of communicating with different Bitcoin clients and implementations
+"""
 import json
 import logging
 import sys
 import urllib.parse
+from abc import abstractmethod, ABCMeta
 
 import bitcoin.rpc
 import requests
-from abc import abstractmethod, ABCMeta
 from bitcoin.core import COutPoint, CScript, CTransaction
 from bitcoin.wallet import CBitcoinAddress
+
 from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.models import TransactionOutput
-import struct
+
 
 class WalletConnector:
+    """Base class for a wallet connector implementation"""
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -137,7 +142,7 @@ class BitcoindConnector(WalletConnector):
         return address
 
     def archive(self, address):
-        # ToDO
+        # TODO
         #raise NotImplementedError('archive is not yet supported')
         return
 

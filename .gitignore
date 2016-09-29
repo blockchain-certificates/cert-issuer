@@ -36,3 +36,4 @@ conf.ini
 *.egg-info/*
 docs/_build/*
 site/*
+priv*.txt

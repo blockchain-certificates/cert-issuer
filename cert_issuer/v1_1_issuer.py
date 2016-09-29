@@ -1,19 +1,16 @@
-import sys
-
+"""
+The V1.1 Issuer is deprecrated and will be removed in a later release
+"""
 import hashlib
 
 from cert_issuer import trx_utils
-from cert_issuer.helpers import hexlify, unhexlify
+from cert_issuer.helpers import unhexlify
 from cert_issuer.issuer import Issuer
 from cert_issuer.models import TransactionData
 from cert_issuer.models import convert_file_name
 
-if sys.version_info.major < 3:
-    sys.stderr.write('Sorry, Python 3.x required by this script.\n')
-    sys.exit(1)
 
-
-class V1Issuer(Issuer):
+class V1_1_Issuer(Issuer):
     def __init__(self, config, certificates_to_issue):
         Issuer.__init__(self, config, certificates_to_issue)
 
@@ -46,7 +43,7 @@ class V1Issuer(Issuer):
 
             # send a transaction to the recipient's public key, and to a
             # revocation address
-            txouts = trx_utils.create_recipient_outputs(certificate_metadata.pubkey, revocation_address,
+            txouts = trx_utils.create_recipient_outputs(certificate_metadata.public_key, revocation_address,
                                                         issuing_transaction_cost.min_per_output)
 
             tx = trx_utils.create_trx(unhexlify(op_return_value), issuing_transaction_cost, self.issuing_address, txouts,

@@ -1,23 +1,22 @@
-"""
-About:
+"""Signs a Blockchain Certificate with the issuer's signing key.
 
-Signs a certificate in accordance with the open badges spec.
+This implementation signs the assertion uid, and populates the signature section.
 
-It signs the assertion uid, and populates the signature section.
+After a Blockchain Certificate has been signed, it can be issed on the blockchain by using issue_certificates.py
 
 """
 import collections
-import hashlib
 import json
 import logging
 
 import glob2
 from bitcoin.signmessage import BitcoinMessage, SignMessage
 from bitcoin.wallet import CBitcoinSecret
+from cert_schema.schema_tools import schema_validator
+
 from cert_issuer import helpers
 from cert_issuer.helpers import internet_off_for_scope
 from cert_issuer.models import CertificateMetadata
-from cert_schema.schema_tools import schema_validator
 
 
 def find_unsigned_certificates(app_config):
@@ -29,7 +28,7 @@ def find_unsigned_certificates(app_config):
             cert_json = json.loads(cert_raw)
             certificate = CertificateMetadata(config=app_config,
                                               uid=uid,
-                                              pubkey=cert_json['recipient']['pubkey'])
+                                              public_key=cert_json['recipient']['publicKey'])
             cert_info[uid] = certificate
 
     return cert_info
@@ -69,8 +68,6 @@ def _sign(certificate, secret_key):
     return sorted_cert
 
 
-# TODO:
-# before this, need a preprocessing step in which we populate with revocation address per recipient
 def main(app_config):
     # find certificates to process
     certificates = find_unsigned_certificates(app_config)
@@ -80,7 +77,6 @@ def main(app_config):
 
     batch_id = helpers.get_batch_id(list(certificates.keys()))
     logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
-
 
     # validate schema
     for uid, certificate in certificates.items():

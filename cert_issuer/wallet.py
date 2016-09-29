@@ -1,12 +1,19 @@
+"""
+Wallet for Blockchain Certificate issuing
+"""
 import logging
+import random
 import time
 from datetime import datetime
 
-import random
 from cert_issuer.errors import InsufficientFundsError
 
 
 class Wallet:
+    """
+    Wallet handles payment aspects of issuing Blockchain Certificates. It uses configurable connectors for checking
+    balance and payments.
+    """
 
     def __init__(self, connector):
         self.connector = connector
@@ -111,8 +118,7 @@ class Wallet:
         for i in range(total_costs.number_of_transactions):
             temp_address_in = 'temp-address-%s' % i
             temp_address = self.connector.create_temp_address(temp_address_in)
-            # we need to add enough to cover the fee of the subsequent spend
-            # from the temp address
+            # we need to add enough to cover the fee of the subsequent spend from the temp address
             temp_addresses[temp_address] = total_costs.issuing_transaction_cost.total
 
         logging.info('Transferring BTC to temporary addresses...')
