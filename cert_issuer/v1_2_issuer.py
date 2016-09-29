@@ -62,8 +62,8 @@ class V1_2_Issuer(Issuer):
                 signed_cert = json.load(in_file)
 
             blockchain_cert = {
-                '@context': 'https://w3id.org/blockcerts/context#',
-                '@type': 'BlockchainCertificate',
+                '@context': 'https://w3id.org/blockcerts/v1',
+                'type': 'BlockchainCertificate',
                 'document': signed_cert,
                 'receipt': receipt
             }
