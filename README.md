@@ -123,6 +123,9 @@ This project uses tox to validate against several python environments.
 - [Issuing certificates](docs/issuing.md)
 - [Debugging](docs/debugging.md)
 
+## Examples
+
+The files in examples\data-testnet and examples\data-mainnet contain results of previous runs. 
 
 ## Contact
 

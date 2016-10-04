@@ -107,12 +107,10 @@ def get_config():
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
+    parsed_config.allowable_wif_prefixes = None
     if parsed_config.wallet_connector_type == 'bitcoind':
         bitcoin.SelectParams(parsed_config.bitcoin_chain)
-        if parsed_config.bitcoin_chain == 'mainnet':
-            # use default prefixes
-            parsed_config.allowable_wif_prefixes = None
-        else:
+        if parsed_config.bitcoin_chain == 'testnet':
             parsed_config.allowable_wif_prefixes = [b'\x80', b'\xef']
 
     configure_logger()
