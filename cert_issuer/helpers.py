@@ -15,10 +15,10 @@ from cert_issuer import config, models
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
 if sys.version > '3':
-    def unhexlify(h): return binascii.unhexlify(h.encode('utf8'))
+    def unhexlify(hex_string): return binascii.unhexlify(hex_string.encode('utf8'))
 
 
-    def hexlify(b): return binascii.hexlify(b).decode('utf8')
+    def hexlify(hex_bytes): return binascii.hexlify(hex_bytes).decode('utf8')
 
 secrets_file_path = os.path.join(
     config.get_config().usb_name, config.get_config().key_file)
@@ -48,8 +48,8 @@ def import_key():
 
 def clear_folder(folder_name):
     files = glob.glob(folder_name + '*')
-    for f in files:
-        os.remove(f)
+    for file_to_remove in files:
+        os.remove(file_to_remove)
     return True
 
 
@@ -135,8 +135,8 @@ def clear_intermediate_folders(app_config):
 
 def get_batch_id(uids):
     """
-    Constructs a deterministic batch id from file names. The input uids are assumed to be sorted. Throughout this app
-    we store certificates in OrderedDicts
+    Constructs a deterministic batch id from file names. The input uids are assumed to be sorted.
+    Throughout this app we store certificates in OrderedDicts
     :param uids:
     :return:
     """

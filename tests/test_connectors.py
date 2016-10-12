@@ -51,7 +51,7 @@ class TestConnectors(unittest.TestCase):
         """
         try:
             tx = Tx.from_hex(MAINNET_TX)
-            broadcast_tx(tx, 'BTC')
+            broadcast_tx(tx)
             self.assertTrue(False)
         except Exception as e:
             self.assertTrue('already in block chain', str(e.args[0]))
@@ -65,17 +65,17 @@ class TestConnectors(unittest.TestCase):
         already in blockchain' error message
         """
         try:
-            broadcast_tx(MAINNET_TX, 'BTC')
+            broadcast_tx(MAINNET_TX)
         except Exception as e:
             self.assertTrue('already in block chain', str(e.args[0]))
             print(e)
 
     def test_get_unspent_outputs(self):
-        res = get_unspent_outputs('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ', 'BTC')
+        res = get_unspent_outputs('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ')
         print(res)
 
     def test_get_balance(self):
-        balance = get_balance('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ', 'BTC')
+        balance = get_balance('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ')
         self.assertEquals(balance, 81920)
 
     def test_bitcoin_connector(self):

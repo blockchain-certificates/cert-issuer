@@ -4,10 +4,9 @@ class Error(Exception):
 
 
 class InsufficientFundsError(Error):
-    pass
-
-
-class UnrecognizedConnectorError(Error):
+    """
+    There are insufficient funds to issue certificates
+    """
     pass
 
 
@@ -16,8 +15,14 @@ class ConnectorError(Error):
 
 
 class UnverifiedSignatureError(Error):
+    """
+    The signature in the certificate does not match the issuer's address
+    """
     pass
 
 
-class UnverifiedDocumentError(Error):
+class UnverifiedTransactionError(Error):
+    """
+    The transaction could not be verified
+    """
     pass

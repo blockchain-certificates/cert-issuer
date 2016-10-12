@@ -1,8 +1,8 @@
 issuing_address = <issuing-address>
 revocation_address = <revocation-address>
 
-wallet_connector_type = bitcoind
-broadcaster_type = bitcoind
+wallet_connector_type = BTC
+broadcaster_type = BTC
 usb_name=/etc/cert-issuer/
 key_file=pk_issuer.txt
 

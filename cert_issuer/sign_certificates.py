@@ -16,7 +16,7 @@ from cert_schema.schema_tools import schema_validator
 
 from cert_issuer import helpers
 from cert_issuer.helpers import internet_off_for_scope
-from cert_issuer.models import CertificateMetadata
+from cert_issuer.models import make_certificate_metadata
 
 
 def find_unsigned_certificates(app_config):
@@ -26,10 +26,10 @@ def find_unsigned_certificates(app_config):
         with open(filename) as cert_file:
             cert_raw = cert_file.read()
             cert_json = json.loads(cert_raw)
-            certificate = CertificateMetadata(config=app_config,
-                                              uid=uid,
-                                              public_key=cert_json['recipient']['publicKey'])
-            cert_info[uid] = certificate
+            certificate_metadata = make_certificate_metadata(app_config,
+                                                             uid,
+                                                             cert_json['recipient']['publicKey'])
+            cert_info[uid] = certificate_metadata
 
     return cert_info
 
@@ -44,7 +44,7 @@ def sign_certs(certificates):
     logging.info('signing certificates')
     pk = helpers.import_key()
     secret_key = CBitcoinSecret(pk)
-    for uid, certificate in certificates.items():
+    for _, certificate in certificates.items():
         with open(certificate.unsigned_certificate_file_name, 'r') as cert_in, \
                 open(certificate.signed_certificate_file_name, 'wb') as signed_cert:
             cert = _sign(cert_in.read(), secret_key)

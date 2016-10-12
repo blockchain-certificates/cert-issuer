@@ -3,10 +3,18 @@ import os
 
 import bitcoin
 import configargparse
+from pycoin.networks import subnet_name_for_netcode
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
 ARCHIVE_PATH = os.path.join(PATH, 'archive')
+
+
+class CostConfig:
+    def __init__(self, recommended_fee_per_transaction, min_per_output, satoshi_per_byte):
+        self.recommended_fee_per_transaction = recommended_fee_per_transaction
+        self.min_per_output = min_per_output
+        self.satoshi_per_byte = satoshi_per_byte
 
 
 def parse_args():
@@ -25,8 +33,9 @@ def parse_args():
                    help='connector to use for wallet')
     p.add_argument('--broadcaster_type', default='bitcoind',
                    help='connector to use for broadcast')
-    p.add_argument('--bitcoin_chain', default='regtest',
-                   help='Which bitcoin chain to use. Default is regtest (which is how the docker container is configured). Other options are testnet and mainnet.')
+    p.add_argument('--netcode', default='XTN',
+                   help='Which bitcoin chain to use. Default is XTN (which is how the docker container is \
+                   configured). Other options are BTC.')
     p.add_argument('--storage_address', required=False,
                    help='storage address. Not needed for bitcoind deployment')
     p.add_argument('--wallet_guid', required=False,
@@ -67,6 +76,16 @@ def configure_logger():
 
 
 parsed_config = None
+constants = None
+
+
+def get_constants():
+    global constants
+    if constants:
+        return constants
+    config = get_config()
+    constants = CostConfig(config.tx_fee, config.dust_threshold, config.satoshi_per_byte)
+    return constants
 
 
 def get_config():
@@ -105,11 +124,12 @@ def get_config():
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
-    parsed_config.allowable_wif_prefixes = None
     if parsed_config.wallet_connector_type == 'bitcoind':
-        bitcoin.SelectParams(parsed_config.bitcoin_chain)
-        if parsed_config.bitcoin_chain == 'testnet':
-            parsed_config.allowable_wif_prefixes = [b'\x80', b'\xef']
+        if parsed_config.netcode == 'XTN':
+            bitcoin.SelectParams('testnet')
+        else:
+            subnet_name = subnet_name_for_netcode(parsed_config.netcode)
+            bitcoin.SelectParams(subnet_name)
 
     configure_logger()
 

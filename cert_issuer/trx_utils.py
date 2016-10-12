@@ -8,10 +8,13 @@ from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn, COu
 from bitcoin.core.script import OP_RETURN
 from bitcoin.wallet import CBitcoinAddress
 from pycoin.encoding import wif_to_secret_exponent
-from pycoin.tx import Tx, TxOut
+from pycoin.networks import wif_prefix_for_netcode
+from pycoin.tx import TxOut, Tx
 from pycoin.tx.pay_to import build_hash160_lookup
 
+from cert_issuer import config
 from cert_issuer import helpers
+from cert_issuer.errors import UnverifiedTransactionError
 from cert_issuer.helpers import internet_off_for_scope
 from cert_issuer.models import TransactionCosts
 
@@ -19,34 +22,39 @@ COIN = 100000000  # satoshis in 1 btc
 BYTES_PER_INPUT = 148  # assuming compressed public key
 BYTES_PER_OUTPUT = 34
 FIXED_EXTRA_BYTES = 10
+cost_constants = config.get_constants()
+RECOMMENDED_FEE = cost_constants.recommended_fee_per_transaction * COIN
+MIN_PER_OUTPUT = cost_constants.min_per_output * COIN
+SATOSHI_PER_BYTE = cost_constants.satoshi_per_byte
+ALLOWABLE_WIF_PREFIXES = wif_prefix_for_netcode(config.get_config().netcode)
 
 
 def create_trx(op_return_val, issuing_transaction_cost,
-               issuing_address, txouts, tx_input):
+               issuing_address, tx_outs, tx_input):
     """
 
     :param op_return_val:
     :param issuing_transaction_cost:
     :param issuing_address:
-    :param txouts:
+    :param tx_outs:
     :param tx_input:
     :return:
     """
     cert_out = CMutableTxOut(0, CScript([OP_RETURN, op_return_val]))
-    txins = [CTxIn(COutPoint(tx_input.tx_hash, tx_input.tx_out_index))]
+    tx_ins = [CTxIn(COutPoint(tx_input.tx_hash, tx_input.tx_out_index))]
     value_in = tx_input.coin_value
 
     # send change back to our address
     amount = value_in - issuing_transaction_cost.total
     if amount > 0:
         change_out = create_transaction_output(issuing_address, amount)
-        txouts = txouts + [change_out]
-    txouts = txouts + [cert_out]
-    tx = CMutableTransaction(txins, txouts)
-    return tx
+        tx_outs = tx_outs + [change_out]
+    tx_outs = tx_outs + [cert_out]
+    transaction = CMutableTransaction(tx_ins, tx_outs)
+    return transaction
 
 
-def create_recipient_outputs(transaction_fee, recipient_address, revocation_address):
+def create_recipient_outputs(recipient_address, revocation_address):
     """
     Create per-recipient outputs: one to the recipient's address, and optionally one to the revocation address.
 
@@ -55,12 +63,10 @@ def create_recipient_outputs(transaction_fee, recipient_address, revocation_addr
     :param revocation_address:
     :return:
     """
-    recipient_out = create_transaction_output(recipient_address, transaction_fee)
+    recipient_outs = []
+    recipient_outs.append(create_transaction_output(recipient_address, RECOMMENDED_FEE))
     if revocation_address:
-        revoke_out = create_transaction_output(revocation_address, transaction_fee)
-        recipient_outs = [recipient_out] + [revoke_out]
-    else:
-        recipient_outs = [recipient_out]
+        recipient_outs.append(create_transaction_output(revocation_address, RECOMMENDED_FEE))
     return recipient_outs
 
 
@@ -71,73 +77,53 @@ def create_transaction_output(address, transaction_fee):
     :param transaction_fee:
     :return:
     """
-    addr = CBitcoinAddress(address)
-    tx_out = CMutableTxOut(transaction_fee, addr.to_scriptPubKey())
+    bitcoin_address = CBitcoinAddress(address)
+    tx_out = CMutableTxOut(transaction_fee, bitcoin_address.to_scriptPubKey())
     return tx_out
 
 
 @internet_off_for_scope
-def sign_tx(hextx, tx_input, allowable_wif_prefixes=None):
+def sign_tx(hextx, tx_input):
     """
     Sign the transaction with private key
     :param hextx:
     :param tx_input:
-    :param allowable_wif_prefixes:
     :return:
     """
 
     logging.info('Signing tx with private key')
 
-    tx = Tx.from_hex(hextx)
-    if allowable_wif_prefixes:
+    # TODO: just pass in tx
+    transaction = Tx.from_hex(hextx)
+    # TODO: may not need this anymore
+    if ALLOWABLE_WIF_PREFIXES:
         wif = wif_to_secret_exponent(
-            helpers.import_key(), allowable_wif_prefixes)
+            helpers.import_key(), ALLOWABLE_WIF_PREFIXES)
     else:
         wif = wif_to_secret_exponent(helpers.import_key())
 
     lookup = build_hash160_lookup([wif])
 
-    tx.set_unspents(
-        [TxOut(coin_value=tx_input.value, script=tx_input.script)])
+    transaction.set_unspents(
+        [TxOut(coin_value=tx_input.coin_value, script=tx_input.script)])
 
-    signed_tx = tx.sign(lookup)
-    signed_hextx = signed_tx.as_hex()
-
+    signed_tx = transaction.sign(lookup)
     logging.info('Finished signing transaction')
-    return signed_hextx
+    return signed_tx
 
 
-def get_cost(recommended_fee_per_transaction,
-             dust_threshold, satoshi_per_byte, num_outputs):
+def get_cost(num_outputs):
     """
-    Get cost of the transaction
-    :param recommended_fee_per_transaction:
-    :param dust_threshold:
-    :param satoshi_per_byte:
+    Get cost of the transaction:
     :param num_outputs:
     :return:
     """
-    # note: assuming 1 input for now
-    recommended_fee = recommended_fee_per_transaction * COIN
-    min_per_output = dust_threshold * COIN
-    txfee = calculate_txfee(satoshi_per_byte, 1, num_outputs, recommended_fee)
-    total = calculate_total(min_per_output, num_outputs, txfee)
-
-    return TransactionCosts(min_per_output, fee=txfee, total=total)
+    tx_fee = calculate_txfee(1, num_outputs)
+    total = MIN_PER_OUTPUT * num_outputs + tx_fee
+    return TransactionCosts(MIN_PER_OUTPUT, fee=tx_fee, total=total)
 
 
-def calculate_total(min_per_output, num_outputs, txfee):
-    """
-
-    :param min_per_output:
-    :param num_outputs:
-    :param txfee:
-    :return:
-    """
-    return min_per_output * num_outputs + txfee
-
-
-def calculate_txfee(satoshi_per_byte, num_inputs, num_outputs, default_fee):
+def calculate_txfee(num_inputs, num_outputs):
     """
      The course grained (hard-coded value) of something like 0.0001 BTC works great for standard transactions
     (one input, one output). However, it will cause a huge lag in more complex transactions (such as the one where the
@@ -155,8 +141,8 @@ def calculate_txfee(satoshi_per_byte, num_inputs, num_outputs, default_fee):
     :return:
     """
     tx_size = calculate_raw_tx_size(num_inputs, num_outputs)
-    tx_fee = satoshi_per_byte * tx_size
-    return max(tx_fee, default_fee)
+    tx_fee = SATOSHI_PER_BYTE * tx_size
+    return max(tx_fee, RECOMMENDED_FEE)
 
 
 def calculate_raw_tx_size(num_inputs, num_outputs):
@@ -176,3 +162,19 @@ def calculate_raw_tx_size(num_inputs, num_outputs):
     tx_size = (num_inputs * BYTES_PER_INPUT) + (num_outputs *
                                                 BYTES_PER_OUTPUT) + FIXED_EXTRA_BYTES + num_inputs
     return tx_size
+
+
+def verify_transaction(signed_hextx, op_return_value):
+    """
+    Verify OP_RETURN field in transaction
+    :param op_return_value:
+    :param signed_hextx:
+    :return:
+    """
+    logging.info('verifying op_return value for transaction')
+    op_return_hash = signed_hextx[-72:-8]
+    result = (op_return_value == op_return_hash)
+    if not result:
+        error_message = 'There was a problem verifying the transaction'
+        raise UnverifiedTransactionError(error_message)
+    logging.info('verified OP_RETURN')

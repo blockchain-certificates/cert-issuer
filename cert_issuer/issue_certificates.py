@@ -61,16 +61,49 @@ import os
 import sys
 
 import glob2
+from bitcoin.signmessage import BitcoinMessage
+from bitcoin.signmessage import VerifyMessage
 
-from cert_issuer import cert_utils
 from cert_issuer import helpers
 from cert_issuer.batch_issuer import BatchIssuer
-from cert_issuer.models import CertificateMetadata
+from cert_issuer.errors import UnverifiedSignatureError
+from cert_issuer.models import make_certificate_metadata
 from cert_issuer.wallet import Wallet
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
+
+
+def verify_signature(uid, signed_certificate_file_name, issuing_address):
+    """
+    Verify the certificate signature matches the expected. Double-check the uid field in the certificate and use
+    VerifyMessage to confirm that the signature in the certificate matches the issuing_address.
+
+    Raises error is verification fails.
+
+    :param uid:
+    :param signed_certificate_file_name:
+    :param issuing_address:
+    :return:
+    """
+
+    # Throws an error if invalid
+    logging.info('verifying signature for certificate with uid=%s:', uid)
+    with open(signed_certificate_file_name) as in_file:
+        signed_cert = in_file.read()
+        signed_cert_json = json.loads(signed_cert)
+
+        to_verify = signed_cert_json['assertion']['uid']
+        signature = signed_cert_json['signature']
+        message = BitcoinMessage(to_verify)
+        verified = VerifyMessage(issuing_address, message, signature)
+        if not verified:
+            error_message = 'There was a problem with the signature for certificate uid={}'.format(
+                signed_cert_json['assertion']['uid'])
+            raise UnverifiedSignatureError(error_message)
+
+        logging.info('verified signature')
 
 
 def find_signed_certificates(app_config):
@@ -83,10 +116,10 @@ def find_signed_certificates(app_config):
             revocation_key = None
             if 'revocationKey' in cert_json['recipient']:
                 revocation_key = cert_json['recipient']['revocationKey']
-            certificate_metadata = CertificateMetadata(app_config,
-                                                       uid,
-                                                       cert_json['recipient']['publicKey'],
-                                                       revocation_key)
+            certificate_metadata = make_certificate_metadata(app_config,
+                                                             uid,
+                                                             cert_json['recipient']['publicKey'],
+                                                             revocation_key)
             cert_info[uid] = certificate_metadata
 
     return cert_info
@@ -113,10 +146,8 @@ def main(app_config):
     issuer.validate_schema()
 
     # verify signed certs are signed with issuing key
-    [cert_utils.verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
+    [verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
      certificates.items()]
-
-    allowable_wif_prefixes = app_config.allowable_wif_prefixes
 
     # configure bitcoin wallet and broadcast connectors
     wallet = Wallet()
@@ -125,10 +156,7 @@ def main(app_config):
     issuer.hash_certificates()
 
     # calculate transaction costs
-    all_costs = issuer.get_cost_for_certificate_batch(app_config.dust_threshold,
-                                                      app_config.tx_fee,
-                                                      app_config.satoshi_per_byte,
-                                                      app_config.transfer_from_storage_address)
+    all_costs = issuer.get_cost_for_certificate_batch(app_config.transfer_from_storage_address)
 
     logging.info('Total cost will be %d satoshis', all_costs.total)
 
@@ -136,24 +164,22 @@ def main(app_config):
         # ensure there is enough in our wallet at the storage/issuing address, transferring from the storage address
         # if configured
         logging.info('Checking there is enough balance in the issuing address')
-        funds_needed = wallet.check_balance(
-            issuing_address, all_costs)
+        funds_needed = wallet.check_balance_no_throw(issuing_address, all_costs)
         if funds_needed > 0:
             wallet.check_balance(app_config.storage_address, all_costs)
             wallet.send_payment(
                 app_config.storage_address,
                 issuing_address,
-                all_costs.issuing_transaction_cost.min_per_output,
-                all_costs.issuing_transaction_cost.fee)
+                all_costs.min_per_output,
+                all_costs.fee)
 
     # ensure the issuing address now has sufficient balance
-    wallet.check_balance(issuing_address, all_costs.issuing_transaction_cost)
+    wallet.check_balance(issuing_address, all_costs)
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
     issuer.issue_on_blockchain(revocation_address=revocation_address,
-                               allowable_wif_prefixes=allowable_wif_prefixes,
-                               issuing_transaction_cost=all_costs.issuing_transaction_cost)
+                               issuing_transaction_cost=all_costs)
 
     # archive
     logging.info('Archiving signed certificates.')

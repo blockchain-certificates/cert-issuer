@@ -23,14 +23,21 @@ class BatchIssuer(Issuer):
         self.tree = MerkleTree(hash_f=sha256)
 
     def validate_schema(self):
-        # ensure certificates are valid v1.2 schema
-        for uid, certificate in self.certificates_to_issue.items():
+        """
+        Ensure certificates are valid v1.2 schema
+        :return:
+        """
+        for _, certificate in self.certificates_to_issue.items():
             with open(certificate.signed_certificate_file_name) as cert:
                 cert_json = json.load(cert)
                 schema_validator.validate_unsigned_v1_2(cert_json)
 
-    # TODO: duplicated with cert-verifier
     def do_hash_certificate(self, certificate):
+        """
+        Hash the JSON-LD normalized certificate
+        :param certificate:
+        :return:
+        """
         cert_utf8 = certificate.decode('utf-8')
         cert_json = json.loads(cert_utf8)
         normalized = jsonld.normalize(cert_json, {'algorithm': 'URDNA2015', 'format': 'application/nquads'})
@@ -38,27 +45,22 @@ class BatchIssuer(Issuer):
         self.tree.add_leaf(hashed, False)
         return hashed
 
-    def get_cost_for_certificate_batch(self, dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
-                                       allow_transfer):
+    def get_cost_for_certificate_batch(self, allow_transfer):
         """
         Per certificate, we pay 2*min_per_output (which is based on dust) + fee. Note assumes 1 input
         per tx. We may also need to pay additional fees for splitting into temp addresses
-        :param dust_threshold:
-        :param recommended_fee_per_transaction:
-        :param satoshi_per_byte:
         :param allow_transfer:
         :return:
         """
         num_certificates = len(self.certificates_to_issue)
         num_outputs = Issuer.get_num_outputs(num_certificates)
-        return Issuer.get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
-                                                     num_outputs, allow_transfer)
+        return Issuer.get_cost_for_certificate_batch(num_outputs, allow_transfer)
 
     def finish_tx(self, sent_tx_file_name, txid):
         Issuer.finish_tx(self, sent_tx_file_name, txid)
         # note that certificates are stored in an ordered dictionary, so we will iterate in the same order
         index = 0
-        for uid, certificate in self.certificates_to_issue.items():
+        for uid, _ in self.certificates_to_issue.items():
             receipt = self.tree.make_receipt(index, txid)
 
             receipt_file_name = convert_file_name(self.config.receipts_file_pattern, uid)
@@ -83,51 +85,57 @@ class BatchIssuer(Issuer):
             index += 1
 
     def create_transactions(self, revocation_address, issuing_transaction_cost):
-        # finish tree
+        """
+        Create the batch Bitcoin transaction
+        :param revocation_address:
+        :param issuing_transaction_cost:
+        :return:
+        """
         self.tree.make_tree()
 
-        op_return_value = unhexlify(self.tree.get_merkle_root())
-
-        unspent_outputs = get_unspent_outputs(self.issuing_address)
-        if not unspent_outputs:
+        spendables = get_unspent_outputs(self.issuing_address)
+        if not spendables:
             error_message = 'No money to spend at address {}'.format(self.issuing_address)
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-        last_output = unspent_outputs[-1]
+        last_input = spendables[-1]
 
-        txouts = self.build_txouts(issuing_transaction_cost)
-        txouts = txouts + [trx_utils.create_transaction_output(revocation_address,
-                                                               issuing_transaction_cost.min_per_output)]
+        op_return_value = unhexlify(self.tree.get_merkle_root())
 
-        tx = trx_utils.create_trx(
+        tx_outs = self.build_recipient_tx_outs()
+        tx_outs.append(trx_utils.create_transaction_output(revocation_address,
+                                                           issuing_transaction_cost.min_per_output))
+
+        transaction = trx_utils.create_trx(
             op_return_value,
             issuing_transaction_cost,
             self.issuing_address,
-            txouts,
-            last_output)
+            tx_outs,
+            last_input)
 
-        unsigned_tx_file_name = convert_file_name(
-            self.config.unsigned_txs_file_pattern, self.batch_id)
-        unsent_tx_file_name = convert_file_name(
-            self.config.signed_txs_file_pattern, self.batch_id)
-        sent_tx_file_name = convert_file_name(
-            self.config.sent_txs_file_pattern, self.batch_id)
+        unsigned_tx_file_name = convert_file_name(self.config.unsigned_txs_file_pattern, self.batch_id)
+        unsent_tx_file_name = convert_file_name(self.config.signed_txs_file_pattern, self.batch_id)
+        sent_tx_file_name = convert_file_name(self.config.sent_txs_file_pattern, self.batch_id)
 
-        td = TransactionData(uid=self.batch_id,
-                             tx=tx,
-                             tx_input=last_output,
-                             op_return_value=hexlify(op_return_value),
-                             unsigned_tx_file_name=unsigned_tx_file_name,
-                             signed_tx_file_name=unsent_tx_file_name,
-                             sent_tx_file_name=sent_tx_file_name)
+        transaction_data = TransactionData(uid=self.batch_id,
+                                           tx=transaction,
+                                           tx_input=last_input,
+                                           op_return_value=hexlify(op_return_value),
+                                           unsigned_tx_file_name=unsigned_tx_file_name,
+                                           signed_tx_file_name=unsent_tx_file_name,
+                                           sent_tx_file_name=sent_tx_file_name)
 
-        return [td]
+        return [transaction_data]
 
-    def build_txouts(self, issuing_transaction_cost):
-        txouts = []
-        for uid, certificate in self.certificates_to_issue.items():
-            txouts = txouts + trx_utils.create_recipient_outputs(
-                issuing_transaction_cost.min_per_output, certificate.public_key, certificate.revocation_key)
+    def build_recipient_tx_outs(self):
+        """
+        Creates 2 transaction outputs for each recipient: one to their public key and the other to their specific
+        revocation key.
+        :return:
+        """
+        tx_outs = []
+        for _, certificate in self.certificates_to_issue.items():
+            tx_outs = tx_outs + trx_utils.create_recipient_outputs(certificate.public_key, certificate.revocation_key)
 
-        return txouts
+        return tx_outs

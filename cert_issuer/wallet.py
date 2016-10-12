@@ -40,6 +40,6 @@ class Wallet:
         :param transaction_costs:
         :return:
         """
-        address_balance = get_balance(address, 'TODONETCODE')
+        address_balance = get_balance(address)
         amount_needed = transaction_costs.difference(address_balance)
         return amount_needed

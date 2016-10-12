@@ -7,11 +7,15 @@ import logging
 
 import bitcoin.rpc
 import requests
+from bitcoin.core import CTransaction
+from pycoin.services import providers
 from pycoin.services import spendables_for_address
 from pycoin.services.providers import BlockrioProvider, InsightProvider
-from pycoin.services.providers import get_default_providers_for_netcode, service_provider_methods
+from pycoin.services.providers import get_default_providers_for_netcode
+from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
+from cert_issuer.helpers import unhexlify
 from cert_issuer.errors import ConnectorError
 from cert_issuer.helpers import hexlify
 
@@ -24,21 +28,25 @@ except ImportError:
 
 from pycoin.serialize import b2h
 
+from cert_issuer import config
+
+netcode = config.get_config().netcode
+
 
 def try_get(url):
     """throw error if call fails"""
-    r = requests.get(url)
-    if int(r.status_code) != 200:
+    response = requests.get(url)
+    if int(response.status_code) != 200:
         error_message = 'Error! status_code={}, error={}'.format(
-            r.status_code, r.json()['error'])
+            response.status_code, response.json()['error'])
         logging.error(error_message)
         raise ConnectorError(error_message)
-    return r
+    return response
 
 
-def to_hex(tx):
+def to_hex(transaction):
     s = io.BytesIO()
-    tx.stream(s)
+    transaction.stream(s)
     tx_as_hex = b2h(s.getvalue())
     return tx_as_hex
 
@@ -75,12 +83,12 @@ class InsightBroadcaster(InsightProvider):
     def broadcast_tx(self, tx):
         hextx = to_hex(tx)
         broadcast_url = self.base_url + '/api/tx/send'
-        r = requests.post(broadcast_url, json={'rawtx': hextx})
-        if int(r.status_code) == 200:
-            txid = r.json().get('txid', None)
+        response = requests.post(broadcast_url, json={'rawtx': hextx})
+        if int(response.status_code) == 200:
+            txid = response.json().get('txid', None)
             return txid
-        logging.error('Error broadcasting the transaction through the Insight API. Error msg: %s', r.text)
-        raise Exception(r.text)
+        logging.error('Error broadcasting the transaction through the Insight API. Error msg: %s', response.text)
+        raise Exception(response.text)
 
 
 class BlockrBroadcaster(BlockrioProvider):
@@ -90,12 +98,12 @@ class BlockrBroadcaster(BlockrioProvider):
     def broadcast_tx(self, tx):
         hextx = to_hex(tx)
         URL = self.url + '/tx/push'
-        r = requests.post(URL, json={'hex': hextx})
-        if int(r.status_code) == 200:
-            txid = r.json().get('data', None)
+        response = requests.post(URL, json={'hex': hextx})
+        if int(response.status_code) == 200:
+            txid = response.json().get('data', None)
             return txid
-        logging.error('Error broadcasting the transaction through the Blockr.IO API. Error msg: %s', r.text)
-        raise Exception(r.text)
+        logging.error('Error broadcasting the transaction through the Blockr.IO API. Error msg: %s', response.text)
+        raise Exception(response.text)
 
 
 class BitcoindConnector(object):
@@ -105,22 +113,21 @@ class BitcoindConnector(object):
         self.proxy = bitcoin.rpc.Proxy()
 
     def broadcast_tx(self, tx):
+        as_hex = tx.as_hex()
+        tx = CTransaction.deserialize(unhexlify(as_hex))
         txid = bitcoin.rpc.Proxy().sendrawtransaction(tx)
         # reverse endianness for bitcoind
         return hexlify(bytearray(txid)[::-1])
 
     def spendables_for_address(self, address):
-        unspent = self.proxy.listunspent(addrs=[address])
+        unspents = self.proxy.listunspent(addrs=[address])
         spendables = []
-        for u in unspent:
-            coin_value = u.get('amount', 0)
-            op = u.get('outpoint')
-            script = u.get('scriptPubKey')
+        for unspent in unspents:
+            coin_value = unspent.get('amount', 0)
+            op = unspent.get('outpoint')
+            script = unspent.get('scriptPubKey')
             previous_hash = op.hash
             previous_index = op.n
-            # script = h2b(u["script"])
-            # previous_hash = h2b(u["tx_hash"])
-            # previous_index = u["tx_output_n"]
             spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
         return spendables
 
@@ -134,20 +141,20 @@ def noop_broadcast(hextx):
     return None
 
 
-def get_unspent_outputs(address, netcode):
+def get_unspent_outputs(address):
     spendables = spendables_for_address(bitcoin_address=address, netcode=netcode)
     if spendables:
         return sorted(spendables, key=lambda x: hash(x.coin_value))
     return None
 
 
-def get_balance(address, netcode):
-    spendables = get_unspent_outputs(address, netcode)
+def get_balance(address):
+    spendables = get_unspent_outputs(address)
     balance = sum(s.coin_value for s in spendables)
     return balance
 
 
-def broadcast_tx(tx, netcode):
+def broadcast_tx(tx):
     """
     Broadcast the transaction through the configured set of providers
     """
@@ -165,7 +172,7 @@ def broadcast_tx(tx, netcode):
     raise last_exception
 
 
-def pay(from_address, to_address, amount, fee, netcode):
+def pay(from_address, to_address, amount, fee):
     last_exception = None
     for m in service_provider_methods('pay', get_default_providers_for_netcode(netcode)):
         try:
@@ -177,3 +184,38 @@ def pay(from_address, to_address, amount, fee, netcode):
             pass
     logging.error('Failed paying through all providers')
     raise last_exception
+
+
+PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.com chain.so"
+
+
+def init_connectors():
+    provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
+
+    blockio_index = -1
+    for idx, val in enumerate(provider_list):
+        print(idx, val)
+        if isinstance(val, BlockrioProvider):
+            blockio_index = idx
+        elif isinstance(val, InsightProvider):
+            insight_index = idx
+
+    if blockio_index > -1:
+        provider_list[blockio_index] = BlockrBroadcaster('BTC')
+    else:
+        provider_list.append(BlockrBroadcaster('BTC'))
+
+    provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
+    provider_list.append(BitcoindConnector('BTC'))
+
+    providers.set_default_providers_for_netcode('BTC', provider_list)
+    result = get_default_providers_for_netcode('BTC')
+
+    testnet_list = []
+    testnet_list.append(BitcoindConnector('XTN'))
+    providers.set_default_providers_for_netcode('XTN', testnet_list)
+    result = get_default_providers_for_netcode('XTN')
+    print(result)
+
+
+init_connectors()
