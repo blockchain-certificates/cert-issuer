@@ -40,4 +40,3 @@ def verify_transaction(op_return_value, signed_hextx):
         error_message = 'There was a problem verifying the transaction'
         raise UnverifiedDocumentError(error_message)
     logging.info('verified OP_RETURN')
-

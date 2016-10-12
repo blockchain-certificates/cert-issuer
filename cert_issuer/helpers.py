@@ -125,10 +125,6 @@ def clear_intermediate_folders(app_config):
         clear_folder(folder)
 
 
-def get_current_time_ms():
-    current_time = int(round(time.time() * 1000))
-    return current_time
-
 def get_batch_id(uids):
     """
     Need to get a deterministic batch id from file names. uids are assumed to be sorted. Throughout this app we store

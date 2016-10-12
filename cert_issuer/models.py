@@ -1,8 +1,5 @@
 from collections import namedtuple
 
-TransactionOutput = namedtuple(
-    'TxOutput', ['outpoint', 'address', 'script_pub_key', 'amount'])
-
 TransactionData = namedtuple(
     'TransactionData', ['uid', 'tx', 'tx_input', 'op_return_value', 'unsigned_tx_file_name', 'signed_tx_file_name',
                         'sent_tx_file_name'])
@@ -13,7 +10,6 @@ def convert_file_name(to_pattern, cert_uid):
 
 
 class CertificateMetadata:
-
     def __init__(self, config, uid, public_key, revocation_key=None):
         self.uid = uid
         self.public_key = public_key
@@ -35,13 +31,11 @@ class TotalCosts:
     entire certificate batch
     """
 
-    def __init__(self, number_of_issuing_transactions,
-                 issuing_transaction_cost, transfer_cost):
-        self.number_of_transactions = number_of_issuing_transactions
+    def __init__(self, issuing_transaction_cost, transfer_cost):
         self.issuing_transaction_cost = issuing_transaction_cost
         self.transfer_cost = transfer_cost
 
-        cost_to_issue = number_of_issuing_transactions * issuing_transaction_cost.total
+        cost_to_issue = issuing_transaction_cost.total
         if transfer_cost:
             self.total = cost_to_issue + transfer_cost.total
         else:

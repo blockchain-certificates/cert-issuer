@@ -101,8 +101,6 @@ def get_config():
     parsed_config.tree_file_pattern = os.path.join(
         parsed_config.data_path, 'tree/*.json')
 
-
-
     if parsed_config.skip_wifi_check:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')

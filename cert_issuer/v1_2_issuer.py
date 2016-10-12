@@ -44,7 +44,7 @@ class V1_2_Issuer(Issuer):
         num_certificates = len(self.certificates_to_issue)
         num_outputs = Issuer.get_num_outputs(num_certificates)
         return Issuer.get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
-                                                     num_outputs, allow_transfer, 1, 1)
+                                                     num_outputs, allow_transfer)
 
     def finish_tx(self, sent_tx_file_name, txid):
         Issuer.finish_tx(self, sent_tx_file_name, txid)
@@ -72,10 +72,9 @@ class V1_2_Issuer(Issuer):
             with open(blockchain_cert_file_name, 'w') as out_file:
                 out_file.write(json.dumps(blockchain_cert))
 
-            index+=1
+            index += 1
 
-    def create_transactions(self, wallet, revocation_address, issuing_transaction_cost,
-                            split_input_trxs):
+    def create_transactions(self, wallet, revocation_address, issuing_transaction_cost):
         # finish tree
         self.tree.make_tree()
 
@@ -86,7 +85,7 @@ class V1_2_Issuer(Issuer):
 
         txouts = self.build_txouts(issuing_transaction_cost)
         txouts = txouts + [trx_utils.create_transaction_output(revocation_address,
-                                                              issuing_transaction_cost.min_per_output)]
+                                                               issuing_transaction_cost.min_per_output)]
 
         tx = trx_utils.create_trx(
             op_return_value,

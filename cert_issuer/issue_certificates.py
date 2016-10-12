@@ -63,7 +63,6 @@ import sys
 import glob2
 
 from cert_issuer import cert_utils
-from cert_issuer import connectors
 from cert_issuer import helpers
 from cert_issuer.models import CertificateMetadata
 from cert_issuer.v1_2_issuer import V1_2_Issuer
@@ -94,7 +93,6 @@ def find_signed_certificates(app_config):
 
 
 def main(app_config):
-
     # find certificates to process
     certificates = find_signed_certificates(app_config)
     if not certificates:
@@ -121,8 +119,7 @@ def main(app_config):
     allowable_wif_prefixes = app_config.allowable_wif_prefixes
 
     # configure bitcoin wallet and broadcast connectors
-    wallet = Wallet(connectors.create_wallet_connector(app_config))
-    broadcast_function = connectors.create_broadcast_function(app_config)
+    wallet = Wallet()
 
     logging.info('Hashing signed certificates.')
     issuer.hash_certificates()
@@ -135,20 +132,19 @@ def main(app_config):
 
     logging.info('Total cost will be %d satoshis', all_costs.total)
 
-    split_input_trxs = False
     if app_config.transfer_from_storage_address:
         # ensure there is enough in our wallet at the storage/issuing address, transferring from the storage address
         # if configured
         logging.info('Checking there is enough balance in the issuing address')
-        funds_needed = wallet.calculate_funds_needed(
+        funds_needed = wallet.check_balance(
             issuing_address, all_costs)
         if funds_needed > 0:
             wallet.check_balance(app_config.storage_address, all_costs)
-            wallet.transfer_balance(
+            wallet.send_payment(
                 app_config.storage_address,
                 issuing_address,
-                all_costs)
-            split_input_trxs = True
+                all_costs.issuing_transaction_cost.min_per_output,
+                all_costs.issuing_transaction_cost.fee)
 
     # ensure the issuing address now has sufficient balance
     wallet.check_balance(issuing_address, all_costs.issuing_transaction_cost)
@@ -156,8 +152,7 @@ def main(app_config):
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
     issuer.issue_on_blockchain(wallet=wallet, revocation_address=revocation_address,
-                               split_input_trxs=split_input_trxs,
-                               allowable_wif_prefixes=allowable_wif_prefixes, broadcast_function=broadcast_function,
+                               allowable_wif_prefixes=allowable_wif_prefixes,
                                issuing_transaction_cost=all_costs.issuing_transaction_cost)
 
     # archive

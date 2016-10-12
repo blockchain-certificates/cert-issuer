@@ -4,6 +4,7 @@ from abc import abstractmethod
 
 from cert_issuer import cert_utils
 from cert_issuer import trx_utils
+from cert_issuer.connectors import broadcast_tx
 from cert_issuer.helpers import hexlify
 from cert_issuer.models import TotalCosts
 
@@ -24,20 +25,18 @@ class Issuer:
 
     @staticmethod
     def get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
-                                       num_outputs, allow_transfer, num_transfer_outputs, num_issuing_transactions):
+                                       num_outputs, allow_transfer):
 
         issuing_costs = trx_utils.get_cost(recommended_fee_per_transaction, dust_threshold, satoshi_per_byte,
                                            num_outputs)
 
         # plus additional fees for transfer
         if allow_transfer:
-            transfer_costs = trx_utils.get_cost(recommended_fee_per_transaction, dust_threshold, satoshi_per_byte,
-                                                num_transfer_outputs)
+            transfer_costs = trx_utils.get_cost(recommended_fee_per_transaction, dust_threshold, satoshi_per_byte)
         else:
             transfer_costs = None
 
-        return TotalCosts(num_issuing_transactions,
-                          issuing_transaction_cost=issuing_costs, transfer_cost=transfer_costs)
+        return TotalCosts(issuing_transaction_cost=issuing_costs, transfer_cost=transfer_costs)
 
     @abstractmethod
     def validate_schema(self):
@@ -71,11 +70,9 @@ class Issuer:
         with open(sent_tx_file_name, 'w') as out_file:
             out_file.write(txid)
 
-    def issue_on_blockchain(self, wallet, revocation_address, split_input_trxs,
-                            allowable_wif_prefixes, broadcast_function, issuing_transaction_cost):
+    def issue_on_blockchain(self, wallet, revocation_address, allowable_wif_prefixes, issuing_transaction_cost):
 
-        trxs = self.create_transactions(wallet, revocation_address, issuing_transaction_cost,
-                                        split_input_trxs)
+        trxs = self.create_transactions(wallet, revocation_address, issuing_transaction_cost)
         for td in trxs:
             # persist tx
             hextx = hexlify(td.tx.serialize())
@@ -92,5 +89,11 @@ class Issuer:
             cert_utils.verify_transaction(td.op_return_value, signed_hextx)
 
             # send tx and persist txid
-            txid = trx_utils.send_tx(broadcast_function, signed_hextx)
+            txid = broadcast_tx(td.tx, 'BTC')  # TODO: netcode
+            if txid:
+                logging.info('Broadcast transaction with txid %s', txid)
+            else:
+                logging.warning(
+                    'could not broadcast transaction but you can manually do it! hextx=%s', hextx)
+
             self.finish_tx(td.sent_tx_file_name, txid)

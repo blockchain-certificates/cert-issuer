@@ -4,7 +4,7 @@ Helpers for bitcoin transactions
 
 import logging
 
-from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn
+from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn, COutPoint
 from bitcoin.core.script import OP_RETURN
 from bitcoin.wallet import CBitcoinAddress
 from pycoin.encoding import wif_to_secret_exponent
@@ -23,9 +23,18 @@ FIXED_EXTRA_BYTES = 10
 
 def create_trx(op_return_val, issuing_transaction_cost,
                issuing_address, txouts, tx_input):
+    """
+
+    :param op_return_val:
+    :param issuing_transaction_cost:
+    :param issuing_address:
+    :param txouts:
+    :param tx_input:
+    :return:
+    """
     cert_out = CMutableTxOut(0, CScript([OP_RETURN, op_return_val]))
-    txins = [CTxIn(tx_input.outpoint)]
-    value_in = tx_input.amount
+    txins = [CTxIn(COutPoint(tx_input.tx_hash, tx_input.tx_out_index))]
+    value_in = tx_input.coin_value
 
     # send change back to our address
     amount = value_in - issuing_transaction_cost.total
@@ -89,30 +98,13 @@ def sign_tx(hextx, tx_input, allowable_wif_prefixes=None):
     lookup = build_hash160_lookup([wif])
 
     tx.set_unspents(
-        [TxOut(coin_value=tx_input.amount, script=tx_input.script_pub_key)])
+        [TxOut(coin_value=tx_input.value, script=tx_input.script)])
 
     signed_tx = tx.sign(lookup)
     signed_hextx = signed_tx.as_hex()
 
     logging.info('Finished signing transaction')
     return signed_hextx
-
-
-def send_tx(broadcaster, hextx):
-    """
-    Broadcast the transaction, putting it on the blockchain
-    :param broadcaster:
-    :param hextx:
-    :return: txid
-    """
-    txid = broadcaster(hextx)
-    if txid:
-        logging.info('Broadcast transaction with txid %s', txid)
-    else:
-        logging.warning(
-            'could not broadcast transaction but you can manually do it! hextx=%s', hextx)
-
-    return txid
 
 
 def get_cost(recommended_fee_per_transaction,
