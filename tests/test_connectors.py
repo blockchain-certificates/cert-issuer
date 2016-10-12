@@ -4,7 +4,6 @@ from pycoin.services import providers
 from pycoin.services.providers import BlockrioProvider, InsightProvider
 from pycoin.services.providers import get_default_providers_for_netcode
 from pycoin.tx import Tx
-from pycoin.serialize import b2h
 
 from cert_issuer.connectors import BlockrBroadcaster, InsightBroadcaster, broadcast_tx, get_unspent_outputs, BitcoindConnector, get_balance
 

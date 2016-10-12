@@ -64,8 +64,8 @@ import glob2
 
 from cert_issuer import cert_utils
 from cert_issuer import helpers
+from cert_issuer.batch_issuer import BatchIssuer
 from cert_issuer.models import CertificateMetadata
-from cert_issuer.v1_2_issuer import V1_2_Issuer
 from cert_issuer.wallet import Wallet
 
 if sys.version_info.major < 3:
@@ -108,7 +108,7 @@ def main(app_config):
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
 
-    issuer = V1_2_Issuer(config=app_config, certificates_to_issue=certificates)
+    issuer = BatchIssuer(config=app_config, certificates_to_issue=certificates)
 
     issuer.validate_schema()
 
@@ -151,7 +151,7 @@ def main(app_config):
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
-    issuer.issue_on_blockchain(wallet=wallet, revocation_address=revocation_address,
+    issuer.issue_on_blockchain(revocation_address=revocation_address,
                                allowable_wif_prefixes=allowable_wif_prefixes,
                                issuing_transaction_cost=all_costs.issuing_transaction_cost)
 

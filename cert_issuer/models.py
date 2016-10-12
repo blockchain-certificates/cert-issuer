@@ -26,9 +26,6 @@ class TotalCosts:
     """
     Represents total costs for an issuing event, including the issuing transaction and any transfer
     costs incurred.
-
-    On the issuing side, V1.1 uses 1 transaction per certificate, whereas V1.2 uses 1 transaction for the
-    entire certificate batch
     """
 
     def __init__(self, issuing_transaction_cost, transfer_cost):

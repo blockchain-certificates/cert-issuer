@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 
 from cert_schema.schema_tools import schema_validator
@@ -7,13 +8,15 @@ from merkleproof.MerkleTree import sha256
 from pyld import jsonld
 
 from cert_issuer import trx_utils
+from cert_issuer.connectors import get_unspent_outputs
+from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.issuer import Issuer
 from cert_issuer.models import TransactionData
 from cert_issuer.models import convert_file_name
 
 
-class V1_2_Issuer(Issuer):
+class BatchIssuer(Issuer):
     def __init__(self, config, certificates_to_issue):
         Issuer.__init__(self, config, certificates_to_issue)
         self.batch_id = '%024x' % random.randrange(16 ** 24)
@@ -37,10 +40,15 @@ class V1_2_Issuer(Issuer):
 
     def get_cost_for_certificate_batch(self, dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
                                        allow_transfer):
-        '''
+        """
         Per certificate, we pay 2*min_per_output (which is based on dust) + fee. Note assumes 1 input
         per tx. We may also need to pay additional fees for splitting into temp addresses
-        '''
+        :param dust_threshold:
+        :param recommended_fee_per_transaction:
+        :param satoshi_per_byte:
+        :param allow_transfer:
+        :return:
+        """
         num_certificates = len(self.certificates_to_issue)
         num_outputs = Issuer.get_num_outputs(num_certificates)
         return Issuer.get_cost_for_certificate_batch(dust_threshold, recommended_fee_per_transaction, satoshi_per_byte,
@@ -74,13 +82,18 @@ class V1_2_Issuer(Issuer):
 
             index += 1
 
-    def create_transactions(self, wallet, revocation_address, issuing_transaction_cost):
+    def create_transactions(self, revocation_address, issuing_transaction_cost):
         # finish tree
         self.tree.make_tree()
 
         op_return_value = unhexlify(self.tree.get_merkle_root())
 
-        unspent_outputs = wallet.get_unspent_outputs(self.issuing_address)
+        unspent_outputs = get_unspent_outputs(self.issuing_address)
+        if not unspent_outputs:
+            error_message = 'No money to spend at address {}'.format(self.issuing_address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
+
         last_output = unspent_outputs[-1]
 
         txouts = self.build_txouts(issuing_transaction_cost)

@@ -32,7 +32,8 @@ class Issuer:
 
         # plus additional fees for transfer
         if allow_transfer:
-            transfer_costs = trx_utils.get_cost(recommended_fee_per_transaction, dust_threshold, satoshi_per_byte)
+            transfer_costs = trx_utils.get_cost(recommended_fee_per_transaction, dust_threshold, satoshi_per_byte,
+                                                num_outputs)
         else:
             transfer_costs = None
 
@@ -52,8 +53,7 @@ class Issuer:
         return
 
     @abstractmethod
-    def create_transactions(self, wallet, revocation_address, issuing_transaction_cost,
-                            transfer_from_storage_address):
+    def create_transactions(self, revocation_address, issuing_transaction_cost):
         return
 
     def hash_certificates(self):
@@ -70,9 +70,9 @@ class Issuer:
         with open(sent_tx_file_name, 'w') as out_file:
             out_file.write(txid)
 
-    def issue_on_blockchain(self, wallet, revocation_address, allowable_wif_prefixes, issuing_transaction_cost):
+    def issue_on_blockchain(self, revocation_address, allowable_wif_prefixes, issuing_transaction_cost):
 
-        trxs = self.create_transactions(wallet, revocation_address, issuing_transaction_cost)
+        trxs = self.create_transactions(revocation_address, issuing_transaction_cost)
         for td in trxs:
             # persist tx
             hextx = hexlify(td.tx.serialize())

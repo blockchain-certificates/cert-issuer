@@ -74,8 +74,8 @@ class InsightBroadcaster(InsightProvider):
 
     def broadcast_tx(self, tx):
         hextx = to_hex(tx)
-        URL = self.base_url + '/api/tx/send'
-        r = requests.post(URL, json={'rawtx': hextx})
+        broadcast_url = self.base_url + '/api/tx/send'
+        r = requests.post(broadcast_url, json={'rawtx': hextx})
         if int(r.status_code) == 200:
             txid = r.json().get('txid', None)
             return txid
@@ -110,7 +110,6 @@ class BitcoindConnector(object):
         return hexlify(bytearray(txid)[::-1])
 
     def spendables_for_address(self, address):
-        address_balance = 0
         unspent = self.proxy.listunspent(addrs=[address])
         spendables = []
         for u in unspent:
@@ -137,7 +136,9 @@ def noop_broadcast(hextx):
 
 def get_unspent_outputs(address, netcode):
     spendables = spendables_for_address(bitcoin_address=address, netcode=netcode)
-    return spendables
+    if spendables:
+        return sorted(spendables, key=lambda x: hash(x.coin_value))
+    return None
 
 
 def get_balance(address, netcode):
@@ -157,7 +158,7 @@ def broadcast_tx(tx, netcode):
             if txid:
                 return txid
         except Exception as e:
-            logging.warn('Caught exception trying provider %s. Trying another. Exception=%s', str(m), e)
+            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(m), e)
             last_exception = e
             pass
     logging.error('Failed broadcasting through all providers')
@@ -171,7 +172,7 @@ def pay(from_address, to_address, amount, fee, netcode):
             m(from_address, to_address, amount, fee, netcode)
             return
         except Exception as e:
-            logging.warn('Caught exception trying provider %s. Trying another. Exception=%s', str(m), e)
+            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(m), e)
             last_exception = e
             pass
     logging.error('Failed paying through all providers')

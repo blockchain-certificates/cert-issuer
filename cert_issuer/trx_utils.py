@@ -109,6 +109,14 @@ def sign_tx(hextx, tx_input, allowable_wif_prefixes=None):
 
 def get_cost(recommended_fee_per_transaction,
              dust_threshold, satoshi_per_byte, num_outputs):
+    """
+    Get cost of the transaction
+    :param recommended_fee_per_transaction:
+    :param dust_threshold:
+    :param satoshi_per_byte:
+    :param num_outputs:
+    :return:
+    """
     # note: assuming 1 input for now
     recommended_fee = recommended_fee_per_transaction * COIN
     min_per_output = dust_threshold * COIN
@@ -143,6 +151,7 @@ def calculate_txfee(satoshi_per_byte, num_inputs, num_outputs, default_fee):
     updated dynamically
     :param num_inputs:
     :param num_outputs:
+    :param default_fee
     :return:
     """
     tx_size = calculate_raw_tx_size(num_inputs, num_outputs)

@@ -1,10 +1,11 @@
 import unittest
 
-from cert_issuer import sign_certificates
-from cert_issuer.models import CertificateMetadata
 from mock import MagicMock
 from mock import mock_open
 from mock import patch
+
+from cert_issuer import sign_certificates
+from cert_issuer.models import CertificateMetadata
 
 
 class TestSignCertificates(unittest.TestCase):

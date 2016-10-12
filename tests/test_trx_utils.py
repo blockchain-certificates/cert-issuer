@@ -1,30 +1,11 @@
 import unittest
 
-from cert_issuer import trx_utils
-
-from bitcoin.core import *
-from bitcoin.core.script import OP_RETURN
-from bitcoin.wallet import CBitcoinAddress
-
-from pycoin.encoding import wif_to_secret_exponent
-from pycoin.tx import *
-from pycoin.tx.pay_to import build_hash160_lookup
-
-from cert_issuer import helpers
-from cert_issuer.helpers import internet_off_for_scope
-from cert_issuer.models import TransactionCosts
-import bitcoin.rpc
-import requests
-from bitcoin.core import COutPoint, CScript, CTransaction
-from bitcoin.wallet import CBitcoinAddress
-
-from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError
-from cert_issuer.helpers import unhexlify, hexlify
+from pycoin.serialize import h2b
 from pycoin.tx import Spendable
-from pycoin.serialize import b2h, h2b
-import io
 
-
+from cert_issuer import trx_utils
+from cert_issuer.helpers import hexlify
+from cert_issuer.models import TransactionCosts
 
 SATOSHI_PER_BYTE=41
 

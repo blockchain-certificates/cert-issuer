@@ -39,7 +39,6 @@ def sign_certs(certificates):
     """
     Sign certificates. Internet should be off for the scope of this function.
     :param certificates:
-    :param allowable_wif_prefixes:
     :return:
     """
     logging.info('signing certificates')

@@ -1,11 +1,7 @@
 import unittest
 
-
 from mock import MagicMock
-from mock import mock_open
-from mock import patch
-from cert_issuer.models import CertificateMetadata
-from cert_issuer import cert_utils
+
 from cert_issuer import config
 
 
