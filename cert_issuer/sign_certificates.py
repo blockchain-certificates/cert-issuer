@@ -42,8 +42,8 @@ def sign_certs(certificates):
     :return:
     """
     logging.info('signing certificates')
-    pk = helpers.import_key()
-    secret_key = CBitcoinSecret(pk)
+    private_key = helpers.import_key()
+    secret_key = CBitcoinSecret(private_key)
     for _, certificate in certificates.items():
         with open(certificate.unsigned_certificate_file_name, 'r') as cert_in, \
                 open(certificate.signed_certificate_file_name, 'wb') as signed_cert:

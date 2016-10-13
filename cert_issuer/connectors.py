@@ -85,8 +85,8 @@ class InsightBroadcaster(InsightProvider):
         broadcast_url = self.base_url + '/api/tx/send'
         response = requests.post(broadcast_url, json={'rawtx': hextx})
         if int(response.status_code) == 200:
-            txid = response.json().get('txid', None)
-            return txid
+            tx_id = response.json().get('txid', None)
+            return tx_id
         logging.error('Error broadcasting the transaction through the Insight API. Error msg: %s', response.text)
         raise Exception(response.text)
 
@@ -100,8 +100,8 @@ class BlockrBroadcaster(BlockrioProvider):
         URL = self.url + '/tx/push'
         response = requests.post(URL, json={'hex': hextx})
         if int(response.status_code) == 200:
-            txid = response.json().get('data', None)
-            return txid
+            tx_id = response.json().get('data', None)
+            return tx_id
         logging.error('Error broadcasting the transaction through the Blockr.IO API. Error msg: %s', response.text)
         raise Exception(response.text)
 
@@ -112,22 +112,22 @@ class BitcoindConnector(object):
         bitcoin.rpc.Proxy()
         self.proxy = bitcoin.rpc.Proxy()
 
-    def broadcast_tx(self, tx):
-        as_hex = tx.as_hex()
-        tx = CTransaction.deserialize(unhexlify(as_hex))
-        txid = bitcoin.rpc.Proxy().sendrawtransaction(tx)
+    def broadcast_tx(self, transaction):
+        as_hex = transaction.as_hex()
+        transaction = CTransaction.deserialize(unhexlify(as_hex))
+        tx_id = bitcoin.rpc.Proxy().sendrawtransaction(transaction)
         # reverse endianness for bitcoind
-        return hexlify(bytearray(txid)[::-1])
+        return hexlify(bytearray(tx_id)[::-1])
 
     def spendables_for_address(self, address):
-        unspents = self.proxy.listunspent(addrs=[address])
+        unspent_outputs = self.proxy.listunspent(addrs=[address])
         spendables = []
-        for unspent in unspents:
+        for unspent in unspent_outputs:
             coin_value = unspent.get('amount', 0)
-            op = unspent.get('outpoint')
+            outpoint = unspent.get('outpoint')
             script = unspent.get('scriptPubKey')
-            previous_hash = op.hash
-            previous_index = op.n
+            previous_hash = outpoint.hash
+            previous_index = outpoint.n
             spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
         return spendables
 
@@ -159,29 +159,27 @@ def broadcast_tx(tx):
     Broadcast the transaction through the configured set of providers
     """
     last_exception = None
-    for m in service_provider_methods('broadcast_tx', get_default_providers_for_netcode(netcode)):
+    for method_provider in service_provider_methods('broadcast_tx', get_default_providers_for_netcode(netcode)):
         try:
-            txid = m(tx)
-            if txid:
-                return txid
+            tx_id = method_provider(tx)
+            if tx_id:
+                return tx_id
         except Exception as e:
-            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(m), e)
+            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(method_provider), e)
             last_exception = e
-            pass
     logging.error('Failed broadcasting through all providers')
     raise last_exception
 
 
 def pay(from_address, to_address, amount, fee):
     last_exception = None
-    for m in service_provider_methods('pay', get_default_providers_for_netcode(netcode)):
+    for method_provider in service_provider_methods('pay', get_default_providers_for_netcode(netcode)):
         try:
-            m(from_address, to_address, amount, fee, netcode)
+            method_provider(from_address, to_address, amount, fee, netcode)
             return
         except Exception as e:
-            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(m), e)
+            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(method_provider), e)
             last_exception = e
-            pass
     logging.error('Failed paying through all providers')
     raise last_exception
 

@@ -56,12 +56,12 @@ class BatchIssuer(Issuer):
         num_outputs = Issuer.get_num_outputs(num_certificates)
         return Issuer.get_cost_for_certificate_batch(num_outputs, allow_transfer)
 
-    def finish_tx(self, sent_tx_file_name, txid):
-        Issuer.finish_tx(self, sent_tx_file_name, txid)
+    def finish_tx(self, sent_tx_file_name, tx_id):
+        Issuer.finish_tx(self, sent_tx_file_name, tx_id)
         # note that certificates are stored in an ordered dictionary, so we will iterate in the same order
         index = 0
         for uid, _ in self.certificates_to_issue.items():
-            receipt = self.tree.make_receipt(index, txid)
+            receipt = self.tree.make_receipt(index, tx_id)
 
             receipt_file_name = convert_file_name(self.config.receipts_file_pattern, uid)
             with open(receipt_file_name, 'w') as out_file:

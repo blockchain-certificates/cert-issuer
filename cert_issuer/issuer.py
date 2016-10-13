@@ -74,9 +74,9 @@ class Issuer:
                 hashed_cert = self.do_hash_certificate(cert)
                 out_file.write(hashed_cert)
 
-    def finish_tx(self, sent_tx_file_name, txid):
+    def finish_tx(self, sent_tx_file_name, tx_id):
         with open(sent_tx_file_name, 'w') as out_file:
-            out_file.write(txid)
+            out_file.write(tx_id)
 
     def issue_on_blockchain(self, revocation_address, issuing_transaction_cost):
         """
@@ -85,28 +85,28 @@ class Issuer:
         :param issuing_transaction_cost:
         :return:
         """
-        trxs = self.create_transactions(revocation_address, issuing_transaction_cost)
-        for td in trxs:
+        transactions_data = self.create_transactions(revocation_address, issuing_transaction_cost)
+        for transaction_data in transactions_data:
             # persist the transaction in case broadcasting fails
-            hextx = hexlify(td.tx.serialize())
-            with open(td.unsigned_tx_file_name, 'w') as out_file:
-                out_file.write(hextx)
+            hex_tx = hexlify(transaction_data.tx.serialize())
+            with open(transaction_data.unsigned_tx_file_name, 'w') as out_file:
+                out_file.write(hex_tx)
 
             # sign transaction and persist result
-            signed_tx = trx_utils.sign_tx(hextx, td.tx_input)
+            signed_tx = trx_utils.sign_tx(hex_tx, transaction_data.tx_input)
             signed_hextx = signed_tx.as_hex()
-            with open(td.signed_tx_file_name, 'w') as out_file:
+            with open(transaction_data.signed_tx_file_name, 'w') as out_file:
                 out_file.write(signed_hextx)
 
             # verify
-            trx_utils.verify_transaction(signed_hextx, td.op_return_value)
+            trx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
 
             # send tx and persist txid
-            txid = broadcast_tx(signed_tx)
-            if txid:
-                logging.info('Broadcast transaction with txid %s', txid)
+            tx_id = broadcast_tx(signed_tx)
+            if tx_id:
+                logging.info('Broadcast transaction with txid %s', tx_id)
             else:
                 logging.warning(
                     'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
 
-            self.finish_tx(td.sent_tx_file_name, txid)
+            self.finish_tx(transaction_data.sent_tx_file_name, tx_id)
