@@ -9,7 +9,6 @@ from cert_issuer.models import CertificateMetadata
 
 
 class TestSignCertificates(unittest.TestCase):
-
     def test_sign_cert(self):
         cert_metadata = CertificateMetadata('test/unsigned.json', 'test/signed.json')
         cert_info = {'123452': cert_metadata}

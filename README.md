@@ -127,6 +127,19 @@ This project uses tox to validate against several python environments.
 
 The files in examples\data-testnet and examples\data-mainnet contain results of previous runs. 
 
+## Ignorable errors
+
+If you see errors like this in the output, but the script succeeds anyway,
+then it's an ignorable error. 
+
+See [https://github.com/richardkiss/pycoin/issues/194](https://github.com/richardkiss/pycoin/issues/194)
+
+```
+raise ScriptError("getitem out of range")
+pycoin.tx.script.ScriptError: getitem out of range
+```
+
+
 ## Contact
 
 Contact [info@blockcerts.org](mailto:info@blockcerts.org) with questions

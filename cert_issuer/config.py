@@ -3,7 +3,6 @@ import os
 
 import bitcoin
 import configargparse
-from pycoin.networks import subnet_name_for_netcode
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
@@ -33,9 +32,9 @@ def parse_args():
                    help='connector to use for wallet')
     p.add_argument('--broadcaster_type', default='bitcoind',
                    help='connector to use for broadcast')
-    p.add_argument('--netcode', default='XTN',
-                   help='Which bitcoin chain to use. Default is XTN (which is how the docker container is \
-                   configured). Other options are BTC.')
+    p.add_argument('--bitcoin_chain', default='regtest',
+                   help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
+                        'configured). Other options are testnet and mainnet.')
     p.add_argument('--storage_address', required=False,
                    help='storage address. Not needed for bitcoind deployment')
     p.add_argument('--wallet_guid', required=False,
@@ -125,11 +124,11 @@ def get_config():
                         'documentation to ensure this is what you want, since this is less secure')
 
     if parsed_config.wallet_connector_type == 'bitcoind':
-        if parsed_config.netcode == 'XTN':
-            bitcoin.SelectParams('testnet')
+        bitcoin.SelectParams(parsed_config.bitcoin_chain)
+        if parsed_config.bitcoin_chain == 'mainnet':
+            parsed_config.netcode = 'BTC'
         else:
-            subnet_name = subnet_name_for_netcode(parsed_config.netcode)
-            bitcoin.SelectParams(subnet_name)
+            parsed_config.netcode = 'XTN'
 
     configure_logger()
 

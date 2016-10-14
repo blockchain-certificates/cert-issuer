@@ -20,28 +20,24 @@ Steps:
 8. Generate receipts per recipient so the Blockchain Certificate can be verified.
 
 Transaction Details:
-In V1.1 each certificate corresponds to a Bitcoin transaction. In V1.2 all certificates are batched into a single
-Bitcoin transaction. The V1.2 batch size limit is derived from the max transaction size (100KB) -- estimated around 2K
+In V1.1 each certificate corresponded to a Bitcoin transaction. In V1.2 all certificates are batched into a single
+Bitcoin transaction. The batch size limit is derived from the max transaction size (100KB) -- estimated around 2K
 certificates.
 
 1. Recipient address receives dust amount
-    - in V1.1 there is 1 recipient address per transaction (and there is 1 transaction per certificate)
+    - in V1.1 there was 1 recipient address per transaction (and there is 1 transaction per certificate)
     - in V1.2, this is an recipient address per certificate; multiple per transaction
 2. Revocation address receives dust amount
-    - in V1.1, the issuer can reuse its revocation address since the transactions are per recipient
+    - in V1.1, the issuer reused its revocation address since the transactions are per recipient
     - in V1.2, the issuer needs a different revocation address per recipient
 3. OP_RETURN field
-    - in V1.1, this contains the SHA256 digest of the hashed signed certificate
+    - in V1.1, this contained the SHA256 digest of the hashed signed certificate
     - in V1.2, this contains the SHA256 digest of the Merkle root of a tree formed by the hashed signed certificate.
 4. Change address if the inputs are greater than above plus transaction fees
 
 Connectors:
 There are different connectors for wallets and broadcasting. By default, it uses the Bitcoin wallet connector (in
  regtest mode) and btc.blockr.io for broadcasting.
-
-Use case:
-V1.1 targets a primary use case of issuing an individual certificate or a relatively small batch of certificates (<100--
-this is for cost reasons). V1.2 can handle larger batches more economically.
 
 Costs:
 Both V1.1 and V1.2 depend on the number of certificates issued, but the multiplier is lower in V1.2. This is because
@@ -50,8 +46,7 @@ current estimate and examples
 
 About the recipient public key:
 This script assumes the recipient is assigned a public bitcoin address, located in the unsigned certificate as the
-recipient publicKey field. In past certificate issuing events, this was generated in 2 ways: (1) securely generated
-offline for the recipient, and (2) provided by the recipient via the certificate-viewer functionality.
+recipient publicKey field. The recipient provides this via the certificate wallet or certificate viewer.
 
 """
 import collections
@@ -149,7 +144,6 @@ def main(app_config):
     [verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
      certificates.items()]
 
-    # configure bitcoin wallet and broadcast connectors
     wallet = Wallet()
 
     logging.info('Hashing signed certificates.')

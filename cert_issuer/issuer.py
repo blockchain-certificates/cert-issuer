@@ -94,11 +94,16 @@ class Issuer:
 
             # sign transaction and persist result
             signed_tx = trx_utils.sign_tx(hex_tx, transaction_data.tx_input)
+
+            # log the actual byte count
+            tx_byte_count = trx_utils.get_byte_count(signed_tx)
+            logging.info('The actual transaction size is %d bytes', tx_byte_count)
+
             signed_hextx = signed_tx.as_hex()
             with open(transaction_data.signed_tx_file_name, 'w') as out_file:
                 out_file.write(signed_hextx)
 
-            # verify
+            # verify transaction before broadcasting
             trx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
 
             # send tx and persist txid

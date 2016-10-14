@@ -4,7 +4,6 @@ from cert_issuer.models import TransactionCosts
 
 
 class TestModels(unittest.TestCase):
-
     def test_TransactionCosts_no_split(self):
         issuing_cost = TransactionCosts(10, 4000, 60000)
         self.assertEqual(60000, issuing_cost.total)

@@ -1,6 +1,6 @@
 """
-Connectors wrap the details of communicating with different Bitcoin clients and implementations
-# TODO: merge with pycoin providers
+Connectors wrap the details of communicating with different Bitcoin clients and implementations.
+
 """
 import io
 import logging
@@ -8,6 +8,7 @@ import logging
 import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
+from pycoin.serialize import b2h
 from pycoin.services import providers
 from pycoin.services import spendables_for_address
 from pycoin.services.providers import BlockrioProvider, InsightProvider
@@ -15,9 +16,10 @@ from pycoin.services.providers import get_default_providers_for_netcode
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
-from cert_issuer.helpers import unhexlify
+from cert_issuer import config
 from cert_issuer.errors import ConnectorError
 from cert_issuer.helpers import hexlify
+from cert_issuer.helpers import unhexlify
 
 try:
     from urllib2 import urlopen, HTTPError
@@ -26,12 +28,8 @@ except ImportError:
     from urllib.request import urlopen, HTTPError
     from urllib.parse import urlencode
 
-from pycoin.serialize import b2h
 
-from cert_issuer import config
-
-netcode = config.get_config().netcode
-
+CONFIG_NETCODE = config.get_config().netcode
 
 def try_get(url):
     """throw error if call fails"""
@@ -107,19 +105,24 @@ class BlockrBroadcaster(BlockrioProvider):
 
 
 class BitcoindConnector(object):
-    def __init__(self, netcode):
+
+    def __init__(self, netcode, proxy=bitcoin.rpc.Proxy()):
         self.netcode = netcode
-        bitcoin.rpc.Proxy()
-        self.proxy = bitcoin.rpc.Proxy()
+        self.proxy = proxy
 
     def broadcast_tx(self, transaction):
         as_hex = transaction.as_hex()
         transaction = CTransaction.deserialize(unhexlify(as_hex))
-        tx_id = bitcoin.rpc.Proxy().sendrawtransaction(transaction)
+        tx_id = self.proxy.sendrawtransaction(transaction)
         # reverse endianness for bitcoind
         return hexlify(bytearray(tx_id)[::-1])
 
     def spendables_for_address(self, address):
+        """
+        Converts to pycoin Spendable type
+        :param address:
+        :return: list of Spendables
+        """
         unspent_outputs = self.proxy.listunspent(addrs=[address])
         spendables = []
         for unspent in unspent_outputs:
@@ -135,28 +138,38 @@ class BitcoindConnector(object):
         self.proxy.sendtoaddress(issuing_address, amount)
 
 
-def noop_broadcast(hextx):
-    logging.warning(
-        'app is configured not to broadcast, so no txid will be created for hextx=%s', hextx)
-    return None
-
-
-def get_unspent_outputs(address):
+def get_unspent_outputs(address, netcode=CONFIG_NETCODE):
+    """
+    Get unspent outputs at the address
+    :param address:
+    :param netcode:
+    :return:
+    """
     spendables = spendables_for_address(bitcoin_address=address, netcode=netcode)
     if spendables:
         return sorted(spendables, key=lambda x: hash(x.coin_value))
     return None
 
 
-def get_balance(address):
-    spendables = get_unspent_outputs(address)
+def get_balance(address, netcode=CONFIG_NETCODE):
+    """
+    Get balance available to spend at the address
+    :param address:
+    :param netcode:
+    :return:
+    """
+    spendables = get_unspent_outputs(address, netcode)
     balance = sum(s.coin_value for s in spendables)
     return balance
 
 
-def broadcast_tx(tx):
+def broadcast_tx(tx, netcode=CONFIG_NETCODE):
     """
     Broadcast the transaction through the configured set of providers
+
+    :param tx:
+    :param netcode:
+    :return:
     """
     last_exception = None
     for method_provider in service_provider_methods('broadcast_tx', get_default_providers_for_netcode(netcode)):
@@ -173,9 +186,9 @@ def broadcast_tx(tx):
 
 def pay(from_address, to_address, amount, fee):
     last_exception = None
-    for method_provider in service_provider_methods('pay', get_default_providers_for_netcode(netcode)):
+    for method_provider in service_provider_methods('pay', get_default_providers_for_netcode(CONFIG_NETCODE)):
         try:
-            method_provider(from_address, to_address, amount, fee, netcode)
+            method_provider(from_address, to_address, amount, fee, CONFIG_NETCODE)
             return
         except Exception as e:
             logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(method_provider), e)
@@ -187,7 +200,10 @@ def pay(from_address, to_address, amount, fee):
 PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.com chain.so"
 
 
-def init_connectors():
+def init_connectors(conf):
+
+    # initialize broadcasting connectors. Any of these can be used, and we want to be able to retry with another
+    # provider if any fail
     provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
 
     blockio_index = -1
@@ -195,8 +211,6 @@ def init_connectors():
         print(idx, val)
         if isinstance(val, BlockrioProvider):
             blockio_index = idx
-        elif isinstance(val, InsightProvider):
-            insight_index = idx
 
     if blockio_index > -1:
         provider_list[blockio_index] = BlockrBroadcaster('BTC')
@@ -204,16 +218,17 @@ def init_connectors():
         provider_list.append(BlockrBroadcaster('BTC'))
 
     provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
-    provider_list.append(BitcoindConnector('BTC'))
+
+    # initialize payment connectors based on config file
+    if conf.wallet_connector_type == 'blockchain.info':
+        provider_list.append(LocalBlockchainInfoConnector(conf))
+    else:
+        provider_list.append(BitcoindConnector('BTC'))
 
     providers.set_default_providers_for_netcode('BTC', provider_list)
-    result = get_default_providers_for_netcode('BTC')
 
     testnet_list = []
     testnet_list.append(BitcoindConnector('XTN'))
     providers.set_default_providers_for_netcode('XTN', testnet_list)
-    result = get_default_providers_for_netcode('XTN')
-    print(result)
 
-
-init_connectors()
+init_connectors(config.get_config())
