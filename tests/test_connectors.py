@@ -15,28 +15,6 @@ MAINNET_TX = '0100000001ce379123234bc9662f3f00f2a9c59d5420fc9f9d5e1fd8881b8666e8
 
 
 class TestConnectors(unittest.TestCase):
-    def test_broadcast_tx_mainnet(self):
-        """
-        Broadcasting tests fail because the transaction has already been pushed. So we're looking for a 'transaction
-        already in blockchain' error
-        """
-        try:
-            tx = Tx.from_hex(MAINNET_TX)
-            broadcast_tx(tx)
-            self.assertTrue(False)
-        except Exception as e:
-            self.assertTrue('already in block chain', str(e.args[0]))
-            return
-        self.assertTrue(False)
-
-    def test_get_unspent_outputs(self):
-        res = get_unspent_outputs('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ', 'BTC')
-        self.assertIsNotNone(res)
-        self.assertTrue(len(res) > 0)
-
-    def test_get_balance(self):
-        balance = get_balance('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ', 'BTC')
-        self.assertEquals(balance, 81920)
 
     def fake_list_unspent(self, addrs):
         # prepare mock data

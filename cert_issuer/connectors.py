@@ -204,31 +204,33 @@ def init_connectors(conf):
 
     # initialize broadcasting connectors. Any of these can be used, and we want to be able to retry with another
     # provider if any fail
-    provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
+    if CONFIG_NETCODE == 'BTC':
+        provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
 
-    blockio_index = -1
-    for idx, val in enumerate(provider_list):
-        print(idx, val)
-        if isinstance(val, BlockrioProvider):
-            blockio_index = idx
+        blockio_index = -1
+        for idx, val in enumerate(provider_list):
+            print(idx, val)
+            if isinstance(val, BlockrioProvider):
+                blockio_index = idx
 
-    if blockio_index > -1:
-        provider_list[blockio_index] = BlockrBroadcaster('BTC')
-    else:
-        provider_list.append(BlockrBroadcaster('BTC'))
+        if blockio_index > -1:
+            provider_list[blockio_index] = BlockrBroadcaster('BTC')
+        else:
+            provider_list.append(BlockrBroadcaster('BTC'))
 
-    provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
+        provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
 
-    # initialize payment connectors based on config file
-    if conf.wallet_connector_type == 'blockchain.info':
-        provider_list.append(LocalBlockchainInfoConnector(conf))
-    else:
-        provider_list.append(BitcoindConnector('BTC'))
+        # initialize payment connectors based on config file
+        if conf.wallet_connector_type == 'blockchain.info':
+            provider_list.append(LocalBlockchainInfoConnector(conf))
+        else:
+            provider_list.append(BitcoindConnector('BTC'))
 
-    providers.set_default_providers_for_netcode('BTC', provider_list)
+        providers.set_default_providers_for_netcode('BTC', provider_list)
 
-    testnet_list = []
-    testnet_list.append(BitcoindConnector('XTN'))
-    providers.set_default_providers_for_netcode('XTN', testnet_list)
+    if CONFIG_NETCODE == 'XTN':
+        testnet_list = []
+        testnet_list.append(BitcoindConnector('XTN'))
+        providers.set_default_providers_for_netcode('XTN', testnet_list)
 
 init_connectors(config.get_config())
