@@ -17,8 +17,7 @@ class CostConfig:
 
 
 def parse_args():
-    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf_regtest.ini'),
-                                                               os.path.join(PATH, 'conf.ini'),
+    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf.ini'),
                                                                '/etc/cert-issuer/conf.ini'])
     p.add('-c', '--my-config', required=False,
           is_config_file=True, help='config file path')
@@ -44,10 +43,9 @@ def parse_args():
     p.add_argument('--api_key', required=False,
                    help='api key. Not needed for bitcoind deployment')
     p.add_argument('--transfer_from_storage_address', action='store_true',
-                   help='Transfer BTC from storage to issuing address (default: 0). Advanced usage')
+                   help='Transfer BTC from storage to issuing address (default: False). Advanced usage')
     p.add_argument('--skip_wifi_check', action='store_true',
-                   help='Used to make sure your private key is not plugged in with the wifi on (default: False). '
-                        'Only change this option for troubleshooting.')
+                   help='Used to make sure your private key is not plugged in with the wifi on (default: False). Only change this option for troubleshooting.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
     p.add_argument('--tx_fee', default=0.0001, type=float,
@@ -119,16 +117,17 @@ def get_config():
     parsed_config.tree_file_pattern = os.path.join(
         parsed_config.data_path, 'tree/*.json')
 
+    print(parsed_config)
     if parsed_config.skip_wifi_check:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
     if parsed_config.wallet_connector_type == 'bitcoind':
         bitcoin.SelectParams(parsed_config.bitcoin_chain)
-        if parsed_config.bitcoin_chain == 'mainnet':
-            parsed_config.netcode = 'BTC'
-        else:
-            parsed_config.netcode = 'XTN'
+    if parsed_config.bitcoin_chain == 'mainnet':
+        parsed_config.netcode = 'BTC'
+    else:
+        parsed_config.netcode = 'XTN'
 
     configure_logger()
 

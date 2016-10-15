@@ -29,7 +29,7 @@ archive/
 !data/tree/.*
 
 .idea/*
-conf.ini
+*.ini*
 
 .cache/*
 .tox/*
