@@ -64,7 +64,7 @@ def internet_on():
 
 def check_internet_off():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    if config.get_config().skip_wifi_check:
+    if not config.get_config().safe_mode:
         logging.warning(
             'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
             ' ensure this is what you want, since this is less secure')
@@ -81,7 +81,7 @@ def check_internet_off():
 
 def check_internet_on():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    if config.get_config().skip_wifi_check:
+    if not config.get_config().safe_mode:
         logging.warning(
             'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
             ' ensure this is what you want, since this is less secure')
