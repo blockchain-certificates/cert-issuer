@@ -4,7 +4,7 @@ import bitcoin.rpc
 from bitcoin.core import COutPoint, lx, x, CScript
 from bitcoin.core.script import OP_EQUALVERIFY, OP_CHECKSIG, OP_DUP, OP_HASH160
 from bitcoin.wallet import P2PKHBitcoinAddress
-from mock import patch
+from mock import patch, mock
 from pycoin.tx import Tx
 
 from cert_issuer.connectors import broadcast_tx, get_unspent_outputs, get_balance, BitcoindConnector
@@ -52,7 +52,12 @@ def mock_listunspent_mainnet(self, addrs):
     return unspent_outputs
 
 
-def mock_init(**kwargs):
+def mock_init(self,
+                 service_url=None,
+                 service_port=None,
+                 btc_conf_file=None,
+                 timeout=0,
+                 **kwargs):
     pass
 
 def mock_broadcast(transaction):
@@ -60,6 +65,7 @@ def mock_broadcast(transaction):
 
 class TestConnectors(unittest.TestCase):
 
+    @patch.object(bitcoin.rpc.Proxy, '__init__', mock_init)
     @patch.object(bitcoin.rpc.Proxy, 'listunspent', mock_listunspent_testnet)
     def test_bitcoind_connector_spendables(self):
         bc = BitcoindConnector('XTN')
