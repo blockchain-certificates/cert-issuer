@@ -106,14 +106,13 @@ class BlockrBroadcaster(BlockrioProvider):
 
 class BitcoindConnector(object):
 
-    def __init__(self, netcode, proxy=bitcoin.rpc.Proxy()):
+    def __init__(self, netcode):
         self.netcode = netcode
-        self.proxy = proxy
 
     def broadcast_tx(self, transaction):
         as_hex = transaction.as_hex()
         transaction = CTransaction.deserialize(unhexlify(as_hex))
-        tx_id = self.proxy.sendrawtransaction(transaction)
+        tx_id = bitcoin.rpc.Proxy().sendrawtransaction(transaction)
         # reverse endianness for bitcoind
         return hexlify(bytearray(tx_id)[::-1])
 
@@ -123,7 +122,7 @@ class BitcoindConnector(object):
         :param address:
         :return: list of Spendables
         """
-        unspent_outputs = self.proxy.listunspent(addrs=[address])
+        unspent_outputs = bitcoin.rpc.Proxy().listunspent(addrs=[address])
         spendables = []
         for unspent in unspent_outputs:
             coin_value = unspent.get('amount', 0)
@@ -201,36 +200,39 @@ PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.
 
 
 def init_connectors(conf):
+    """
+    Initialize broadcasting and payment connectors. This allows fallback and confirmation across different chains
+    :param conf:
+    :return:
+    """
 
-    # initialize broadcasting connectors. Any of these can be used, and we want to be able to retry with another
-    # provider if any fail
-    if CONFIG_NETCODE == 'BTC':
-        provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
+    # configure mainnet providers
+    provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
 
-        blockio_index = -1
-        for idx, val in enumerate(provider_list):
-            print(idx, val)
-            if isinstance(val, BlockrioProvider):
-                blockio_index = idx
+    blockio_index = -1
+    for idx, val in enumerate(provider_list):
+        print(idx, val)
+        if isinstance(val, BlockrioProvider):
+            blockio_index = idx
 
-        if blockio_index > -1:
-            provider_list[blockio_index] = BlockrBroadcaster('BTC')
-        else:
-            provider_list.append(BlockrBroadcaster('BTC'))
+    if blockio_index > -1:
+        provider_list[blockio_index] = BlockrBroadcaster('BTC')
+    else:
+        provider_list.append(BlockrBroadcaster('BTC'))
 
-        provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
+    provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
 
-        # initialize payment connectors based on config file
-        if conf.wallet_connector_type == 'blockchain.info':
-            provider_list.append(LocalBlockchainInfoConnector(conf))
-        else:
-            provider_list.append(BitcoindConnector('BTC'))
+    # initialize payment connectors based on config file
+    if conf.wallet_connector_type == 'blockchain.info':
+        provider_list.append(LocalBlockchainInfoConnector(conf))
+    else:
+        provider_list.append(BitcoindConnector('BTC'))
 
-        providers.set_default_providers_for_netcode('BTC', provider_list)
+    providers.set_default_providers_for_netcode('BTC', provider_list)
 
-    if CONFIG_NETCODE == 'XTN':
-        testnet_list = []
-        testnet_list.append(BitcoindConnector('XTN'))
-        providers.set_default_providers_for_netcode('XTN', testnet_list)
+    # initialize testnet providers
+    testnet_list = []
+    testnet_list.append(BitcoindConnector('XTN'))
+    providers.set_default_providers_for_netcode('XTN', testnet_list)
 
 init_connectors(config.get_config())
