@@ -52,7 +52,7 @@ def mock_listunspent_mainnet(self, addrs):
     return unspent_outputs
 
 
-def mock_init(self):
+def mock_init(**kwargs):
     pass
 
 def mock_broadcast(transaction):
