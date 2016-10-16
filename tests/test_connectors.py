@@ -51,6 +51,10 @@ def mock_listunspent_mainnet(self, addrs):
     unspent_outputs = [output1, output2]
     return unspent_outputs
 
+
+def mock_init(self):
+    pass
+
 def mock_broadcast(transaction):
     return
 
@@ -67,6 +71,7 @@ class TestConnectors(unittest.TestCase):
         self.assertEquals(spendables[1].coin_value, 2750)
         self.assertEquals(spendables[2].coin_value, 2750)
 
+    @patch.object(bitcoin.rpc.Proxy, '__init__', mock_init)
     @patch.object(bitcoin.rpc.Proxy, 'sendrawtransaction', mock_broadcast)
     def test_broadcast_tx_mainnet(self):
         """
@@ -82,17 +87,20 @@ class TestConnectors(unittest.TestCase):
             return
         self.assertTrue(False)
 
+    @patch.object(bitcoin.rpc.Proxy, '__init__', mock_init)
     @patch.object(bitcoin.rpc.Proxy, 'listunspent', mock_listunspent_testnet)
     def test_bitcoind_connector_balance(self):
         balance = get_balance('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
         self.assertEquals(balance, 49005500)
 
+    @patch.object(bitcoin.rpc.Proxy, '__init__', mock_init)
     @patch.object(bitcoin.rpc.Proxy, 'listunspent', mock_listunspent_mainnet)
     def test_get_unspent_outputs(self):
         res = get_unspent_outputs('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ', 'BTC')
         self.assertIsNotNone(res)
         self.assertTrue(len(res) > 0)
 
+    @patch.object(bitcoin.rpc.Proxy, '__init__', mock_init)
     @patch.object(bitcoin.rpc.Proxy, 'listunspent', mock_listunspent_mainnet)
     def test_get_balance(self):
         balance = get_balance('13yNf3azc8sUrjf6UFjUCRZx4B6JnQ4XeJ', 'BTC')
