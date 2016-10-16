@@ -4,7 +4,6 @@ import os.path
 import sys
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_CONFIG = os.path.join(PATH, 'conf.ini')
 
 if __package__ is None and not hasattr(sys, 'frozen'):
     path = os.path.realpath(os.path.abspath(__file__))

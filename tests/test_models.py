@@ -1,21 +1,18 @@
 import unittest
 
-from cert_issuer.models import TotalCosts, TransactionCosts
+from cert_issuer.models import TransactionCosts
 
 
 class TestModels(unittest.TestCase):
-
-    def test_TotalCosts_no_split(self):
+    def test_TransactionCosts_no_split(self):
         issuing_cost = TransactionCosts(10, 4000, 60000)
-        costs = TotalCosts(1, issuing_transaction_cost=issuing_cost, transfer_cost=None)
-        self.assertEqual(60000, costs.total)
+        self.assertEqual(60000, issuing_cost.total)
 
     def test_TransactionCosts_with_split(self):
         issuing_cost = TransactionCosts(10, 4000, 60000)
-        transfer_cost = TransactionCosts(10, 4000, 50000)
-        costs = TotalCosts(1, issuing_cost, transfer_cost)
+        issuing_cost.set_transfer_fee(10000)
 
-        self.assertEqual(110000, costs.total)
+        self.assertEqual(70000, issuing_cost.total)
 
 
 if __name__ == '__main__':

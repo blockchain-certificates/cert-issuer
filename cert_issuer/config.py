@@ -9,11 +9,18 @@ DATA_PATH = os.path.join(PATH, 'data')
 ARCHIVE_PATH = os.path.join(PATH, 'archive')
 
 
+class CostConfig:
+    def __init__(self, recommended_fee_per_transaction, min_per_output, satoshi_per_byte):
+        self.recommended_fee_per_transaction = recommended_fee_per_transaction
+        self.min_per_output = min_per_output
+        self.satoshi_per_byte = satoshi_per_byte
+
+
 def parse_args():
     p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf_regtest.ini'),
                                                                os.path.join(PATH, 'conf.ini'),
                                                                '/etc/cert-issuer/conf.ini'])
-    p.add('-c', '--my-config', required=False,
+    p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
     p.add_argument('--revocation_address', required=True,
@@ -26,7 +33,8 @@ def parse_args():
     p.add_argument('--broadcaster_type', default='bitcoind',
                    help='connector to use for broadcast')
     p.add_argument('--bitcoin_chain', default='regtest',
-                   help='Which bitcoin chain to use. Default is regtest (which is how the docker container is configured). Other options are testnet and mainnet.')
+                   help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
+                        'configured). Other options are testnet and mainnet.')
     p.add_argument('--storage_address', required=False,
                    help='storage address. Not needed for bitcoind deployment')
     p.add_argument('--wallet_guid', required=False,
@@ -35,11 +43,14 @@ def parse_args():
                    help='wallet password. Not needed for bitcoind deployment')
     p.add_argument('--api_key', required=False,
                    help='api key. Not needed for bitcoind deployment')
-    p.add_argument('--transfer_from_storage_address', action='store_true',
-                   help='Transfer BTC from storage to issuing address (default: 0). Advanced usage')
-    p.add_argument('--skip_wifi_check', action='store_true',
-                   help='Used to make sure your private key is not plugged in with the wifi on (default: False). '
-                        'Only change this option for troubleshooting.')
+    p.add_argument('--transfer_from_storage_address', dest='transfer_from_storage_address', action='store_true',
+                   help='Transfer BTC from storage to issuing address.')
+    p.add_argument('--no_transfer_from_storage_address', dest='transfer_from_storage_address', action='store_false',
+                   help='Prevent transfer BTC from storage to issuing address.')
+    p.add_argument('--safe_mode', dest='safe_mode', action='store_true',
+                   help='Used to make sure your private key is not plugged in with the wifi.')
+    p.add_argument('--no_safe_mode', dest='safe_mode', action='store_true',
+                   help='Turns off safe mode. Only change this option for testing or unit testing.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
     p.add_argument('--tx_fee', default=0.0001, type=float,
@@ -67,6 +78,16 @@ def configure_logger():
 
 
 parsed_config = None
+constants = None
+
+
+def get_constants():
+    global constants
+    if constants:
+        return constants
+    config = get_config()
+    constants = CostConfig(config.tx_fee, config.dust_threshold, config.satoshi_per_byte)
+    return constants
 
 
 def get_config():
@@ -101,17 +122,16 @@ def get_config():
     parsed_config.tree_file_pattern = os.path.join(
         parsed_config.data_path, 'tree/*.json')
 
-
-
-    if parsed_config.skip_wifi_check:
+    if not parsed_config.safe_mode:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
-    parsed_config.allowable_wif_prefixes = None
     if parsed_config.wallet_connector_type == 'bitcoind':
         bitcoin.SelectParams(parsed_config.bitcoin_chain)
-        if parsed_config.bitcoin_chain == 'testnet':
-            parsed_config.allowable_wif_prefixes = [b'\x80', b'\xef']
+    if parsed_config.bitcoin_chain == 'mainnet':
+        parsed_config.netcode = 'BTC'
+    else:
+        parsed_config.netcode = 'XTN'
 
     configure_logger()
 

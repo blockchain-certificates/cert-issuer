@@ -1,105 +1,66 @@
 """
-Connectors wrap the details of communicating with different Bitcoin clients and implementations
+Connectors wrap the details of communicating with different Bitcoin clients and implementations.
+
 """
-import json
+import io
 import logging
-import sys
-import urllib.parse
-from abc import abstractmethod, ABCMeta
 
 import bitcoin.rpc
 import requests
-from bitcoin.core import COutPoint, CScript, CTransaction
-from bitcoin.wallet import CBitcoinAddress
+from bitcoin.core import CTransaction
+from pycoin.serialize import b2h
+from pycoin.services import providers
+from pycoin.services import spendables_for_address
+from pycoin.services.providers import BlockrioProvider, InsightProvider
+from pycoin.services.providers import get_default_providers_for_netcode
+from pycoin.services.providers import service_provider_methods
+from pycoin.tx import Spendable
 
-from cert_issuer.errors import UnrecognizedConnectorError, ConnectorError
-from cert_issuer.helpers import unhexlify, hexlify
-from cert_issuer.models import TransactionOutput
+from cert_issuer import config
+from cert_issuer.errors import ConnectorError
+from cert_issuer.helpers import hexlify
+from cert_issuer.helpers import unhexlify
 
-
-class WalletConnector:
-    """Base class for a wallet connector implementation"""
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def get_balance(self, address, confirmations):
-        return 0
-
-    @abstractmethod
-    def create_temp_address(self, address):
-        return None
-
-    @abstractmethod
-    def get_unspent_outputs(self, address):
-        return 0
-
-    @abstractmethod
-    def pay(self, from_address, issuing_address, amount, fee):
-        return
-
-    @abstractmethod
-    def archive(self, address):
-        return
-
-    @abstractmethod
-    def send_to_addresses(self, storage_address,
-                          temp_addresses, transfer_split_fee):
-        return
+try:
+    from urllib2 import urlopen, HTTPError
+    from urllib import urlencode
+except ImportError:
+    from urllib.request import urlopen, HTTPError
+    from urllib.parse import urlencode
 
 
-class BlockchainInfoConnector(WalletConnector):
+CONFIG_NETCODE = config.get_config().netcode
 
+def try_get(url):
+    """throw error if call fails"""
+    response = requests.get(url)
+    if int(response.status_code) != 200:
+        error_message = 'Error! status_code={}, error={}'.format(
+            response.status_code, response.json()['error'])
+        logging.error(error_message)
+        raise ConnectorError(error_message)
+    return response
+
+
+def to_hex(transaction):
+    s = io.BytesIO()
+    transaction.stream(s)
+    tx_as_hex = b2h(s.getvalue())
+    return tx_as_hex
+
+
+class LocalBlockchainInfoConnector(object):
     def __init__(self, config):
         self.wallet_guid = config.wallet_guid
         self.wallet_password = config.wallet_password
         self.api_key = config.api_key
-
-    def get_balance(self, address, confirmations):
-        confirmed_url = self._make_url(
-            'address_balance', {'address': address, 'confirmations': confirmations})
-        confirmed_result = try_get(confirmed_url)
-        confirmed_balance = confirmed_result.json().get("balance", 0)
-        return confirmed_balance
-
-    def create_temp_address(self, temp_address):
-        new_address_url = self._make_url(
-            'new_address', {"label": temp_address})
-        confirmed_result = try_get(new_address_url)
-        address = json.loads(confirmed_result.text)['address']
-        return address
-
-    def get_unspent_outputs(self, address):
-        unspent_outputs = []
-        # this calls a different api not accessible through localhost proxy
-        unspent_url = 'https://blockchain.info/unspent?active=%s&format=json' % address
-        unspent_response = try_get(unspent_url)
-        r = unspent_response.json()
-        for u in r['unspent_outputs']:
-            tx_out = TransactionOutput(COutPoint(unhexlify(u['tx_hash']), u['tx_output_n']),
-                                       CBitcoinAddress(address),
-                                       CScript(unhexlify(u['script'])),
-                                       int(u['value']))
-            unspent_outputs.append(tx_out)
-        return unspent_outputs
 
     def pay(self, from_address, to_address, amount, fee):
         payment_url = self._make_url('payment', {'from': from_address, 'to': to_address,
                                                  'amount': amount,
                                                  'fee': fee})
         try_get(payment_url)
-
-    def archive(self, address):
-        archive_url = self._make_url('archive_address', {'address': address})
-        try_get(archive_url)
-
-    def send_to_addresses(self, storage_address,
-                          temp_addresses, transfer_split_fee):
-        payload = {'from': storage_address,
-                   'recipients': urllib.parse.quote_plus(json.dumps(temp_addresses)),
-                   'fee': transfer_split_fee}
-        sendmany_url = self._make_url('sendmany', payload)
-        logging.info('calling url from send_to_addresses: %s', sendmany_url)
-        try_get(sendmany_url)
+        try_get(payment_url)
 
     def _make_url(self, command, extras={}):
         url = 'http://localhost:3000/merchant/%s/%s?password=%s&api_code=%s' % (
@@ -112,118 +73,166 @@ class BlockchainInfoConnector(WalletConnector):
         return url
 
 
-class BitcoindConnector(WalletConnector):
+class InsightBroadcaster(InsightProvider):
+    def __init__(self, base_url, netcode=None):
+        InsightProvider.__init__(self, base_url, netcode)
+        self.netcode = netcode
 
-    def __init__(self, config):
-        bitcoin.rpc.Proxy()
-        self.proxy = bitcoin.rpc.Proxy()
+    def broadcast_tx(self, tx):
+        hextx = to_hex(tx)
+        broadcast_url = self.base_url + '/api/tx/send'
+        response = requests.post(broadcast_url, json={'rawtx': hextx})
+        if int(response.status_code) == 200:
+            tx_id = response.json().get('txid', None)
+            return tx_id
+        logging.error('Error broadcasting the transaction through the Insight API. Error msg: %s', response.text)
+        raise Exception(response.text)
 
-    def get_balance(self, address, confirmations):
-        address_balance = 0
-        unspent = self.proxy.listunspent(addrs=[address])
-        for u in unspent:
-            address_balance = address_balance + u.get('amount', 0)
-        return address_balance
 
-    def get_unspent_outputs(self, address):
-        unspent_outputs = self.proxy.listunspent(addrs=[address])
-        unspent_outputs_converted = [TransactionOutput(unspent['outpoint'], unspent['address'],
-                                                       unspent['scriptPubKey'], int(unspent['amount']))
-                                     for unspent in unspent_outputs]
-        return unspent_outputs_converted
+class BlockrBroadcaster(BlockrioProvider):
+    def __init__(self, netcode):
+        BlockrioProvider.__init__(self, netcode)
+
+    def broadcast_tx(self, tx):
+        hextx = to_hex(tx)
+        URL = self.url + '/tx/push'
+        response = requests.post(URL, json={'hex': hextx})
+        if int(response.status_code) == 200:
+            tx_id = response.json().get('data', None)
+            return tx_id
+        logging.error('Error broadcasting the transaction through the Blockr.IO API. Error msg: %s', response.text)
+        raise Exception(response.text)
+
+
+class BitcoindConnector(object):
+
+    def __init__(self, netcode):
+        self.netcode = netcode
+
+    def broadcast_tx(self, transaction):
+        as_hex = transaction.as_hex()
+        transaction = CTransaction.deserialize(unhexlify(as_hex))
+        tx_id = bitcoin.rpc.Proxy().sendrawtransaction(transaction)
+        # reverse endianness for bitcoind
+        return hexlify(bytearray(tx_id)[::-1])
+
+    def spendables_for_address(self, address):
+        """
+        Converts to pycoin Spendable type
+        :param address:
+        :return: list of Spendables
+        """
+        unspent_outputs = bitcoin.rpc.Proxy().listunspent(addrs=[address])
+        spendables = []
+        for unspent in unspent_outputs:
+            coin_value = unspent.get('amount', 0)
+            outpoint = unspent.get('outpoint')
+            script = unspent.get('scriptPubKey')
+            previous_hash = outpoint.hash
+            previous_index = outpoint.n
+            spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
+        return spendables
 
     def pay(self, from_address, issuing_address, amount, fee):
         self.proxy.sendtoaddress(issuing_address, amount)
 
-    # These methods are used for temporary addresses, and they are not yet
-    # supported
-    def create_temp_address(self, address):
-        address = self.proxy.getnewaddress()
-        return address
 
-    def archive(self, address):
-        # TODO
-        #raise NotImplementedError('archive is not yet supported')
-        return
-
-    def send_to_addresses(self, storage_address,
-                          temp_addresses, transfer_split_fee):
-        for address in temp_addresses:
-            self.proxy.sendtoaddress(address, transfer_split_fee)
-        #raise NotImplementedError('send_to_addresses is not yet supported')
-
-
-def insight_broadcast(hextx):
-    r = requests.post("https://insight.bitpay.com/api/tx/send",
-                      json={"rawtx": hextx})
-    if int(r.status_code) != 200:
-        sys.stderr.write(
-            "Error broadcasting the transaction through the Insight API. Error msg: %s" % r.text)
-        sys.exit(1)
-    else:
-        txid = r.json().get('txid', None)
-    return txid
-
-
-def blockr_broadcast(hextx):
-    r = requests.post('http://btc.blockr.io/api/v1/tx/push',
-                      json={'hex': hextx})
-    if int(r.status_code) != 200:
-        sys.stderr.write(
-            'Error broadcasting the transaction through the blockr.io API. Error msg: %s' % r.text)
-        sys.exit(1)
-    else:
-        txid = r.json().get('data', None)
-    return txid
-
-
-def noop_broadcast(hextx):
-    logging.warning(
-        'app is configured not to broadcast, so no txid will be created for hextx=%s', hextx)
+def get_unspent_outputs(address, netcode=CONFIG_NETCODE):
+    """
+    Get unspent outputs at the address
+    :param address:
+    :param netcode:
+    :return:
+    """
+    spendables = spendables_for_address(bitcoin_address=address, netcode=netcode)
+    if spendables:
+        return sorted(spendables, key=lambda x: hash(x.coin_value))
     return None
 
 
-def bitcoind_broadcast(hextx):
-    tx = CTransaction.deserialize(unhexlify(hextx))
-    txid = bitcoin.rpc.Proxy().sendrawtransaction(tx)
-    # reverse endianness for bitcoind
-    return hexlify(bytearray(txid)[::-1])
+def get_balance(address, netcode=CONFIG_NETCODE):
+    """
+    Get balance available to spend at the address
+    :param address:
+    :param netcode:
+    :return:
+    """
+    spendables = get_unspent_outputs(address, netcode)
+    balance = sum(s.coin_value for s in spendables)
+    return balance
 
 
-def create_wallet_connector(config):
-    wallet_connector_type = config.wallet_connector_type
-    if wallet_connector_type == 'blockchain.info':
-        connector = BlockchainInfoConnector(config)
-    elif wallet_connector_type == 'bitcoind':
-        connector = BitcoindConnector(config)
+def broadcast_tx(tx, netcode=CONFIG_NETCODE):
+    """
+    Broadcast the transaction through the configured set of providers
+
+    :param tx:
+    :param netcode:
+    :return:
+    """
+    last_exception = None
+    for method_provider in service_provider_methods('broadcast_tx', get_default_providers_for_netcode(netcode)):
+        try:
+            tx_id = method_provider(tx)
+            if tx_id:
+                return tx_id
+        except Exception as e:
+            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(method_provider), e)
+            last_exception = e
+    logging.error('Failed broadcasting through all providers')
+    raise last_exception
+
+
+def pay(from_address, to_address, amount, fee):
+    last_exception = None
+    for method_provider in service_provider_methods('pay', get_default_providers_for_netcode(CONFIG_NETCODE)):
+        try:
+            method_provider(from_address, to_address, amount, fee, CONFIG_NETCODE)
+            return
+        except Exception as e:
+            logging.warning('Caught exception trying provider %s. Trying another. Exception=%s', str(method_provider), e)
+            last_exception = e
+    logging.error('Failed paying through all providers')
+    raise last_exception
+
+
+PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.com chain.so"
+
+
+def init_connectors(conf):
+    """
+    Initialize broadcasting and payment connectors. This allows fallback and confirmation across different chains
+    :param conf:
+    :return:
+    """
+
+    # configure mainnet providers
+    provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
+
+    blockio_index = -1
+    for idx, val in enumerate(provider_list):
+        print(idx, val)
+        if isinstance(val, BlockrioProvider):
+            blockio_index = idx
+
+    if blockio_index > -1:
+        provider_list[blockio_index] = BlockrBroadcaster('BTC')
     else:
-        error_message = 'unrecognized wallet connector: {}'.format(
-            wallet_connector_type)
-        raise UnrecognizedConnectorError(error_message)
-    return connector
+        provider_list.append(BlockrBroadcaster('BTC'))
 
+    provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
 
-def create_broadcast_function(config):
-    broadcaster_type = config.broadcaster_type
-    if broadcaster_type == 'btc.blockr.io':
-        return blockr_broadcast
-    elif broadcaster_type == 'insight.bitpay.com':
-        return insight_broadcast
-    elif broadcaster_type == 'bitcoind':
-        return bitcoind_broadcast
-    elif broadcaster_type == 'noop':
-        return noop_broadcast
+    # initialize payment connectors based on config file
+    if conf.wallet_connector_type == 'blockchain.info':
+        provider_list.append(LocalBlockchainInfoConnector(conf))
     else:
-        error_message = 'unrecognized broadcaster: {}'.format(broadcaster_type)
-        raise UnrecognizedConnectorError(error_message)
+        provider_list.append(BitcoindConnector('BTC'))
 
+    providers.set_default_providers_for_netcode('BTC', provider_list)
 
-def try_get(url):
-    """throw error if call fails"""
-    r = requests.get(url)
-    if int(r.status_code) != 200:
-        error_message = 'Error! status_code={}, error={}'.format(
-            r.status_code, r.json()['error'])
-        logging.error(error_message)
-        raise ConnectorError(error_message)
-    return r
+    # initialize testnet providers
+    testnet_list = []
+    testnet_list.append(BitcoindConnector('XTN'))
+    providers.set_default_providers_for_netcode('XTN', testnet_list)
+
+init_connectors(config.get_config())

@@ -68,11 +68,10 @@ corresponding private key for testing issuing certificates:
 
 ## Issuing certificates
 
-1. Add your certificates to /etc/cert-issuer/data/unsigned_certs/. To preview the certificate issuing workflow, you can add our sample unsigned certificate as follows. Note that
-    we are renaming the file to the uid field in the unsigned certificate
+1. Add your certificates to /etc/cert-issuer/data/unsigned_certs/. To preview the certificate issuing workflow, you can add our sample unsigned certificate as follows.
 
     ```
-    cp /cert-issuer/docs/sample_unsigned_cert.json /etc/cert-issuer/data/unsigned_certs/3a4452c9-0e2b-4a96-b2f5-41dd84606b07.json
+    cp /cert-issuer/examples/data-testnet/unsigned_certs/6c6bd2ec-d0d6-41a9-bec8-57bb904c62a8.json /etc/cert-issuer/data/unsigned_certs/
     ```
 
 2. Make sure you have enough BTC in your issuing address.
@@ -125,7 +124,20 @@ This project uses tox to validate against several python environments.
 
 ## Examples
 
-The files in examples\data-testnet and examples\data-mainnet contain results of previous runs. 
+The files in examples/data-testnet and examples/data-mainnet contain results of previous runs. 
+
+## Ignorable errors
+
+If you see errors like this in the output, but the script succeeds anyway,
+then it's an ignorable error. 
+
+See [https://github.com/richardkiss/pycoin/issues/194](https://github.com/richardkiss/pycoin/issues/194)
+
+```
+raise ScriptError("getitem out of range")
+pycoin.tx.script.ScriptError: getitem out of range
+```
+
 
 ## Contact
 

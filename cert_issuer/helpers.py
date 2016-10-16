@@ -15,8 +15,10 @@ from cert_issuer import config, models
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
 if sys.version > '3':
-    unhexlify = lambda h: binascii.unhexlify(h.encode('utf8'))
-    hexlify = lambda b: binascii.hexlify(b).decode('utf8')
+    def unhexlify(hex_string): return binascii.unhexlify(hex_string.encode('utf8'))
+
+
+    def hexlify(hex_bytes): return binascii.hexlify(hex_bytes).decode('utf8')
 
 secrets_file_path = os.path.join(
     config.get_config().usb_name, config.get_config().key_file)
@@ -46,23 +48,23 @@ def import_key():
 
 def clear_folder(folder_name):
     files = glob.glob(folder_name + '*')
-    for f in files:
-        os.remove(f)
+    for file_to_remove in files:
+        os.remove(file_to_remove)
     return True
 
 
 def internet_on():
     """Pings Google to see if the internet is on. If online, returns true. If offline, returns false."""
     try:
-        r = requests.get('http://google.com')
+        requests.get('http://google.com')
         return True
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         return False
 
 
 def check_internet_off():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    if config.get_config().skip_wifi_check:
+    if not config.get_config().safe_mode:
         logging.warning(
             'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
             ' ensure this is what you want, since this is less secure')
@@ -79,7 +81,7 @@ def check_internet_off():
 
 def check_internet_on():
     """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    if config.get_config().skip_wifi_check:
+    if not config.get_config().safe_mode:
         logging.warning(
             'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
             ' ensure this is what you want, since this is less secure')
@@ -97,8 +99,9 @@ def archive_files(from_pattern, archive_dir, to_pattern, batch_id):
     """
     Archives files matching from_pattern and renames to to_pattern based on uid in a batch folder
     :param from_pattern:
+    :param archive_dir
     :param to_pattern:
-    :param timestamp:
+    :param batch_id:
     :return:
     """
     # place archived files in a timestamped folder
@@ -117,6 +120,11 @@ def archive_files(from_pattern, archive_dir, to_pattern, batch_id):
 
 
 def clear_intermediate_folders(app_config):
+    """
+    Cleanup intermediate state from previous runs
+    :param app_config:
+    :return:
+    """
     folders_to_clear = [app_config.hashed_certs_file_pattern,
                         app_config.unsigned_txs_file_pattern,
                         app_config.signed_txs_file_pattern,
@@ -125,13 +133,11 @@ def clear_intermediate_folders(app_config):
         clear_folder(folder)
 
 
-def get_current_time_ms():
-    current_time = int(round(time.time() * 1000))
-    return current_time
-
 def get_batch_id(uids):
     """
-    Need to get a deterministic batch id from file names. uids are assumed to be sorted. Throughout this app we store
-    certificates in OrderedDicts.
+    Constructs a deterministic batch id from file names. The input uids are assumed to be sorted.
+    Throughout this app we store certificates in OrderedDicts
+    :param uids:
+    :return:
     """
     return hashlib.md5(''.join(uids).encode('utf-8')).hexdigest()

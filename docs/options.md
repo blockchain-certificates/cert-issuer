@@ -4,7 +4,6 @@
 
 __This is the fastest way to experiment, but is not configured to issue real certificates on the blockchain__
 
-
 The cert-issuer docker container allows you to experiment with issuing certificates. This uses a bitcoind image, but runs
 with the regtest (regression test) flag enabled. This simulates working with the bitcoin blockchain without
 actually spending money. This also means that the certificates generated this way are not actually on the bitcoin blockchain.

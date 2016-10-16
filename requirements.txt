@@ -1,5 +1,5 @@
-pycoin==0.62
-python-bitcoinlib==0.5.0
+pycoin==0.70
+python-bitcoinlib==0.7.0
 requests==2.9.1
 mock==2.0.0
 glob2==0.4.1
