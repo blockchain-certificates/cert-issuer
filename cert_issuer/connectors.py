@@ -60,7 +60,6 @@ class LocalBlockchainInfoConnector(object):
                                                  'amount': amount,
                                                  'fee': fee})
         try_get(payment_url)
-        try_get(payment_url)
 
     def _make_url(self, command, extras={}):
         url = 'http://localhost:3000/merchant/%s/%s?password=%s&api_code=%s' % (
