@@ -2,7 +2,7 @@
 
 # cert-issuer
 
-he cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
+The cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
 recipient on the Bitcoin blockchain that includes the hash of the certificate itself. 
 
 ## Quick start using Docker
@@ -114,10 +114,16 @@ This project uses tox to validate against several python environments.
     ./run_tests.sh
     ```
 
+## Issuing options
+
+The quick start instructions use a test mode for issuing certificates. Most of the steps apply for issuing certificates on the real Bitcoin blockchain. Read [Certificate Issuing Options](http://www.blockcerts.org/guide/options.html) for an overview of issuing options.
+
 ## Advanced Docs
 
-- [Bitcoin client options](docs/options.md)
-- [Live installation options](docs/live.md)
+- Issuing options
+    - [Overview of issuing options](http://www.blockcerts.org/guide/options.html)
+    - [Local Bitcoin node setup and installation](docs/bitcoind.md)
+    - [Blockchain.info setup and installation](docs/blockchain_info.md)
 - [Creating addresses](docs/make_addresses.md)
 - [Issuing certificates](docs/issuing.md)
 - [Debugging](docs/debugging.md)
@@ -142,4 +148,5 @@ pycoin.tx.script.ScriptError: getitem out of range
 ## Contact
 
 Contact [info@blockcerts.org](mailto:info@blockcerts.org) with questions
+
 
