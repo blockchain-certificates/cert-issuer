@@ -34,4 +34,4 @@ bitcoin_chain=mainnet
 
 ## Issuing certificates
 
-Now you're ready to issue certificates. See [[issuing.md]]
+Now you're ready to issue certificates. See [issuing instructinos](issuing.md).

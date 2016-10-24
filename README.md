@@ -120,8 +120,10 @@ The quick start instructions use a test mode for issuing certificates. Most of t
 
 ## Advanced Docs
 
-
-
+- Issuing options
+    - [Overview of issuing options](http://www.blockcerts.org/guide/options.html)
+    - [Local Bitcoin node setup and installation](docs/bitcoind.md)
+    - [Blockchain.info setup and installation](docs/blockchain_info.md)
 - [Creating addresses](docs/make_addresses.md)
 - [Issuing certificates](docs/issuing.md)
 - [Debugging](docs/debugging.md)
@@ -148,21 +150,3 @@ pycoin.tx.script.ScriptError: getitem out of range
 Contact [info@blockcerts.org](mailto:info@blockcerts.org) with questions
 
 
-######
-TODO: testnet
-https://bitcoin.org/en/full-node
-
-https://bitcoin.org/en/developer-examples
-
- To do this, you first have to obtain Testnet coins. Do this as follows:
-Launch bitcoind in testnet mode (TODO link)
-Generate an issuing address (see example in cert-issuer README.md). Note that this will be a testnet address because you started bitcoind in testnet mode 
-Request some testnet coins by searching for “Testnet Faucet”, and entering your issuing address. It may take a while for the transaction to be confirmed
-Important: make sure you follow the guidance of the testnet faucet provider!
-
-
-Afterwards, you can even see your transaction on a Testnet blockchain explorer. (TODO example)
-
-####
-bitcoind
-TODO: about bitcoind peer https://bitcoin.org/en/developer-examples

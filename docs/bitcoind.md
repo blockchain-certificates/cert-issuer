@@ -6,7 +6,9 @@ The quick start guide runs a Bitcoin node in a Docker container. These instructi
 
 ## Setup and Installation
 
-Follow the instructions to [build Bitcoin Core for your OS](https://github.com/bitcoin/bitcoin/tree/master/doc). For example, [OSX instructions](https://github.com/bitcoin/bitcoin/blob/master/doc/build-osx.md)
+Start by reading an overview of requirements and other concerns when [running a Bitcoin full node](https://bitcoin.org/en/full-node). [Bitcoin.org's developer examples](https://bitcoin.org/en/developer-examples) provide more context to the steps here.
+
+These instructions walk through the steps for [installing Bitcoin Core for your OS](https://github.com/bitcoin/bitcoin/tree/master/doc). For example, [OSX instructions](https://github.com/bitcoin/bitcoin/blob/master/doc/build-osx.md)
 
 ## Configuring your Bitcoin node for regtest mode
 
@@ -45,7 +47,7 @@ The bitcoin.conf file determines how your bitcoin node will run, and which chain
     no_transfer_from_storage_address
     ```
 
-4. Now you are ready to issue certificates. See the instructions in [[issuing.md]]
+4. Now you are ready to issue certificates. See [issuing instructions](issuing.md)
 
 ## Configuring your Bitcoin node for testnet mode
 
@@ -83,5 +85,11 @@ The bitcoin.conf file determines how your bitcoin node will run, and which chain
     no_safe_mode
     no_transfer_from_storage_address
     ```
-    
-4. Now you are ready to issue certificates. See the instructions in [[issuing.md]]
+ 
+4. Next you need to obtain Testnet coins. 
+    - Create an issuer address; see [create addresses, Bitcoin node instructions](make_addresses.md)
+      - You will need the public address. Since we are running the Bitcoin node in testnet mode, the address will start with 'm' or 'n'
+    - Request some testnet coins by searching for “Testnet Faucet”, and entering your issuing public address. It may take a while for the transaction to be confirmed.
+      - Important: make sure you follow the guidance of the testnet faucet provider!
+ 
+5. Now you are ready to issue certificates. See [issuing instructions](issuing.md)
