@@ -1,21 +1,21 @@
-# Local bitcoind instructions
+# Local Bitcoin node instructions
 
-You can also install a local bitcoind node. As with the docker install path, you can run bitcoind in regtest mode
-to experiment without spending money.
+See [Certificate Issuing Options](http://www.blockcerts.org/guide/options.html) for an overview of issuing options. This describes installing and configuring bitcoind for regtest and testnet modes.
 
+The quick start guide runs a Bitcoin node in a Docker container. These instructions show how to install it locally.
 
-## Install
-1. Follow the instructions to [build Bitcoin Core for your OS](https://github.com/bitcoin/bitcoin/tree/master/doc)
+## Setup and Installation
 
-    - for example, [OSX instructions](https://github.com/bitcoin/bitcoin/blob/master/doc/build-osx.md)
+Follow the instructions to [build Bitcoin Core for your OS](https://github.com/bitcoin/bitcoin/tree/master/doc). For example, [OSX instructions](https://github.com/bitcoin/bitcoin/blob/master/doc/build-osx.md)
 
+## Configuring your Bitcoin node for regtest mode
 
-2. Edit the bitcoin config to run in regtest mode.
+The bitcoin.conf file determines how your bitcoin node will run, and which chain it uses.
 
-    a. Edit or create a new bitcoin.conf file, with the following entries:
+1. Locate the bitcoin.conf file for your environment. Then edit or create a new file named bitcoin.conf (first save the old one with a different name), with the following entries:
      ```
-     rpcuser=bitcoinrpc
-     rpcpassword=6c8a25acd56561b2a039197e86d07c97
+     rpcuser=<your-user>
+     rpcpassword=<your-password>
      regtest=1
      relaypriority=0
      rpcallowip=127.0.0.1
@@ -23,19 +23,65 @@ to experiment without spending money.
      rpcconnect = 127.0.0.1
      ```
 
-    b. Start the bitcoind daemon with this config file:
+2. Start the bitcoind daemon with this config file:
 
     ```
     bitcoind -daemon -conf=your-bitcoin.conf
     ```
 
-## Testnet mode
+3. Edit your conf.ini file (for this application). You can use conf_regtest.ini as a starting point.
 
-```
-rpcuser=bitcoinrpc
-rpcpassword=6c8a25acd56561b2a039197e86d07c97
-testnet=1
-server=1
-rpctimeout=30
-rpcport=8332
-```
+    ```
+    storage_address = <storage-address>
+    revocation_address = <revocation-address>
+    
+    usb_name = </Volumes/path-to-usb/>
+    key_file = <file-you-saved-pk-to>
+    
+    wallet_connector_type=bitcoind
+    bitcoin_chain=regtest
+    
+    no_safe_mode
+    no_transfer_from_storage_address
+    ```
+
+4. Now you are ready to issue certificates. See the instructions in [[issuing.md]]
+
+## Configuring your Bitcoin node for testnet mode
+
+The bitcoin.conf file determines how your bitcoin node will run, and which chain it uses.
+
+1. Locate the bitcoin.conf file for your environment. Then edit or create a new file named bitcoin.conf (first save the old one with a different name), with the following entries:
+
+    ```
+    rpcuser=<your-user>
+    rpcpassword=<your-password>
+    testnet=1
+    server=1
+    rpctimeout=30
+    rpcport=8332
+    ```
+
+2. Start the bitcoind daemon with this config file:
+
+    ```
+    bitcoind -daemon -conf=your-bitcoin.conf
+    ```
+
+3. Edit your conf.ini file (for this application). Note that the difference between this and regtest is the bitcoin_chain setting.
+
+    ```
+    storage_address = <storage-address>
+    revocation_address = <revocation-address>
+    
+    usb_name = </Volumes/path-to-usb/>
+    key_file = <file-you-saved-pk-to>
+    
+    wallet_connector_type=bitcoind
+    bitcoin_chain=testnet
+    
+    no_safe_mode
+    no_transfer_from_storage_address
+    ```
+    
+4. Now you are ready to issue certificates. See the instructions in [[issuing.md]]

@@ -1,17 +1,24 @@
 # Issuing Certificates
 
-1. Prerequisites
+## Prerequisites
 
-    - If you are using the blockchain.info API, start the blockchain.info server
-
+- Ensure you've installed and configured your bitcoin wallet dependencies. If you haven't yet, see [Certificate Issuing Options](http://www.blockcerts.org/guide/options.html) for an overview of issuing options.
+- If you haven't already, make sure your conf.ini (for this application) is correct. See [[bitcoind.md]] or [[blockchain_info.md]], depending on which you are using.
+- Ensure your wallet software is running:
+    - If you are using a Bitcoin node, ensure you've started your bitcoin daemon. (In the Quick Start docker container, it will run on startup)
+        ```
+        bitcoind -daemon -conf=your-bitcoin.conf
+        ```
+    - Otherwise, if you are using the blockchain.info API, ensure your local blockchain.info service is running
         ```
         blockchain-wallet-service start --port 3000
         ```
-    - Otherwise start your local bitcoind client (use regtest mode to preview!)
 
-2. Add your certificates to data/unsigned_certs/
+## Issuing
 
-3. Make sure you have enough BTC in your issuing address. Each certificate costs 15000 satoshi ($0.06 USD)
+1. Add your certificates to data/unsigned_certs/
+
+2. Make sure you have enough BTC in your issuing address. Each certificate costs 12750 satoshi ($0.08 USD)
 
     __Important note on denominations: If you are running a bitcoind node, note that the standard cli denomination is bitcoins not satoshis! In the cert-issuer app, the standard unit is Satoshis (this is common in other apis), and the values are converted to bitcoin first.__
 
@@ -20,14 +27,25 @@
     bitcoin-cli sendtoaddress $issuer <amount>
     ```
 
-    b. Otherwise transfer with your online wallet
+    b. Otherwise send a payment to the issuing address with your online wallet
 
-4. Run the create-certificates.py script to create your certificates. If you've installed the package
+3. Run the sign_certificates script to sign your certificates. If you've installed the package
 you can run:
-    `python cert-issuer -c conf.ini`
 
+    ```
+    python cert-signer -c conf.ini
+    ```
 
+4. Make sure the previous step succeeded. At this point, the signed certs should be under data/signed_certs, and the certs you previously added to unsigned certs should be moved under the 'archive' dir
 
+5. Run the issue_certificates.py script to create your certificates. If you've installed the package
+you can run:
+
+    ```
+    python cert-issuer -c conf.ini
+    ```
+
+6. The Blockchain Certificates will be located in data/blockchain_certificates.
 
 
 
