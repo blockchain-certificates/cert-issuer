@@ -102,6 +102,13 @@ corresponding private key for testing issuing certificates:
     ```
     cert-issuer -c /etc/cert-issuer/conf.ini
     ```
+    
+5. Your Blockchain certificates are located in `/etc/cert-issuer/data/blockchain_certificates`. Copy these to your local machine, and add them to cert-viewer's `cert_data` folder to see your certificates in the Certificate Viewer.
+
+```
+docker ps  // shows the docker containerId
+docker cp <containerId>:/etc/cert-issuer/data/blockchain_certificates <localPath>/cert-viewer/cert_data
+```
 
 ## Unit tests
 
