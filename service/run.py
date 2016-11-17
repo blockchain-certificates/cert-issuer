@@ -59,8 +59,6 @@ import logging
 import shutil
 import threading
 from os import path, makedirs, listdir
-import sys
-import signal
 
 import boto3
 
@@ -178,11 +176,8 @@ def issue_certs(s3, bucket, e, issuance_request, work_dir):
         e.set()
         logging.info('Finished')
 
-def handler(signum, frame):
-    sys.exit(1)
 
 def main(args=None):
-    signal.signal(signal.SIGTERM, handler)
     conf = {
         'request-queue-name': 'learningmachine-cts-auto-cert-issuer-request',
         'response-queue-name': 'learningmachine-cts-auto-cert-issuer-response',
