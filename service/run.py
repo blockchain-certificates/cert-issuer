@@ -59,6 +59,8 @@ import logging
 import shutil
 import threading
 from os import path, makedirs, listdir
+import sys
+import signal
 
 import boto3
 
@@ -75,9 +77,6 @@ logging.basicConfig(level=logging.DEBUG,
                     )
 
 events = dict()
-MAX_NUM = 10
-SQS_WAIT_TIMEOUT = 2
-LOCAL_QUEUE_WAIT_TIMEOUT = 2
 
 dirs = ['blockchain_certificates', 'hashed_certs', 'receipts', 'sent_txs', 'signed_certs', 'tree', 'unsigned_certs', 'unsigned_txs']
 
@@ -117,9 +116,8 @@ def download_unsigned_certificates(s3, bucket, prefix, unsigned_certs_dir):
 
 
 
-def issue_certs_mock(s3, bucket, e, issuance_request):
+def issue_certs_mock(s3, bucket, e, issuance_request, work_dir):
     issuance_batch_id_temp = issuance_request.batch_id
-    work_dir = 'scratch'
     makedirs(work_dir, exist_ok=True)
 
     batch_dir = path.join(work_dir, issuance_batch_id_temp)
@@ -132,11 +130,9 @@ def issue_certs_mock(s3, bucket, e, issuance_request):
     logging.info('Finished')
 
 
-def issue_certs(s3, bucket, e, issuance_request):
+def issue_certs(s3, bucket, e, issuance_request, work_dir):
     issuance_batch_id_temp = issuance_request.batch_id
 
-    # TODO
-    work_dir = 'scratch'
     makedirs(work_dir, exist_ok=True)
 
     batch_dir = path.join(work_dir, issuance_batch_id_temp)
@@ -182,12 +178,19 @@ def issue_certs(s3, bucket, e, issuance_request):
         e.set()
         logging.info('Finished')
 
+def handler(signum, frame):
+    sys.exit(1)
 
 def main(args=None):
+    signal.signal(signal.SIGTERM, handler)
     conf = {
         'request-queue-name': 'learningmachine-cts-auto-cert-issuer-request',
         'response-queue-name': 'learningmachine-cts-auto-cert-issuer-response',
-        'issuer-s3-bucket': 'learningmachine-cts-auto-issuer'
+        'issuer-s3-bucket': 'learningmachine-cts-auto-issuer',
+        'region': 'us-east-1',
+        'sqs-wait-timeout': 10,
+        'issuer-wait-timeout': 10,
+        'work-dir': path.join(PATH, 'service', 'scratch')
     }
     test = False
     test_data = True
@@ -198,7 +201,7 @@ def main(args=None):
         moto1.start()
         moto2.start()
 
-    sqs = boto3.resource('sqs')
+    sqs = boto3.resource('sqs', region_name=conf.get('region'))
     if test:
         test_helpers.create_test_queue(conf, sqs)
 
@@ -208,22 +211,25 @@ def main(args=None):
     if test_data:
         test_helpers.create_test_message(request_queue)
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client('s3', region_name=conf.get('region'))
 
     bucket_name = conf.get('issuer-s3-bucket')
+    sqs_wait_timeout = conf.get('sqs-wait-timeout')
+    issuer_wait_timeout = conf.get('issuer-wait-timeout')
+    work_dir = conf.get('work-dir')
+    test_cert = path.join(PATH, 'service', '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
 
     if test:
         s3_client.create_bucket(Bucket=bucket_name)
 
     while True:
         for message in request_queue.receive_messages(MessageAttributeNames=['Author'],
-                                                      WaitTimeSeconds=SQS_WAIT_TIMEOUT):
+                                                      WaitTimeSeconds=sqs_wait_timeout):
             if message:
                 issuance_request = json.loads(message.body)
                 print(issuance_request)
 
                 if test_data:
-                    test_cert = path.join(PATH, 'service', '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
                     test_helpers.upload_test_cert(s3_client, bucket_name, issuance_request['s3BasePath'], test_cert)
 
                 e = threading.Event()
@@ -231,11 +237,10 @@ def main(args=None):
                 issuance_batch_id = issuance_request['issuanceBatchId']
                 s = IssuingRequest(batch_id=issuance_batch_id,
                                    s3_base=issuance_request['s3BasePath'],
-                                   chain=issuance_request['chain'],
-                                   customer_id=issuance_request['customerId'])
+                                   chain=issuance_request['chain'])
                 t = threading.Thread(name='issuerBatch' + issuance_batch_id,
                                      target=issue_certs_mock,
-                                     args=(s3_client, bucket_name, e, s))
+                                     args=(s3_client, bucket_name, e, s, work_dir))
                 events[e] = s
                 t.start()
                 message.delete()
@@ -244,7 +249,7 @@ def main(args=None):
         events_to_remove = []
         for e, s in events.items():
             logging.debug('wait_for_event_timeout starting')
-            event_is_set = e.wait(LOCAL_QUEUE_WAIT_TIMEOUT)
+            event_is_set = e.wait(issuer_wait_timeout)
             logging.info('event set: %s', event_is_set)
             if event_is_set:
                 logging.info('processed event')

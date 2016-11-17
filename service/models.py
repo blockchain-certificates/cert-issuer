@@ -11,10 +11,9 @@ class IssuingState(Enum):
 
 # , issuer_key, revocation_key
 class IssuingRequest(object):
-    def __init__(self, batch_id, s3_base, chain, customer_id):
+    def __init__(self, batch_id, s3_base, chain):
         self.batch_id = batch_id
         self.s3_base = s3_base
         self.chain = chain
-        self.customer_id = customer_id
         self.state = IssuingState.downloading_unsigned_certs
 
