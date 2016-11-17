@@ -16,10 +16,7 @@ class CostConfig:
         self.satoshi_per_byte = satoshi_per_byte
 
 
-def parse_args():
-    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf_regtest.ini'),
-                                                               os.path.join(PATH, 'conf.ini'),
-                                                               '/etc/cert-issuer/conf.ini'])
+def _parse_args(p):
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
@@ -49,7 +46,7 @@ def parse_args():
                    help='Prevent transfer BTC from storage to issuing address.')
     p.add_argument('--safe_mode', dest='safe_mode', action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
-    p.add_argument('--no_safe_mode', dest='safe_mode', action='store_true',
+    p.add_argument('--no_safe_mode', dest='safe_mode', action='store_false',
                    help='Turns off safe mode. Only change this option for testing or unit testing.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
@@ -65,39 +62,7 @@ def parse_args():
                    help='Default path to data directory, storing issued certs')
     return p.parse_known_args()
 
-
-def configure_logger():
-    # Configure logging settings; create console handler and set level to info
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-
-parsed_config = None
-constants = None
-
-
-def get_constants():
-    global constants
-    if constants:
-        return constants
-    config = get_config()
-    constants = CostConfig(config.tx_fee, config.dust_threshold, config.satoshi_per_byte)
-    return constants
-
-
-def get_config():
-    global parsed_config
-    if parsed_config:
-        return parsed_config
-    parsed_config, _ = parse_args()
-
-    # populate data and archive subdirs
-
+def _extra_config(parsed_config):
     parsed_config.unsigned_certs_file_part = 'unsigned_certs/*.json'
     parsed_config.signed_certs_file_part = 'signed_certs/*.json'
     parsed_config.txs_file_part = 'sent_txs/*.txt'
@@ -121,11 +86,9 @@ def get_config():
         parsed_config.data_path, parsed_config.blockchain_certificates_file_part)
     parsed_config.tree_file_pattern = os.path.join(
         parsed_config.data_path, 'tree/*.json')
-
     if not parsed_config.safe_mode:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
-
     if parsed_config.wallet_connector_type == 'bitcoind':
         bitcoin.SelectParams(parsed_config.bitcoin_chain)
     if parsed_config.bitcoin_chain == 'mainnet':
@@ -133,6 +96,55 @@ def get_config():
     else:
         parsed_config.netcode = 'XTN'
 
+
+def configure_logger():
+    # Configure logging settings; create console handler and set level to info
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+
+parsed_config = None
+constants = None
+
+def get_constants():
+    global constants
+    if constants:
+        return constants
+    config = get_config()
+    constants = CostConfig(config.tx_fee, config.dust_threshold, config.satoshi_per_byte)
+    return constants
+
+def parse_args():
+    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf_testnet_common.ini'),
+                                                               os.path.join(PATH, 'conf.ini'),
+                                                               '/etc/cert-issuer/conf.ini'])
+    return _parse_args(p)
+
+
+def get_config():
+    global parsed_config
+    if parsed_config:
+        return parsed_config
+    parsed_config, _ = parse_args()
+
+    # populate data and archive subdirs
+    _extra_config(parsed_config)
+
     configure_logger()
+
+    return parsed_config
+
+
+def _get_config(config_file):
+    p = configargparse.ArgParser(default_config_files=[config_file])
+    parsed_config, _ = _parse_args(p)
+
+    # populate data and archive subdirs
+    _extra_config(parsed_config)
 
     return parsed_config

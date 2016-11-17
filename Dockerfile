@@ -3,7 +3,8 @@ MAINTAINER Kim Duffy "kimhd@mit.edu"
 
 # Add bitcoind.conf
 RUN mkdir ~/.bitcoin
-RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=18333\nregtest=1\nserver=1\n" > ~/.bitcoin/bitcoin.conf
+
+RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=8332\ntestnet=1\nserver=1\nrpctimeout=30\n" > ~/.bitcoin/bitcoin.conf
 
 RUN apt-get update
 
@@ -37,14 +38,5 @@ RUN /bin/bash -c "source /cert-issuer/env/bin/activate && pip install /cert-issu
 
 # Active this virtualenv when the container run interactively
 RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
-
-# Copy configuration file
-RUN mkdir /etc/cert-issuer
-COPY conf_regtest.ini /etc/cert-issuer/conf.ini
-
-RUN echo '\ndata_path=/etc/cert-issuer/data\narchive_path=/etc/cert-issuer/archive\n' >> /etc/cert-issuer/conf.ini
-
-COPY ./data /etc/cert-issuer/data
-COPY ./archive /etc/cert-issuer/archive
 
 ENTRYPOINT bitcoind -daemon && bash

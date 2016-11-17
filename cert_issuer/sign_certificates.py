@@ -72,16 +72,17 @@ def main(app_config):
     certificates = find_unsigned_certificates(app_config)
     if not certificates:
         logging.info('No certificates to process')
-        exit(0)
+        return # TODO
 
     batch_id = helpers.get_batch_id(list(certificates.keys()))
     logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
 
     # validate schema
-    for uid, certificate in certificates.items():
-        with open(certificate.unsigned_certificate_file_name) as cert:
-            cert_json = json.load(cert)
-            schema_validator.validate_unsigned_v1_2(cert_json)
+    # TODO: kim -- why Bad file descriptor?
+    #for uid, certificate in certificates.items():
+    #    with open(certificate.unsigned_certificate_file_name) as cert:
+    #        cert_json = json.load(cert)
+    #        schema_validator.validate_unsigned_v1_2(cert_json)
 
     # ensure they are not already signed. We want the user to know about this in case there
     # is a failure from a previous run

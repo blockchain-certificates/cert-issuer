@@ -125,7 +125,7 @@ def main(app_config):
     certificates = find_signed_certificates(app_config)
     if not certificates:
         logging.info('No certificates to process')
-        exit(0)
+        return # TODO
 
     batch_id = helpers.get_batch_id(list(certificates.keys()))
     logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
@@ -138,7 +138,8 @@ def main(app_config):
 
     issuer = BatchIssuer(config=app_config, certificates_to_issue=certificates)
 
-    issuer.validate_schema()
+    # TODO
+    # issuer.validate_schema()
 
     # verify signed certs are signed with issuing key
     [verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
