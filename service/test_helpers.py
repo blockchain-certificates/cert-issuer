@@ -11,9 +11,8 @@ def create_test_queue(conf, sqs):
 def create_test_message(queue):
     message_body = {
         'issuanceBatchId': '123',
-        's3BasePath': 'customers/123',
+        's3BasePath': 'batch/123',
         'chain': 'testnet',
-        'customerId': 'Customer634'
     }
     queue.send_message(MessageBody=json.dumps(message_body))
 
