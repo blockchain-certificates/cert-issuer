@@ -39,4 +39,7 @@ RUN /bin/bash -c "source /cert-issuer/env/bin/activate && pip install /cert-issu
 # Active this virtualenv when the container run interactively
 RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
 
-ENTRYPOINT bitcoind -daemon && bash
+COPY start_issuer.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
