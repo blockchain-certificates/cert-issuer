@@ -223,7 +223,8 @@ def main(args=None):
                 print(issuance_request)
 
                 if test_data:
-                    test_helpers.upload_test_cert(s3_client, bucket_name, issuance_request['s3BasePath'], '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
+                    test_cert = path.join(PATH, 'service', '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
+                    test_helpers.upload_test_cert(s3_client, bucket_name, issuance_request['s3BasePath'], test_cert)
 
                 e = threading.Event()
 
