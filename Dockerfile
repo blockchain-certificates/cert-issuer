@@ -29,8 +29,6 @@ RUN pip install virtualenv
 
 COPY . /cert-issuer
 
-COPY conf_testnet_common.ini /cert-issuer
-
 # Create and set up the virtualenv
 RUN virtualenv -p /usr/local/bin/python3 /cert-issuer/env/
 

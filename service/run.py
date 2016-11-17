@@ -197,11 +197,14 @@ def main(args=None):
         moto2.start()
 
     sqs = boto3.resource('sqs')
-    if test_data:
-        test_helpers.create_test_queue_and_message(conf, sqs)
+    if test:
+        test_helpers.create_test_queue(conf, sqs)
 
     request_queue = sqs.get_queue_by_name(QueueName=conf.get('request-queue-name'))
     response_queue = sqs.get_queue_by_name(QueueName=conf.get('response-queue-name'))
+
+    if test_data:
+        test_helpers.create_test_message(request_queue)
 
     s3_client = boto3.client('s3')
     bucket_name = conf.get('issuer-s3-bucket')

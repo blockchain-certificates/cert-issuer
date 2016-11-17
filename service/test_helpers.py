@@ -4,7 +4,10 @@ import os
 
 
 def create_test_queue_and_message(conf, sqs):
-    queue = sqs.create_queue(QueueName=conf.get('request-queue-name'), Attributes={'DelaySeconds': '5'})
+    sqs.create_queue(QueueName=conf.get('request-queue-name'), Attributes={'DelaySeconds': '5'})
+    sqs.create_queue(QueueName=conf.get('response-queue-name'), Attributes={'DelaySeconds': '5'})
+
+def create_test_message(queue):
     message_body = {
         'issuanceBatchId': '123',
         's3BasePath': 'customers/123',
@@ -12,8 +15,6 @@ def create_test_queue_and_message(conf, sqs):
         'customerId': 'Learning Machine customer id'
     }
     queue.send_message(MessageBody=json.dumps(message_body))
-
-    sqs.create_queue(QueueName=conf.get('response-queue-name'), Attributes={'DelaySeconds': '5'})
 
 
 def upload_test_cert(s3_client, bucket, path, local_file):

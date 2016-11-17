@@ -10,4 +10,4 @@ cert-schema>=1.2.20
 pyld>=0.7.1
 boto3>=1.4.1
 httpretty>=0.8.14
-moto>=0.4.30
+moto==0.4.30
