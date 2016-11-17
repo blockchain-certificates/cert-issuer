@@ -124,8 +124,10 @@ def issue_certs_mock(s3, bucket, e, issuance_request):
 
     batch_dir = path.join(work_dir, issuance_batch_id_temp)
 
-    upload_results(s3, bucket, batch_dir, issuance_request.s3_base)
     issuance_request.state = IssuingState.uploading_results
+    upload_results(s3, bucket, batch_dir, issuance_request.s3_base)
+
+    issuance_request.state = IssuingState.succeeded
     e.set()
     logging.info('Finished')
 
@@ -250,7 +252,7 @@ def main(args=None):
                     'state': s.state.name
                 }
                 if s.state == IssuingState.succeeded:
-                    message_body['s3UnsignedCertificatesPath'] = path.join(s.s3_base, 'blockchain_certificates')
+                    message_body['blockchainCertificates'] = path.join(s.s3_base, 'blockchain_certificates')
 
                 response_queue.send_message(MessageBody=json.dumps(message_body))
                 events_to_remove.append(e)
