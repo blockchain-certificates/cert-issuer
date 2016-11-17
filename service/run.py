@@ -185,7 +185,7 @@ def main(args=None):
     conf = {
         'request-queue-name': 'learningmachine-cts-auto-cert-issuer-request',
         'response-queue-name': 'learningmachine-cts-auto-cert-issuer-response',
-        'issuer-s3-bucket': 'learningmachine-cts-issuer-demo'
+        'issuer-s3-bucket': 'learningmachine-cts-auto-issuer'
     }
     test = False
     test_data = True
@@ -207,7 +207,11 @@ def main(args=None):
         test_helpers.create_test_message(request_queue)
 
     s3_client = boto3.client('s3')
+
     bucket_name = conf.get('issuer-s3-bucket')
+
+    if test:
+        s3_client.create_bucket(Bucket=bucket_name)
 
     while True:
         for message in request_queue.receive_messages(MessageAttributeNames=['Author'],
