@@ -187,7 +187,7 @@ def main(args=None):
         'response-queue-name': 'learningmachine-cts-auto-cert-issuer-response',
         'issuer-s3-bucket': 'learningmachine-cts-issuer-demo'
     }
-    test = True
+    test = False
     test_data = True
     if test:
         from moto import mock_s3, mock_sqs
