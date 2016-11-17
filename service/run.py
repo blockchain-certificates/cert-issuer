@@ -61,6 +61,7 @@ import threading
 from os import path, makedirs, listdir
 
 import boto3
+
 from botocore.exceptions import ClientError
 
 from cert_issuer import sign_certificates, issue_certificates
@@ -91,6 +92,14 @@ def upload_results(s3, bucket, batch_dir, s3_path):
 
 
 def download_unsigned_certificates(s3, bucket, prefix, unsigned_certs_dir):
+    from boto3.s3.transfer import S3Transfer, TransferConfig
+    config = TransferConfig(
+        multipart_threshold=8 * 1024 * 1024,
+        max_concurrency=10,
+        num_download_attempts=10,
+    )
+    transfer = S3Transfer(s3, config)
+
     response = s3.list_objects(
         Bucket=bucket,
         Delimiter='//',
@@ -101,7 +110,24 @@ def download_unsigned_certificates(s3, bucket, prefix, unsigned_certs_dir):
         if not s3_object.endswith("/"):
             file_name = path.basename(s3_object)
             dest = path.join(unsigned_certs_dir, file_name)
-            s3.download_file(bucket, s3_object, dest)
+            logging.info('Copying unsigned certificate=%s to dest=%s', file_name, dest)
+            #s3.download_file(bucket, s3_object, dest)
+            #s3_key.get_contents_to_filename(dest)
+            transfer.download_file(bucket, s3_object, dest)
+
+
+
+def issue_certs_mock(s3, bucket, e, issuance_request):
+    issuance_batch_id_temp = issuance_request.batch_id
+    work_dir = 'scratch'
+    makedirs(work_dir, exist_ok=True)
+
+    batch_dir = path.join(work_dir, issuance_batch_id_temp)
+
+    upload_results(s3, bucket, batch_dir, issuance_request.s3_base)
+    issuance_request.state = IssuingState.uploading_results
+    e.set()
+    logging.info('Finished')
 
 
 def issue_certs(s3, bucket, e, issuance_request):
@@ -124,9 +150,6 @@ def issue_certs(s3, bucket, e, issuance_request):
 
         from cert_issuer import config
 
-        import time
-        #time.sleep(5)
-
         config_file_name = str.format('conf_testnet_{0}.ini', issuance_batch_id_temp)
 
         config_file_dest = path.join(batch_dir, config_file_name)
@@ -138,13 +161,10 @@ def issue_certs(s3, bucket, e, issuance_request):
         parsed_config = config._get_config(config_file_dest)
 
         issuance_request.state = IssuingState.signing_certs
-        time.sleep(1)
-        #sign_certificates.main(parsed_config)
+        sign_certificates.main(parsed_config)
 
         issuance_request.state = IssuingState.issuing_certs
-        time.sleep(1)
-
-        #issue_certificates.main(parsed_config)
+        issue_certificates.main(parsed_config)
 
         upload_results(s3, bucket, batch_dir, issuance_request.s3_base)
         issuance_request.state = IssuingState.uploading_results
@@ -167,7 +187,7 @@ def main(args=None):
         'response-queue-name': 'learningmachine-cts-auto-cert-issuer-response',
         'issuer-s3-bucket': 'learningmachine-cts-issuer-demo'
     }
-    test = False
+    test = True
     test_data = True
     if test:
         from moto import mock_s3, mock_sqs
@@ -204,7 +224,7 @@ def main(args=None):
                                    chain=issuance_request['chain'],
                                    customer_id=issuance_request['customerId'])
                 t = threading.Thread(name='issuerBatch' + issuance_batch_id,
-                                     target=issue_certs,
+                                     target=issue_certs_mock,
                                      args=(s3_client, bucket_name, e, s))
                 events[e] = s
                 t.start()
