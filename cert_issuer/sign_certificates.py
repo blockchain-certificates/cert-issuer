@@ -78,7 +78,6 @@ def main(app_config):
     logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
 
     # validate schema
-    # TODO: kim -- why Bad file descriptor?
     for uid, certificate in certificates.items():
         with open(certificate.unsigned_certificate_file_name) as cert:
             cert_json = json.load(cert)

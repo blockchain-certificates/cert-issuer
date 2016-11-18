@@ -138,8 +138,7 @@ def main(app_config):
 
     issuer = BatchIssuer(config=app_config, certificates_to_issue=certificates)
 
-    # TODO
-    # issuer.validate_schema()
+    issuer.validate_schema()
 
     # verify signed certs are signed with issuing key
     [verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
