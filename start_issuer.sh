@@ -24,9 +24,30 @@ trap 'kill ${!}; term_handler' SIGTERM
 
 bitcoind -daemon
 
-source /cert-issuer/env/bin/activate
+
+sleep 5
+
+# create issuing address
+issuer=`bitcoin-cli getnewaddress`
+sed -i.bak "s/<issuing-address>/$issuer/g" /etc/cert-issuer/conf.ini
+bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/priv.txt
+
+# create revocation address
+revocation=`bitcoin-cli getnewaddress`
+sed -i.bak "s/<revocation-address>/$revocation/g" /etc/cert-issuer/conf.ini
+
+
+# make sure you have enough BTC in your issuing address
+bitcoin-cli generate 101
+bitcoin-cli getbalance
+bitcoin-cli sendtoaddress $issuer 5
+
+sleep 1
+
+
 cd /cert-issuer/
-python service/run.py -c conf_testnet_common.ini --usb_name /cert-issuer/ &
+source /cert-issuer/env/bin/activate
+python service/run.py -c /etc/cert-issuer/conf.ini --usb_name /etc/cert-issuer/ &
 pid="$!"
 
 # wait forever
