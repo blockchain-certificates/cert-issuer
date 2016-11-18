@@ -63,8 +63,10 @@ from os import path, makedirs, listdir
 import boto3
 
 from botocore.exceptions import ClientError
+from boto3.s3.transfer import S3Transfer, TransferConfig
 
 from cert_issuer import sign_certificates, issue_certificates
+from cert_issuer.errors import InsufficientFundsError
 from service import test_helpers
 from service.models import IssuingState, IssuingRequest
 
@@ -87,9 +89,11 @@ def upload_results(s3, bucket, batch_dir, s3_path):
             dest_path = path.join(s3_path, d, f)
             s3.upload_file(file_path, bucket, dest_path)
 
+class CertificatesNotFound(Exception):
+    pass
 
 def download_unsigned_certificates(s3, bucket, prefix, unsigned_certs_dir):
-    from boto3.s3.transfer import S3Transfer, TransferConfig
+
     config = TransferConfig(
         multipart_threshold=8 * 1024 * 1024,
         max_concurrency=10,
@@ -102,14 +106,15 @@ def download_unsigned_certificates(s3, bucket, prefix, unsigned_certs_dir):
         Delimiter='//',
         Prefix=prefix,
     )
+    if not 'Contents' in response:
+        raise CertificatesNotFound()
+
     for s3_key in response['Contents']:
         s3_object = s3_key['Key']
         if not s3_object.endswith("/"):
             file_name = path.basename(s3_object)
             dest = path.join(unsigned_certs_dir, file_name)
             logging.info('Copying unsigned certificate=%s to dest=%s', file_name, dest)
-            #s3.download_file(bucket, s3_object, dest)
-            #s3_key.get_contents_to_filename(dest)
             transfer.download_file(bucket, s3_object, dest)
 
 
@@ -164,15 +169,21 @@ def issue_certs(s3, bucket, e, issuance_request, work_dir):
 
         upload_results(s3, bucket, batch_dir, issuance_request.s3_base)
         issuance_request.state = IssuingState.uploading_results
+        issuance_request.state = IssuingState.succeeded
 
-    except ClientError as ce:
-        logging.error(ce)
-        issuance_request.state = IssuingState.succeeded
-    except Exception as ex:
-        logging.error(ex)
+    except CertificatesNotFound as cnf:
+        logging.error(cnf, exc_info=True)
         issuance_request.state = IssuingState.failed
+        issuance_request.failure_reason = 'Unsigned certificates were not found'
+    except InsufficientFundsError as ife:
+        logging.error(ife, exc_info=True)
+        issuance_request.state = IssuingState.failed
+        issuance_request.failure_reason = 'Insufficient funds at issuer address'
+    except Exception as ex:
+        logging.error(ex, exc_info=True)
+        issuance_request.state = IssuingState.failed
+        issuance_request.failure_reason = ex
     finally:
-        issuance_request.state = IssuingState.succeeded
         e.set()
         logging.info('Finished')
 
@@ -203,9 +214,6 @@ def main(args=None):
     request_queue = sqs.get_queue_by_name(QueueName=conf.get('request-queue-name'))
     response_queue = sqs.get_queue_by_name(QueueName=conf.get('response-queue-name'))
 
-    if test_data:
-        test_helpers.create_test_message(request_queue)
-
     s3_client = boto3.client('s3', region_name=conf.get('region'))
 
     bucket_name = conf.get('issuer-s3-bucket')
@@ -221,10 +229,15 @@ def main(args=None):
         for message in request_queue.receive_messages(MessageAttributeNames=['Author'],
                                                       WaitTimeSeconds=sqs_wait_timeout):
             if message:
-                issuance_request = json.loads(message.body)
-                print(issuance_request)
+                try:
+                    issuance_request = json.loads(message.body)
+                except Exception as e:
+                    logging.error('Error parsing request')
+                    logging.error(e, exc_info=True)
+                    continue
 
                 if test_data:
+                    logging.info('uploading a test certificate')
                     test_helpers.upload_test_cert(s3_client, bucket_name, issuance_request['s3BasePath'], test_cert)
 
                 e = threading.Event()
@@ -234,7 +247,7 @@ def main(args=None):
                                    s3_base=issuance_request['s3BasePath'],
                                    chain=issuance_request['chain'])
                 t = threading.Thread(name='issuerBatch' + issuance_batch_id,
-                                     target=issue_certs_mock,
+                                     target=issue_certs,
                                      args=(s3_client, bucket_name, e, s, work_dir))
                 events[e] = s
                 t.start()
@@ -254,6 +267,10 @@ def main(args=None):
                 }
                 if s.state == IssuingState.succeeded:
                     message_body['blockchainCertificates'] = path.join(s.s3_base, 'blockchain_certificates')
+                elif s.state == IssuingState.failed:
+                    message_body['failureReason'] = s.failure_reason
+                else:
+                    message_body['failureReason'] = 'last known state was unexpected'
 
                 response_queue.send_message(MessageBody=json.dumps(message_body))
                 events_to_remove.append(e)

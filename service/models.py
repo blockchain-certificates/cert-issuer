@@ -9,11 +9,11 @@ class IssuingState(Enum):
     failed = 6
 
 
-# , issuer_key, revocation_key
 class IssuingRequest(object):
     def __init__(self, batch_id, s3_base, chain):
         self.batch_id = batch_id
         self.s3_base = s3_base
         self.chain = chain
         self.state = IssuingState.downloading_unsigned_certs
+        self.failure_reason = None
 

@@ -2,6 +2,8 @@ import json
 
 import os
 
+from boto3.s3.transfer import S3Transfer, TransferConfig
+
 
 def create_test_queue(conf, sqs):
     sqs.create_queue(QueueName=conf.get('request-queue-name'), Attributes={'DelaySeconds': '5'})
@@ -18,5 +20,12 @@ def create_test_message(queue):
 
 
 def upload_test_cert(s3_client, bucket, path, local_file):
-    dest_path = os.path.join(path, local_file)
-    s3_client.upload_file(local_file, bucket, dest_path)
+    config = TransferConfig(
+        multipart_threshold=8 * 1024 * 1024,
+        max_concurrency=10,
+        num_download_attempts=10,
+    )
+    transfer = S3Transfer(s3_client, config)
+    file_only = os.path.basename(local_file)
+    dest_path = os.path.join(path, 'unsigned_certificates', file_only)
+    transfer.upload_file(local_file, bucket, dest_path)

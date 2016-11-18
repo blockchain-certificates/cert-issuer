@@ -91,7 +91,7 @@ def main(app_config):
             cert_json = json.load(cert)
             if 'signature' in cert_json and cert_json['signature']:
                 logging.warning('Certificate with uid=%s has already been signed.', uid)
-                exit(0)
+                return # TODO
 
     logging.info('Signing certificates and writing to folder %s', app_config.signed_certs_file_pattern)
     sign_certs(certificates)

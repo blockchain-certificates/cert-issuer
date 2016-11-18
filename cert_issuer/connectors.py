@@ -17,7 +17,7 @@ from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
 from cert_issuer import config
-from cert_issuer.errors import ConnectorError
+from cert_issuer.errors import ConnectorError, InsufficientFundsError
 from cert_issuer.helpers import hexlify
 from cert_issuer.helpers import unhexlify
 
@@ -157,6 +157,9 @@ def get_balance(address, netcode=CONFIG_NETCODE):
     :return:
     """
     spendables = get_unspent_outputs(address, netcode)
+    if not spendables:
+        raise InsufficientFundsError('not enough funds')
+
     balance = sum(s.coin_value for s in spendables)
     return balance
 
