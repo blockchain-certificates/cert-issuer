@@ -5,6 +5,8 @@ virtual\ usb/
 secrets.py
 __pycache__
 
+service/scratch/*
+
 certs_dbdump.csv
 
 data/unsigned_certs/

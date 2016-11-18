@@ -44,7 +44,7 @@ RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
 
 # Copy configuration file
 RUN mkdir /etc/cert-issuer
-COPY conf_testnet_common.ini /etc/cert-issuer/conf.ini
+COPY conf_regtest_common.ini /etc/cert-issuer/conf.ini
 
 COPY start_issuer.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

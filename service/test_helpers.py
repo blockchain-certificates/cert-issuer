@@ -19,7 +19,7 @@ def create_test_message(queue):
     queue.send_message(MessageBody=json.dumps(message_body))
 
 
-def upload_test_cert(s3_client, bucket, path, local_file):
+def upload_test_cert(s3_client, bucket, path, subdir, local_file):
     config = TransferConfig(
         multipart_threshold=8 * 1024 * 1024,
         max_concurrency=10,
@@ -27,5 +27,5 @@ def upload_test_cert(s3_client, bucket, path, local_file):
     )
     transfer = S3Transfer(s3_client, config)
     file_only = os.path.basename(local_file)
-    dest_path = os.path.join(path, 'unsigned_certificates', file_only)
+    dest_path = os.path.join(path, subdir, file_only)
     transfer.upload_file(local_file, bucket, dest_path)

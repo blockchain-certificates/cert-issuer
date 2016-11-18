@@ -125,7 +125,17 @@ def issue_certs_mock(s3, bucket, e, issuance_request, work_dir):
 
     batch_dir = path.join(work_dir, issuance_batch_id_temp)
 
+    test_block_cert = path.join(PATH, 'service', 'blockcert', '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
+
+    for d in dirs:
+        makedirs(path.join(batch_dir, d), exist_ok=True)
+
+    dest = path.join(batch_dir, 'blockchain_certificates', '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
+
+    shutil.copyfile(test_block_cert, dest)
+
     issuance_request.state = IssuingState.uploading_results
+
     upload_results(s3, bucket, batch_dir, issuance_request.s3_base)
 
     issuance_request.state = IssuingState.succeeded
@@ -151,15 +161,17 @@ def issue_certs(s3, bucket, e, issuance_request, work_dir):
 
         from cert_issuer import config
 
-        config_file_name = str.format('conf_testnet_{0}.ini', issuance_batch_id_temp)
+        config_file_name = str.format('conf_regtest_{0}.ini', issuance_batch_id_temp)
 
         config_file_dest = path.join(batch_dir, config_file_name)
-        conf_source = path.join(PATH, 'conf_testnet_common.ini')
+        conf_source = config.get_config().my_config
         shutil.copy(conf_source, config_file_dest)
         with open(config_file_dest, 'a') as cf:
             cf.write('\ndata_path=' + batch_dir + '\n')
 
         parsed_config = config._get_config(config_file_dest)
+        logging.info('issuing address is %s', parsed_config.issuing_address)
+        logging.info('usb name is %s', parsed_config.usb_name)
 
         issuance_request.state = IssuingState.signing_certs
         sign_certificates.main(parsed_config)
@@ -182,13 +194,21 @@ def issue_certs(s3, bucket, e, issuance_request, work_dir):
     except Exception as ex:
         logging.error(ex, exc_info=True)
         issuance_request.state = IssuingState.failed
-        issuance_request.failure_reason = ex
+        issuance_request.failure_reason = str(ex)
     finally:
         e.set()
         logging.info('Finished')
 
 
 def main(args=None):
+    import os
+
+    if 'work-dir' in os.environ:
+        work_dir = os.environ['work-dir']
+    else:
+        work_dir = path.join(PATH, 'service', 'scratch')
+
+
     conf = {
         'request-queue-name': 'learningmachine-cts-auto-cert-issuer-request',
         'response-queue-name': 'learningmachine-cts-auto-cert-issuer-response',
@@ -196,7 +216,7 @@ def main(args=None):
         'region': 'us-east-1',
         'sqs-wait-timeout': 10,
         'issuer-wait-timeout': 10,
-        'work-dir': path.join(PATH, 'service', 'scratch')
+        'work-dir': work_dir
     }
     test = False
     test_data = True
@@ -220,7 +240,7 @@ def main(args=None):
     sqs_wait_timeout = conf.get('sqs-wait-timeout')
     issuer_wait_timeout = conf.get('issuer-wait-timeout')
     work_dir = conf.get('work-dir')
-    test_cert = path.join(PATH, 'service', '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
+    test_cert = path.join(PATH, 'service', 'unsigned', '1270b079-17c6-4fc3-8bd3-4d4281181f15.json')
 
     if test:
         s3_client.create_bucket(Bucket=bucket_name)
@@ -238,7 +258,7 @@ def main(args=None):
 
                 if test_data:
                     logging.info('uploading a test certificate')
-                    test_helpers.upload_test_cert(s3_client, bucket_name, issuance_request['s3BasePath'], test_cert)
+                    test_helpers.upload_test_cert(s3_client, bucket_name, issuance_request['s3BasePath'], 'unsigned_certificates', test_cert)
 
                 e = threading.Event()
 
@@ -247,7 +267,7 @@ def main(args=None):
                                    s3_base=issuance_request['s3BasePath'],
                                    chain=issuance_request['chain'])
                 t = threading.Thread(name='issuerBatch' + issuance_batch_id,
-                                     target=issue_certs,
+                                     target=issue_certs_mock,
                                      args=(s3_client, bucket_name, e, s, work_dir))
                 events[e] = s
                 t.start()

@@ -121,7 +121,7 @@ class BitcoindConnector(object):
         :param address:
         :return: list of Spendables
         """
-        unspent_outputs = bitcoin.rpc.Proxy().listunspent(addrs=[address])
+        unspent_outputs = bitcoin.rpc.Proxy().listunspent(addrs=[address], minconf=0) # TODO
         spendables = []
         for unspent in unspent_outputs:
             coin_value = unspent.get('amount', 0)

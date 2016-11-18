@@ -1,1 +1,1 @@
-include LICENSE *.md *.txt conf_testnet_common.ini priv.txt
+include LICENSE *.md *.txt conf_testnet_common.ini
