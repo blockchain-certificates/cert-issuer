@@ -170,6 +170,8 @@ def issue_certs(s3, bucket, e, issuance_request, work_dir):
             cf.write('\ndata_path=' + batch_dir + '\n')
 
         parsed_config = config._get_config(config_file_dest)
+        from cert_issuer import connectors
+        connectors.init_connectors(parsed_config)
         logging.info('issuing address is %s', parsed_config.issuing_address)
         logging.info('usb name is %s', parsed_config.usb_name)
 
@@ -218,9 +220,10 @@ def main(args=None):
         'issuer-wait-timeout': 10,
         'work-dir': work_dir
     }
+    mock = False
     test = False
     test_data = True
-    if test:
+    if mock:
         from moto import mock_s3, mock_sqs
         moto1 = mock_s3()
         moto2 = mock_sqs()
@@ -251,6 +254,13 @@ def main(args=None):
             if message:
                 try:
                     issuance_request = json.loads(message.body)
+                    issuance_batch_id = issuance_request['issuanceBatchUid']
+                    s3_base = issuance_request['s3BasePath']
+                    chain = issuance_request['chain']
+                except KeyError as ke:
+                    logging.error('Missing key')
+                    logging.error(ke, exc_info=True)
+                    continue
                 except Exception as e:
                     logging.error('Error parsing request')
                     logging.error(e, exc_info=True)
@@ -262,12 +272,11 @@ def main(args=None):
 
                 e = threading.Event()
 
-                issuance_batch_id = issuance_request['issuanceBatchId']
                 s = IssuingRequest(batch_id=issuance_batch_id,
-                                   s3_base=issuance_request['s3BasePath'],
-                                   chain=issuance_request['chain'])
+                                   s3_base=s3_base,
+                                   chain=chain)
                 t = threading.Thread(name='issuerBatch' + issuance_batch_id,
-                                     target=issue_certs_mock,
+                                     target=issue_certs,
                                      args=(s3_client, bucket_name, e, s, work_dir))
                 events[e] = s
                 t.start()
@@ -282,7 +291,7 @@ def main(args=None):
             if event_is_set:
                 logging.info('processed event')
                 message_body = {
-                    'issuanceBatchId': s.batch_id,
+                    'issuanceBatchUid': s.batch_id,
                     'state': s.state.name
                 }
                 if s.state == IssuingState.succeeded:

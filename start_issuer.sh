@@ -46,7 +46,7 @@ bitcoin-cli generate 101
 
 sleep 5
 
-bitcoin-cli getreceivedbyaddress $issuer 0
+bitcoin-cli getreceivedbyaddress $issuer
 
 
 cd /cert-issuer/

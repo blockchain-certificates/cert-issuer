@@ -12,7 +12,7 @@ def create_test_queue(conf, sqs):
 
 def create_test_message(queue):
     message_body = {
-        'issuanceBatchId': '123',
+        'issuanceBatchUid': '123',
         's3BasePath': 'batch/123',
         'chain': 'testnet',
     }

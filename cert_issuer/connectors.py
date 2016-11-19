@@ -115,13 +115,13 @@ class BitcoindConnector(object):
         # reverse endianness for bitcoind
         return hexlify(bytearray(tx_id)[::-1])
 
-    def spendables_for_address(self, address):
+    def spendables_for_address(self, address, netcode):
         """
         Converts to pycoin Spendable type
         :param address:
         :return: list of Spendables
         """
-        unspent_outputs = bitcoin.rpc.Proxy().listunspent(addrs=[address], minconf=0) # TODO
+        unspent_outputs = bitcoin.rpc.Proxy().getreceivedbyaddress(address)
         spendables = []
         for unspent in unspent_outputs:
             coin_value = unspent.get('amount', 0)
