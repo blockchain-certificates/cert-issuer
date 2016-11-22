@@ -5,9 +5,9 @@ import os
 from boto3.s3.transfer import S3Transfer, TransferConfig
 
 
-def create_test_queue(conf, sqs):
-    sqs.create_queue(QueueName=conf.get('request-queue-name'), Attributes={'DelaySeconds': '5'})
-    sqs.create_queue(QueueName=conf.get('response-queue-name'), Attributes={'DelaySeconds': '5'})
+def create_test_queue(sqs, request_queue_name, response_queue_name):
+    sqs.create_queue(QueueName=request_queue_name, Attributes={'DelaySeconds': '5'})
+    sqs.create_queue(QueueName=response_queue_name, Attributes={'DelaySeconds': '5'})
 
 
 def create_test_message(queue):

@@ -26,3 +26,31 @@ class UnverifiedTransactionError(Error):
     The transaction could not be verified
     """
     pass
+
+
+class AlreadySignedError(Error):
+    """
+    The certificate has already been signed
+    """
+    pass
+
+
+class NoCertificatesFound(Error):
+    """
+    No certificates found
+    """
+    pass
+
+
+class BroadcastError(Error):
+    """
+    Error broadcasting transaction
+    """
+    pass
+
+
+class UnrecognizedChainError(Error):
+    """
+    Didn't recognize chain
+    """
+    pass

@@ -5,105 +5,61 @@ This implementation signs the assertion uid, and populates the signature section
 After a Blockchain Certificate has been signed, it can be issed on the blockchain by using issue_certificates.py
 
 """
-import collections
 import json
 import logging
+import os
 
-import glob2
-from bitcoin.signmessage import BitcoinMessage, SignMessage
-from bitcoin.wallet import CBitcoinSecret
 from cert_schema.schema_tools import schema_validator
 
 from cert_issuer import helpers
-from cert_issuer.helpers import internet_off_for_scope
-from cert_issuer.models import make_certificate_metadata
-
-
-def find_unsigned_certificates(app_config):
-    cert_info = collections.OrderedDict()
-    for filename, (uid,) in sorted(glob2.iglob(
-            app_config.unsigned_certs_file_pattern, with_matches=True)):
-        with open(filename) as cert_file:
-            cert_raw = cert_file.read()
-            cert_json = json.loads(cert_raw)
-            certificate_metadata = make_certificate_metadata(app_config,
-                                                             uid,
-                                                             cert_json['recipient']['publicKey'])
-            cert_info[uid] = certificate_metadata
-
-    return cert_info
-
-
-@internet_off_for_scope
-def sign_certs(certificates):
-    """
-    Sign certificates. Internet should be off for the scope of this function.
-    :param certificates:
-    :return:
-    """
-    logging.info('signing certificates')
-    private_key = helpers.import_key()
-    secret_key = CBitcoinSecret(private_key)
-    for _, certificate in certificates.items():
-        with open(certificate.unsigned_certificate_file_name, 'r') as cert_in, \
-                open(certificate.signed_certificate_file_name, 'wb') as signed_cert:
-            cert = _sign(cert_in.read(), secret_key)
-            signed_cert.write(bytes(cert, 'utf-8'))
-
-
-def _sign(certificate, secret_key):
-    """
-    Signs the certificate.
-    :param certificate:
-    :param secret_key:
-    :return:
-    """
-    cert = json.loads(certificate)
-    to_sign = cert['assertion']['uid']
-    message = BitcoinMessage(to_sign)
-    signature = SignMessage(secret_key, message)
-    cert['signature'] = str(signature, 'utf-8')
-    sorted_cert = json.dumps(cert, sort_keys=True)
-    return sorted_cert
+from cert_issuer.errors import NoCertificatesFound, AlreadySignedError
+from cert_issuer.secure_signing import Signer, FileSecretManager
 
 
 def main(app_config):
-    # find certificates to process
-    certificates = find_unsigned_certificates(app_config)
-    if not certificates:
-        logging.info('No certificates to process')
-        return # TODO
+    unsigned_certs_dir = app_config.unsigned_certificates_dir
+    signed_certs_dir = app_config.signed_certificates_dir
 
-    batch_id = helpers.get_batch_id(list(certificates.keys()))
-    logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
+    # find certificates to sign
+    certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
+    if not certificates:
+        logging.warning('No certificates to process')
+        raise NoCertificatesFound('No certificates to process')
+
+    logging.info('Processing %d certificates', len(certificates))
+
+    # create output dir if it doesn't exist
+    os.makedirs(signed_certs_dir, exist_ok=True)
 
     # validate schema
     for uid, certificate in certificates.items():
-        with open(certificate.unsigned_certificate_file_name) as cert:
+        with open(certificate.unsigned_cert_file_name) as cert:
             cert_json = json.load(cert)
             schema_validator.validate_unsigned_v1_2(cert_json)
 
     # ensure they are not already signed. We want the user to know about this in case there
     # is a failure from a previous run
     for uid, certificate in certificates.items():
-        with open(certificate.unsigned_certificate_file_name) as cert:
+        with open(certificate.unsigned_cert_file_name) as cert:
             cert_json = json.load(cert)
             if 'signature' in cert_json and cert_json['signature']:
                 logging.warning('Certificate with uid=%s has already been signed.', uid)
-                return # TODO
+                raise AlreadySignedError('Certificate has already been signed')
 
-    logging.info('Signing certificates and writing to folder %s', app_config.signed_certs_file_pattern)
-    sign_certs(certificates)
+    logging.info('Signing certificates and writing to folder %s', signed_certs_dir)
+    path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
+    signer = Signer(FileSecretManager(path_to_secret=path_to_secret, disable_safe_mode=app_config.safe_mode))
+    signer.sign_certs(certificates)
 
-    logging.info('Archiving unsigned files to archive folder %s', batch_id)
-    helpers.archive_files(app_config.unsigned_certs_file_pattern,
-                          app_config.archive_path,
-                          app_config.unsigned_certs_file_part,
-                          batch_id)
+    logging.info('Signed certificates are in folder %s', signed_certs_dir)
 
 
 if __name__ == '__main__':
     from cert_issuer import config
 
-    parsed_config = config.get_config()
-    main(parsed_config)
+    try:
+        parsed_config = config.get_config()
+        main(parsed_config)
+    except Exception as ex:
+        logging.error(ex, exc_info=True)
+        exit(1)

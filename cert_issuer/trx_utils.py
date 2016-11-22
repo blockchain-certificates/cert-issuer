@@ -6,34 +6,25 @@ Helpers for bitcoin transactions, including:
  - sign tx
 """
 
-import logging
 import io
+import logging
 
 from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn, COutPoint
 from bitcoin.core.script import OP_RETURN
 from bitcoin.wallet import CBitcoinAddress
-from pycoin.encoding import wif_to_secret_exponent
-from pycoin.networks import wif_prefix_for_netcode
-from pycoin.tx import TxOut, Tx
-from pycoin.tx.pay_to import build_hash160_lookup
 
 from cert_issuer import config
-from cert_issuer import helpers
 from cert_issuer.errors import UnverifiedTransactionError
-from cert_issuer.helpers import internet_off_for_scope
 from cert_issuer.models import TransactionCosts
 
-
-COIN = 100000000           # satoshis in 1 btc
-BYTES_PER_INPUT = 148      # assuming compressed public key
+COIN = 100000000  # satoshis in 1 btc
+BYTES_PER_INPUT = 148  # assuming compressed public key
 BYTES_PER_OUTPUT = 34
 FIXED_EXTRA_BYTES = 10
 OP_RETURN_BYTE_COUNT = 43  # our op_return output values always have the same length because they are SHA-256 hashes
-cost_constants = config.get_constants()
-RECOMMENDED_FEE = cost_constants.recommended_fee_per_transaction * COIN
-MIN_PER_OUTPUT = cost_constants.min_per_output * COIN
-SATOSHI_PER_BYTE = cost_constants.satoshi_per_byte
-ALLOWABLE_WIF_PREFIXES = wif_prefix_for_netcode(config.get_config().netcode)
+SATOSHI_PER_BYTE = config.get_satoshi_per_byte()
+RECOMMENDED_FEE_PER_TRANSACTION = config.get_fee_per_trx()
+MIN_PER_OUTPUT = config.get_min_per_output()
 
 
 def create_trx(op_return_val, issuing_transaction_cost,
@@ -70,9 +61,9 @@ def create_recipient_outputs(recipient_address, revocation_address):
     :return:
     """
     recipient_outs = []
-    recipient_outs.append(create_transaction_output(recipient_address, MIN_PER_OUTPUT))
+    recipient_outs.append(create_transaction_output(recipient_address, MIN_PER_OUTPUT * COIN))
     if revocation_address:
-        recipient_outs.append(create_transaction_output(revocation_address, MIN_PER_OUTPUT))
+        recipient_outs.append(create_transaction_output(revocation_address, MIN_PER_OUTPUT * COIN))
     return recipient_outs
 
 
@@ -104,23 +95,6 @@ def verify_transaction(signed_hextx, op_return_value):
     logging.info('verified OP_RETURN')
 
 
-@internet_off_for_scope
-def sign_tx(hex_tx, tx_input):
-    """
-    Sign the transaction with private key
-    :param hex_tx:
-    :param tx_input:
-    :return:
-    """
-    logging.info('Signing tx with private key')
-    transaction = Tx.from_hex(hex_tx)
-    wif = wif_to_secret_exponent(helpers.import_key(), ALLOWABLE_WIF_PREFIXES)
-    lookup = build_hash160_lookup([wif])
-    transaction.set_unspents([TxOut(coin_value=tx_input.coin_value, script=tx_input.script)])
-    signed_tx = transaction.sign(lookup)
-    logging.info('Finished signing transaction')
-    return signed_tx
-
 def get_cost(num_outputs):
     """
     Get cost of the transaction:
@@ -131,8 +105,9 @@ def get_cost(num_outputs):
         raise ValueError('num_outputs must be greater than or equal to 1')
 
     tx_fee = calculate_tx_fee(1, num_outputs)
-    total = MIN_PER_OUTPUT * num_outputs + tx_fee
-    return TransactionCosts(MIN_PER_OUTPUT, fee=tx_fee, total=total)
+    coin_per_output = MIN_PER_OUTPUT * COIN
+    total = coin_per_output * num_outputs + tx_fee
+    return TransactionCosts(coin_per_output, fee=tx_fee, total=total)
 
 
 def calculate_tx_fee(num_inputs, num_outputs):
@@ -150,7 +125,7 @@ def calculate_tx_fee(num_inputs, num_outputs):
     """
     tx_size = calculate_raw_tx_size_with_op_return(num_inputs, num_outputs)
     tx_fee = SATOSHI_PER_BYTE * tx_size
-    return max(tx_fee, RECOMMENDED_FEE)
+    return max(tx_fee, RECOMMENDED_FEE_PER_TRANSACTION * COIN)
 
 
 def calculate_raw_tx_size_with_op_return(num_inputs, num_outputs):

@@ -6,7 +6,7 @@ RUN mkdir ~/.bitcoin
 
 #RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=8332\ntestnet=1\nserver=1\nrpctimeout=30\n" > ~/.bitcoin/bitcoin.conf
 
-RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=8332\nregtest=1\nserver=1\nrelaypriority=0\nrpcallowip=127.0.0.1\nrpcconnect=127.0.0.1\n" > ~/.bitcoin/bitcoin.conf
+RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=8332\nregtest=1\nrelaypriority=0\nrpcallowip=127.0.0.1\nrpcconnect=127.0.0.1\n" > ~/.bitcoin/bitcoin.conf
 
 
 RUN apt-get update

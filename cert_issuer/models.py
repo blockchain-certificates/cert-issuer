@@ -1,27 +1,14 @@
 from collections import namedtuple
 
-CertificateMetadata = namedtuple(
-    'CertificateMetadata', ['uid', 'public_key', 'revocation_key', 'unsigned_certificate_file_name',
-                            'signed_certificate_file_name', 'certificate_hash_file_name'])
-
 TransactionData = namedtuple(
-    'TransactionData', ['uid', 'tx', 'tx_input', 'op_return_value', 'unsigned_tx_file_name', 'signed_tx_file_name',
-                        'sent_tx_file_name'])
+    'TransactionData', ['uid', 'tx', 'tx_input', 'op_return_value', 'batch_metadata'])
 
 
-def make_certificate_metadata(config, uid, public_key, revocation_key=None):
-    unsigned_certificate_file_name = convert_file_name(config.unsigned_certs_file_pattern, uid)
-    signed_certificate_file_name = convert_file_name(config.signed_certs_file_pattern, uid)
-    certificate_hash_file_name = convert_file_name(config.hashed_certs_file_pattern, uid)
-
-    return CertificateMetadata(uid=uid, public_key=public_key, revocation_key=revocation_key,
-                               unsigned_certificate_file_name=unsigned_certificate_file_name,
-                               signed_certificate_file_name=signed_certificate_file_name,
-                               certificate_hash_file_name=certificate_hash_file_name)
-
-
-def convert_file_name(to_pattern, cert_uid):
-    return to_pattern.replace('*', cert_uid)
+class CostConstants:
+    def __init__(self, recommended_fee_per_transaction, min_per_output, satoshi_per_byte):
+        self.recommended_fee_per_transaction = recommended_fee_per_transaction
+        self.min_per_output = min_per_output
+        self.satoshi_per_byte = satoshi_per_byte
 
 
 class TransactionCosts:

@@ -1,0 +1,1 @@
+{"targetHash": "68d7f9e77d5eb10fe9197fc6fc1638c8d8556fe03dca3684dc638c6978e57b5e", "type": "ChainpointSHA256v2", "proof": [], "@context": "https://w3id.org/chainpoint/v2", "merkleRoot": "68d7f9e77d5eb10fe9197fc6fc1638c8d8556fe03dca3684dc638c6978e57b5e", "anchors": [{"sourceId": "f1c580332c02f648fa0b52af0778859216fb0cc319c119b6ba07f6b69e47caf4", "type": "BTCOpReturn"}]}
