@@ -64,7 +64,7 @@ import boto3
 from boto3.s3.transfer import S3Transfer, TransferConfig
 
 from cert_issuer import sign_certificates, issue_certificates
-from cert_issuer.errors import InsufficientFundsError, NoCertificatesFound
+from cert_issuer.errors import InsufficientFundsError, NoCertificatesFoundError
 from service import test_helpers
 from service.models import IssuingState, IssuingRequest
 
@@ -98,7 +98,7 @@ def download_unsigned_certificates(s3, bucket, prefix, unsigned_certs_dir):
         Prefix=prefix,
     )
     if not 'Contents' in response:
-        raise NoCertificatesFound('No unsigned certificates to process')
+        raise NoCertificatesFoundError('No unsigned certificates to process')
 
     for s3_key in response['Contents']:
         s3_object = s3_key['Key']
@@ -164,7 +164,7 @@ def issue_certs(app_config, s3, bucket, e, issuance_request, work_dir):
         issuance_request.state = IssuingState.uploading_results
         issuance_request.state = IssuingState.succeeded
 
-    except NoCertificatesFound as cnf:
+    except NoCertificatesFoundError as cnf:
         logging.error(cnf, exc_info=True)
         issuance_request.state = IssuingState.failed
         issuance_request.failure_reason = 'Unsigned certificates were not found'
@@ -183,11 +183,6 @@ def issue_certs(app_config, s3, bucket, e, issuance_request, work_dir):
 
 def main(args=None):
     import os
-
-    if 'work-dir' in os.environ:
-        work_dir = os.environ['work-dir']
-    else:
-        work_dir = path.join(PATH, 'service', 'scratch')
 
     from service import config
     app_config = config.get_config()

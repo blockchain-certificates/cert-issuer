@@ -12,7 +12,7 @@ import os
 from cert_schema.schema_tools import schema_validator
 
 from cert_issuer import helpers
-from cert_issuer.errors import NoCertificatesFound, AlreadySignedError
+from cert_issuer.errors import NoCertificatesFoundError, AlreadySignedError, NonemptyOutputDirectoryError
 from cert_issuer.secure_signing import Signer, FileSecretManager
 
 
@@ -20,11 +20,16 @@ def main(app_config):
     unsigned_certs_dir = app_config.unsigned_certificates_dir
     signed_certs_dir = app_config.signed_certificates_dir
 
+    if os.path.exists(signed_certs_dir) and os.listdir(signed_certs_dir):
+        message = "The output directory {} is not empty. Make sure you have cleaned up results from your previous run".format(signed_certs_dir)
+        logging.warning(message)
+        raise NonemptyOutputDirectoryError(message)
+
     # find certificates to sign
     certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
     if not certificates:
         logging.warning('No certificates to process')
-        raise NoCertificatesFound('No certificates to process')
+        raise NoCertificatesFoundError('No certificates to process')
 
     logging.info('Processing %d certificates', len(certificates))
 

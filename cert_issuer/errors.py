@@ -35,9 +35,16 @@ class AlreadySignedError(Error):
     pass
 
 
-class NoCertificatesFound(Error):
+class NoCertificatesFoundError(Error):
     """
     No certificates found
+    """
+    pass
+
+
+class NonemptyOutputDirectoryError(Error):
+    """
+    The output directory is not empty
     """
     pass
 

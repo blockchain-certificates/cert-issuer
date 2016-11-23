@@ -53,6 +53,9 @@ def check_internet_on(secrets_file_path):
 
 
 class SecretManager(object):
+    """
+    Abstraction for a secret store. TODO: come up with better names.
+    """
     def __init__(self):
         pass
 
@@ -162,13 +165,14 @@ def verify_signature(uid, signed_cert_file_name, issuing_address):
 
     Raises error is verification fails.
 
+    Raises UnverifiedSignatureError if signature is invalid
+
     :param uid:
     :param signed_cert_file_name:
     :param issuing_address:
     :return:
     """
 
-    # Throws an error if invalid
     logging.info('verifying signature for certificate with uid=%s:', uid)
     with open(signed_cert_file_name) as in_file:
         signed_cert = in_file.read()

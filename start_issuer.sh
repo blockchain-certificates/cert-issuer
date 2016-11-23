@@ -51,7 +51,9 @@ bitcoin-cli getreceivedbyaddress $issuer
 
 cd /cert-issuer/
 source /cert-issuer/env/bin/activate
-export work_dir=/etc/cert-issuer/work
+export WORK_DIR=/etc/cert-issuer/work
+mkdir $WORK_DIR
+
 python service/run.py -c /etc/cert-issuer/conf.ini --usb_name /etc/cert-issuer/ &
 pid="$!"
 

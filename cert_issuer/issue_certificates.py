@@ -56,7 +56,7 @@ import sys
 from cert_issuer import helpers
 from cert_issuer.batch_issuer import BatchIssuer
 from cert_issuer.connectors import ServiceProviderConnector
-from cert_issuer.errors import NoCertificatesFound
+from cert_issuer.errors import NoCertificatesFoundError, NonemptyOutputDirectoryError
 from cert_issuer.secure_signing import Signer, FileSecretManager
 from cert_issuer.secure_signing import verify_signature
 
@@ -71,11 +71,16 @@ def main(app_config):
     work_dir = app_config.work_dir
     blockcerts_dir = app_config.blockchain_certificates_dir
 
+    if os.path.exists(blockcerts_dir) and os.listdir(blockcerts_dir):
+        message = "The output directory {} is not empty. Make sure you have cleaned up results from your previous run".format(signed_certs_dir)
+        logging.warning(message)
+        raise NonemptyOutputDirectoryError(message)
+
     # find certificates to issue
     certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
     if not certificates:
         logging.warning('No certificates to process')
-        raise NoCertificatesFound('No certificates to process')
+        raise NoCertificatesFoundError('No certificates to process')
 
     certificates, batch_metadata = helpers.prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, work_dir)
     logging.info('Processing %d certificates under work path=%s', len(certificates), work_dir)
@@ -103,6 +108,9 @@ def main(app_config):
                          connector=connector,
                          signer=signer,
                          batch_metadata=batch_metadata)
+
+
+
 
     issuer.validate_schema()
 

@@ -1,16 +1,30 @@
 import json
 import logging
 
-from cert_schema.schema_tools import schema_validator
+from cert_schema import jsonld_document_loader
+from cert_schema import validate_unsigned_v1_2
 from merkleproof.MerkleTree import MerkleTree
 from merkleproof.MerkleTree import sha256
 from pyld import jsonld
+from werkzeug.contrib.cache import SimpleCache
 
 from cert_issuer import trx_utils
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.issuer import Issuer
 from cert_issuer.models import TransactionData
+
+cache = SimpleCache()
+
+
+def cached_document_loader(url, override_cache=False):
+    if not override_cache:
+        result = cache.get(url)
+        if result:
+            return result
+    doc = jsonld_document_loader(url)
+    cache.set(url, doc)
+    return doc
 
 
 class BatchIssuer(Issuer):
@@ -29,7 +43,7 @@ class BatchIssuer(Issuer):
         for _, certificate in self.certificates_to_issue.items():
             with open(certificate.signed_cert_file_name) as cert:
                 cert_json = json.load(cert)
-                schema_validator.validate_unsigned_v1_2(cert_json)
+                validate_unsigned_v1_2(cert_json)
 
     def do_hash_certificate(self, certificate):
         """
@@ -37,9 +51,10 @@ class BatchIssuer(Issuer):
         :param certificate:
         :return:
         """
+        options = {'algorithm': 'URDNA2015', 'format': 'application/nquads', 'documentLoader': cached_document_loader}
         cert_utf8 = certificate.decode('utf-8')
         cert_json = json.loads(cert_utf8)
-        normalized = jsonld.normalize(cert_json, {'algorithm': 'URDNA2015', 'format': 'application/nquads'})
+        normalized = jsonld.normalize(cert_json, options=options)
         hashed = sha256(normalized)
         self.tree.add_leaf(hashed, False)
         return hashed
