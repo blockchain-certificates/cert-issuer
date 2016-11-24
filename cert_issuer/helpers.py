@@ -134,16 +134,6 @@ def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, work_dir):
     return cert_info, batch_metadata
 
 
-def archive_files(work_dir, archive_dir):
-    """
-    Archive files by moving from work_dir to archive_dir
-    :param work_dir:
-    :param archive_dir:
-    :return:
-    """
-    shutil.move(work_dir, archive_dir)
-
-
 def get_batch_id(uids):
     """
     Constructs a deterministic batch id from file names. The input uids are assumed to be sorted.

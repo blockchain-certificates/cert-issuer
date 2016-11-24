@@ -52,6 +52,7 @@ recipient publicKey field. The recipient provides this via the certificate walle
 import glob
 import logging
 import os
+import shutil
 import sys
 
 from cert_issuer import helpers
@@ -151,14 +152,12 @@ def main(app_config):
 
     blockcerts_tmp_dir = os.path.join(work_dir, 'blockchain_certificates')
     if blockcerts_tmp_dir != blockcerts_dir:
-        import shutil
-        shutil.copytree(blockcerts_tmp_dir, blockcerts_dir)
-
-    #if app_config.archive_dir:
-        # archive results
-    #    logging.info('Archiving signed certificates.')
-    #    archive_folder = os.path.join(app_config.archive_dir, batch_metadata.batch_id)
-    #    helpers.archive_files(app_config.work_dir, archive_folder)
+        if not os.path.exists(blockcerts_dir):
+            os.makedirs(blockcerts_dir)
+        for item in os.listdir(blockcerts_tmp_dir):
+            s = os.path.join(blockcerts_tmp_dir, item)
+            d = os.path.join(blockcerts_dir, item)
+            shutil.copy2(s, d)
 
     logging.info('Your Blockchain Certificates are in %s', blockcerts_tmp_dir)
     return blockcerts_tmp_dir
