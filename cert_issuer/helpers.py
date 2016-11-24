@@ -71,7 +71,6 @@ def convert_file_name(base_dir, sub_dir, file_name, file_ext):
     return os.path.join(base_dir, sub_dir, file_name + file_ext)
 
 
-
 def find_certificates_to_process(unsigned_certs_dir, signed_certs_dir):
     cert_info = collections.OrderedDict()
     input_file_pattern = str(os.path.join(unsigned_certs_dir, '*.json'))
@@ -133,16 +132,6 @@ def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, work_dir):
     batch_metadata = BatchMetadata(work_dir, batch_id)
     batch_metadata.ensure_output_dirs_exists()
     return cert_info, batch_metadata
-
-
-def archive_files(work_dir, archive_dir):
-    """
-    Archive files by moving from work_dir to archive_dir
-    :param work_dir:
-    :param archive_dir:
-    :return:
-    """
-    shutil.move(work_dir, archive_dir)
 
 
 def get_batch_id(uids):

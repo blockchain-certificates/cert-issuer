@@ -10,26 +10,15 @@ service/work_dir/*
 
 certs_dbdump.csv
 
-data/unsigned_certs/
-data/signed_certs/
-data/hashed_certs/
-data/unsigned_txs/
-data/signed_txs/
-data/sent_txs/
-data/receipts/
+data/unsigned_certificates/
+data/signed_certificates/
 data/blockchain_certificates/
-data/tree/
-archive/
+data/work/*
 
-!data/unsigned_certs/.*
-!data/signed_certs/.*
-!data/hashed_certs/.*
-!data/unsigned_txs/.*
-!data/signed_txs/.*
-!data/sent_txs/.*
-!data/receipts/.*
+!data/unsigned_certificates/.*
+!data/signed_certificates/.*
 !data/blockchain_certificates/.*
-!data/tree/.*
+!data/work/.*
 
 .idea/*
 *.ini*

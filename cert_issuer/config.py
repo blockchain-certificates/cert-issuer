@@ -6,7 +6,6 @@ import configargparse
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
-ARCHIVE_PATH = os.path.join(PATH, 'archive')
 
 RECOMMENDED_FEE_PER_TRANSACTION = None
 MIN_PER_OUTPUT = None
@@ -72,8 +71,6 @@ def add_arguments(p):
                    help='Default path to data directory storing blockchain certs')
     p.add_argument('--work_dir', default=DATA_PATH,
                    help='Default path to data directory, storing unsigned certs')
-    p.add_argument('--archive_dir', required=False,
-                   help='Path to archive directory, storing issued certs')
 
 
 def get_config():
