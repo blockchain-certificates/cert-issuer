@@ -71,7 +71,6 @@ def convert_file_name(base_dir, sub_dir, file_name, file_ext):
     return os.path.join(base_dir, sub_dir, file_name + file_ext)
 
 
-
 def find_certificates_to_process(unsigned_certs_dir, signed_certs_dir):
     cert_info = collections.OrderedDict()
     input_file_pattern = str(os.path.join(unsigned_certs_dir, '*.json'))

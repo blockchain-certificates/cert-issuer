@@ -49,6 +49,7 @@ This script assumes the recipient is assigned a public bitcoin address, located 
 recipient publicKey field. The recipient provides this via the certificate wallet or certificate viewer.
 
 """
+import glob
 import logging
 import os
 import sys
@@ -71,7 +72,8 @@ def main(app_config):
     work_dir = app_config.work_dir
     blockcerts_dir = app_config.blockchain_certificates_dir
 
-    if os.path.exists(blockcerts_dir) and os.listdir(blockcerts_dir):
+    blockcerts_file_pattern = str(os.path.join(blockcerts_dir, '*.json'))
+    if os.path.exists(blockcerts_dir) and glob.glob(blockcerts_file_pattern):
         message = "The output directory {} is not empty. Make sure you have cleaned up results from your previous run".format(signed_certs_dir)
         logging.warning(message)
         raise NonemptyOutputDirectoryError(message)
