@@ -79,6 +79,12 @@ def main(app_config):
         logging.warning(message)
         raise NonemptyOutputDirectoryError(message)
 
+    # delete previous work_dir contents
+    for item in os.listdir(work_dir):
+        file_path = os.path.join(work_dir, item)
+        if os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
     # find certificates to issue
     certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
     if not certificates:
