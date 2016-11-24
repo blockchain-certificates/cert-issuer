@@ -118,9 +118,6 @@ def main(app_config):
                          signer=signer,
                          batch_metadata=batch_metadata)
 
-
-
-
     issuer.validate_schema()
 
     # verify signed certs are signed with issuing key
@@ -165,8 +162,8 @@ def main(app_config):
             d = os.path.join(blockcerts_dir, item)
             shutil.copy2(s, d)
 
-    logging.info('Your Blockchain Certificates are in %s', blockcerts_tmp_dir)
-    return blockcerts_tmp_dir
+    logging.info('Your Blockchain Certificates are in %s', blockcerts_dir)
+    return blockcerts_dir
 
 
 if __name__ == '__main__':
