@@ -14,6 +14,9 @@ MAINNET_TX = '0100000001ce379123234bc9662f3f00f2a9c59d5420fc9f9d5e1fd8881b8666e8
 
 class TestTrxUtils(unittest.TestCase):
 
+    def setUp(self):
+        trx_utils.set_cost_constants(0.0001, 0.0000275, 41)
+
     def test_verify_transaction(self):
         cost = TransactionCosts(0.0001, 0.0000275, 3)
         tx_input = Spendable(200, '18eKkAWyU9kvRNHPKxnZb6wwtPMrNmRRRA',

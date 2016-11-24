@@ -46,4 +46,10 @@ RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
 RUN mkdir /etc/cert-issuer
 COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
+RUN mkdir /etc/cert-issuer/data
+RUN mkdir /etc/cert-issuer/data/unsigned_certificates
+RUN mkdir /etc/cert-issuer/data/signed_certificates
+RUN mkdir /etc/cert-issuer/data/blockchain_certificates
+RUN mkdir /etc/cert-issuer/work
+
 ENTRYPOINT bitcoind -daemon && bash
