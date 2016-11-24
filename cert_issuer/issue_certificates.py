@@ -49,102 +49,83 @@ This script assumes the recipient is assigned a public bitcoin address, located 
 recipient publicKey field. The recipient provides this via the certificate wallet or certificate viewer.
 
 """
-import collections
-import json
+import glob
 import logging
 import os
+import shutil
 import sys
-
-import glob2
-from bitcoin.signmessage import BitcoinMessage
-from bitcoin.signmessage import VerifyMessage
 
 from cert_issuer import helpers
 from cert_issuer.batch_issuer import BatchIssuer
-from cert_issuer.errors import UnverifiedSignatureError
-from cert_issuer.models import make_certificate_metadata
-from cert_issuer.wallet import Wallet
+from cert_issuer.connectors import ServiceProviderConnector
+from cert_issuer.errors import NoCertificatesFoundError, NonemptyOutputDirectoryError
+from cert_issuer.secure_signing import Signer, FileSecretManager
+from cert_issuer.secure_signing import verify_signature
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
 
 
-def verify_signature(uid, signed_certificate_file_name, issuing_address):
-    """
-    Verify the certificate signature matches the expected. Double-check the uid field in the certificate and use
-    VerifyMessage to confirm that the signature in the certificate matches the issuing_address.
-
-    Raises error is verification fails.
-
-    :param uid:
-    :param signed_certificate_file_name:
-    :param issuing_address:
-    :return:
-    """
-
-    # Throws an error if invalid
-    logging.info('verifying signature for certificate with uid=%s:', uid)
-    with open(signed_certificate_file_name) as in_file:
-        signed_cert = in_file.read()
-        signed_cert_json = json.loads(signed_cert)
-
-        to_verify = signed_cert_json['assertion']['uid']
-        signature = signed_cert_json['signature']
-        message = BitcoinMessage(to_verify)
-        verified = VerifyMessage(issuing_address, message, signature)
-        if not verified:
-            error_message = 'There was a problem with the signature for certificate uid={}'.format(
-                signed_cert_json['assertion']['uid'])
-            raise UnverifiedSignatureError(error_message)
-
-        logging.info('verified signature')
-
-
-def find_signed_certificates(app_config):
-    cert_info = collections.OrderedDict()
-    for filename, (uid,) in sorted(glob2.iglob(
-            app_config.signed_certs_file_pattern, with_matches=True)):
-        with open(filename) as cert_file:
-            cert_raw = cert_file.read()
-            cert_json = json.loads(cert_raw)
-            revocation_key = None
-            if 'revocationKey' in cert_json['recipient']:
-                revocation_key = cert_json['recipient']['revocationKey']
-            certificate_metadata = make_certificate_metadata(app_config,
-                                                             uid,
-                                                             cert_json['recipient']['publicKey'],
-                                                             revocation_key)
-            cert_info[uid] = certificate_metadata
-
-    return cert_info
-
-
 def main(app_config):
-    # find certificates to process
-    certificates = find_signed_certificates(app_config)
+    unsigned_certs_dir = app_config.unsigned_certificates_dir
+    signed_certs_dir = app_config.signed_certificates_dir
+    work_dir = app_config.work_dir
+    blockcerts_dir = app_config.blockchain_certificates_dir
+
+    blockcerts_file_pattern = str(os.path.join(blockcerts_dir, '*.json'))
+    if os.path.exists(blockcerts_dir) and glob.glob(blockcerts_file_pattern):
+        message = "The output directory {} is not empty. Make sure you have cleaned up results from your previous run".format(signed_certs_dir)
+        logging.warning(message)
+        raise NonemptyOutputDirectoryError(message)
+
+    # delete previous work_dir contents
+    for item in os.listdir(work_dir):
+        file_path = os.path.join(work_dir, item)
+        if os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+    # find certificates to issue
+    certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
     if not certificates:
-        logging.info('No certificates to process')
-        exit(0)
+        logging.warning('No certificates to process')
+        raise NoCertificatesFoundError('No certificates to process')
 
-    batch_id = helpers.get_batch_id(list(certificates.keys()))
-    logging.info('Processing %d certificates with batch id=%s', len(certificates), batch_id)
+    certificates, batch_metadata = helpers.prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, work_dir)
+    logging.info('Processing %d certificates under work path=%s', len(certificates), work_dir)
 
-    helpers.clear_intermediate_folders(app_config)
-
-    # get issuing and revocation addresses from config
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
 
-    issuer = BatchIssuer(config=app_config, certificates_to_issue=certificates)
+    if app_config.wallet_connector_type == 'blockchain.info':
+        wallet_credentials = {
+            'wallet_guid': app_config.wallet_guid,
+            'wallet_password': app_config.wallet_password,
+            'api_key': app_config.api_key,
+        }
+    else:
+        wallet_credentials = {}
+
+    connector = ServiceProviderConnector(app_config.netcode, app_config.wallet_connector_type, wallet_credentials)
+    path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
+
+    signer = Signer(FileSecretManager(path_to_secret=path_to_secret, disable_safe_mode=app_config.safe_mode))
+
+    issuer = BatchIssuer(netcode=app_config.netcode,
+                         issuing_address=issuing_address,
+                         certificates_to_issue=certificates,
+                         connector=connector,
+                         signer=signer,
+                         batch_metadata=batch_metadata)
+
+
+
 
     issuer.validate_schema()
 
     # verify signed certs are signed with issuing key
-    [verify_signature(uid, cert.signed_certificate_file_name, issuing_address) for uid, cert in
+    [verify_signature(uid, cert.signed_cert_file_name, issuing_address) for uid, cert in
      certificates.items()]
-
-    wallet = Wallet()
 
     logging.info('Hashing signed certificates.')
     issuer.hash_certificates()
@@ -158,54 +139,42 @@ def main(app_config):
         # ensure there is enough in our wallet at the storage/issuing address, transferring from the storage address
         # if configured
         logging.info('Checking there is enough balance in the issuing address')
-        funds_needed = wallet.check_balance_no_throw(issuing_address, all_costs)
+        funds_needed = connector.check_balance_no_throw(issuing_address, all_costs)
         if funds_needed > 0:
-            wallet.check_balance(app_config.storage_address, all_costs)
-            wallet.send_payment(
+            connector.check_balance(app_config.storage_address, all_costs)
+            connector.pay(
                 app_config.storage_address,
                 issuing_address,
                 all_costs.min_per_output,
                 all_costs.fee)
 
     # ensure the issuing address now has sufficient balance
-    wallet.check_balance(issuing_address, all_costs)
+    connector.check_balance(issuing_address, all_costs)
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
     issuer.issue_on_blockchain(revocation_address=revocation_address,
                                issuing_transaction_cost=all_costs)
 
-    # archive
-    logging.info('Archiving signed certificates.')
-    helpers.archive_files(app_config.signed_certs_file_pattern,
-                          app_config.archive_path,
-                          app_config.signed_certs_file_part,
-                          batch_id)
+    blockcerts_tmp_dir = os.path.join(work_dir, 'blockchain_certificates')
+    if blockcerts_tmp_dir != blockcerts_dir:
+        if not os.path.exists(blockcerts_dir):
+            os.makedirs(blockcerts_dir)
+        for item in os.listdir(blockcerts_tmp_dir):
+            s = os.path.join(blockcerts_tmp_dir, item)
+            d = os.path.join(blockcerts_dir, item)
+            shutil.copy2(s, d)
 
-    logging.info('Archiving sent transactions.')
-    helpers.archive_files(app_config.sent_txs_file_pattern,
-                          app_config.archive_path,
-                          app_config.txs_file_part,
-                          batch_id)
-
-    logging.info('Archiving receipts.')
-    helpers.archive_files(app_config.receipts_file_pattern,
-                          app_config.archive_path,
-                          app_config.receipts_file_part,
-                          batch_id)
-
-    logging.info('Archiving blockchain certificates.')
-    helpers.archive_files(app_config.blockchain_certificates_file_pattern,
-                          app_config.archive_path,
-                          app_config.blockchain_certificates_file_part,
-                          batch_id)
-
-    archive_folder = os.path.join(app_config.archive_path, batch_id)
-    logging.info('Your Blockchain Certificates are in %s', archive_folder)
+    logging.info('Your Blockchain Certificates are in %s', blockcerts_tmp_dir)
+    return blockcerts_tmp_dir
 
 
 if __name__ == '__main__':
     from cert_issuer import config
 
-    parsed_config = config.get_config()
-    main(parsed_config)
+    try:
+        parsed_config = config.get_config()
+        main(parsed_config)
+    except Exception as ex:
+        logging.error(ex, exc_info=True)
+        exit(1)

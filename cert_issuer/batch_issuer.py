@@ -1,26 +1,39 @@
 import json
 import logging
-import random
 
-from cert_schema.schema_tools import schema_validator
+from cert_schema import jsonld_document_loader
+from cert_schema import validate_unsigned_v1_2
 from merkleproof.MerkleTree import MerkleTree
 from merkleproof.MerkleTree import sha256
 from pyld import jsonld
+from werkzeug.contrib.cache import SimpleCache
 
 from cert_issuer import trx_utils
-from cert_issuer.connectors import get_unspent_outputs
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.issuer import Issuer
 from cert_issuer.models import TransactionData
-from cert_issuer.models import convert_file_name
+
+cache = SimpleCache()
+
+
+def cached_document_loader(url, override_cache=False):
+    if not override_cache:
+        result = cache.get(url)
+        if result:
+            return result
+    doc = jsonld_document_loader(url)
+    cache.set(url, doc)
+    return doc
 
 
 class BatchIssuer(Issuer):
-    def __init__(self, config, certificates_to_issue):
-        Issuer.__init__(self, config, certificates_to_issue)
-        self.batch_id = '%024x' % random.randrange(16 ** 24)
+    def __init__(self, netcode, issuing_address, certificates_to_issue, connector, signer, batch_metadata):
+        Issuer.__init__(self, netcode, issuing_address, certificates_to_issue, connector, signer)
         self.tree = MerkleTree(hash_f=sha256)
+
+        self.batch_id = batch_metadata.batch_id
+        self.batch_metadata = batch_metadata
 
     def validate_schema(self):
         """
@@ -28,9 +41,9 @@ class BatchIssuer(Issuer):
         :return:
         """
         for _, certificate in self.certificates_to_issue.items():
-            with open(certificate.signed_certificate_file_name) as cert:
+            with open(certificate.signed_cert_file_name) as cert:
                 cert_json = json.load(cert)
-                schema_validator.validate_unsigned_v1_2(cert_json)
+                validate_unsigned_v1_2(cert_json)
 
     def do_hash_certificate(self, certificate):
         """
@@ -38,9 +51,10 @@ class BatchIssuer(Issuer):
         :param certificate:
         :return:
         """
+        options = {'algorithm': 'URDNA2015', 'format': 'application/nquads', 'documentLoader': cached_document_loader}
         cert_utf8 = certificate.decode('utf-8')
         cert_json = json.loads(cert_utf8)
-        normalized = jsonld.normalize(cert_json, {'algorithm': 'URDNA2015', 'format': 'application/nquads'})
+        normalized = jsonld.normalize(cert_json, options=options)
         hashed = sha256(normalized)
         self.tree.add_leaf(hashed, False)
         return hashed
@@ -56,19 +70,17 @@ class BatchIssuer(Issuer):
         num_outputs = Issuer.get_num_outputs(num_certificates)
         return Issuer.get_cost_for_certificate_batch(num_outputs, allow_transfer)
 
-    def finish_tx(self, sent_tx_file_name, tx_id):
-        Issuer.finish_tx(self, sent_tx_file_name, tx_id)
+    def persist_tx(self, sent_tx_file_name, tx_id):
+        Issuer.persist_tx(self, sent_tx_file_name, tx_id)
         # note that certificates are stored in an ordered dictionary, so we will iterate in the same order
         index = 0
-        for uid, _ in self.certificates_to_issue.items():
+        for uid, metadata in self.certificates_to_issue.items():
             receipt = self.tree.make_receipt(index, tx_id)
 
-            receipt_file_name = convert_file_name(self.config.receipts_file_pattern, uid)
-            with open(receipt_file_name, 'w') as out_file:
+            with open(metadata.receipt_file_name, 'w') as out_file:
                 out_file.write(json.dumps(receipt))
 
-            signed_cert_file_name = convert_file_name(self.config.signed_certs_file_pattern, uid)
-            with open(signed_cert_file_name, 'r') as in_file:
+            with open(metadata.signed_cert_file_name, 'r') as in_file:
                 signed_cert = json.load(in_file)
 
             blockchain_cert = {
@@ -77,9 +89,8 @@ class BatchIssuer(Issuer):
                 'document': signed_cert,
                 'receipt': receipt
             }
-            blockchain_cert_file_name = convert_file_name(self.config.blockchain_certificates_file_pattern, uid)
 
-            with open(blockchain_cert_file_name, 'w') as out_file:
+            with open(metadata.blockchain_cert_file_name, 'w') as out_file:
                 out_file.write(json.dumps(blockchain_cert))
 
             index += 1
@@ -93,7 +104,7 @@ class BatchIssuer(Issuer):
         """
         self.tree.make_tree()
 
-        spendables = get_unspent_outputs(self.issuing_address)
+        spendables = self.connector.get_unspent_outputs(self.issuing_address)
         if not spendables:
             error_message = 'No money to spend at address {}'.format(self.issuing_address)
             logging.error(error_message)
@@ -114,17 +125,11 @@ class BatchIssuer(Issuer):
             tx_outs,
             last_input)
 
-        unsigned_tx_file_name = convert_file_name(self.config.unsigned_txs_file_pattern, self.batch_id)
-        unsent_tx_file_name = convert_file_name(self.config.signed_txs_file_pattern, self.batch_id)
-        sent_tx_file_name = convert_file_name(self.config.sent_txs_file_pattern, self.batch_id)
-
         transaction_data = TransactionData(uid=self.batch_id,
                                            tx=transaction,
                                            tx_input=last_input,
                                            op_return_value=hexlify(op_return_value),
-                                           unsigned_tx_file_name=unsigned_tx_file_name,
-                                           signed_tx_file_name=unsent_tx_file_name,
-                                           sent_tx_file_name=sent_tx_file_name)
+                                           batch_metadata=self.batch_metadata)
 
         return [transaction_data]
 

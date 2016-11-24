@@ -1,12 +1,13 @@
 import unittest
 
+import bitcoin
 from bitcoin.core import COutPoint, lx, x, CScript
 from bitcoin.core.script import OP_EQUALVERIFY, OP_CHECKSIG, OP_DUP, OP_HASH160
 from bitcoin.wallet import P2PKHBitcoinAddress
 from mock import patch
 from pycoin.tx import Tx
 
-from cert_issuer.connectors import broadcast_tx, get_unspent_outputs, get_balance, BitcoindConnector
+from cert_issuer.connectors import ServiceProviderConnector, BitcoindConnector
 from cert_issuer.helpers import hexlify
 
 TESTNET_TX = '010000000137e6a590428144e64cf008beb6e3193efee5a1a4ddfbbd48d10a12025b88c23c00000000fd5d0100473044022024959a1439e7e364c32f012a7e46dfa2d8cfa036ccdf230e9b3642fb9cdd4341022048292d0dbed226fadeae36b20627b50a3351456f164cae2923dba897995843c701483045022100e6dbcfb4ae35322e5c05688a6afcb144ab347654c217c9a3b2e963c2447418e702205cb639b549c7a9eace7d59ff2ce7c23167d60a214e6c9c011ce93317063850de014cc95241048aa0d470b7a9328889c84ef0291ed30346986e22558e80c3ae06199391eae21308a00cdcfb34febc0ea9c80dfd16b01f26c7ec67593cb8ab474aca8fa1d7029d4104cf54956634c4d0bdaf00e6b1871c089b7a892d0fecc077f03b91e8d4d146861b0a4fdd237891a9819c878984d4b123f6fe92d9bbc05873a1bb4fe510145bf369410471843c33b2971e4944c73d4500abd6f61f7edf9ec919c408cbe12a6c9132d2cb8ebed8253322760d5ec6081165e0ab68900683de503f1544f03816d47fec699a53aeffffffff09d29e91010000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f8727ed19190000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f874eda33320000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f879db467640000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f87a43d23030000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f87497b46060000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f87d29e91010000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f8793f68c0c0000000017a9145629021f7668d4ec310ac5e99701a6d6cf95eb8f8716400e00000000001976a9146efcf883b4b6f9997be9a0600f6c095fe2bd2d9288ac00000000'
@@ -14,6 +15,7 @@ MAINNET_TX = '0100000001ce379123234bc9662f3f00f2a9c59d5420fc9f9d5e1fd8881b8666e8
 
 
 def mock_listunspent(self, addrs):
+    print('mock listunspent')
     output1 = {'outpoint': COutPoint(lx('34eb81bc0d1a822369f75174fd4916b1ec490d8fbcba33168e820cc78a52f608'), 0),
                'confirmations': 62952, 'address': P2PKHBitcoinAddress('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT'),
                'spendable': False, 'amount': 49000000, 'solvable': False, 'scriptPubKey': CScript(
@@ -43,16 +45,21 @@ def mock_init(self,
               **kwargs):
     pass
 
+def mock_del(self):
+    pass
+
 def mock_broadcast(self, transaction):
-    return
+    return lx('b59bef6934d043ec2b6c3be7e853b3492e9f493b3559b3bd69864283c122b257')
 
 
 @patch('bitcoin.rpc.Proxy.__init__', mock_init)
+@patch('bitcoin.rpc.Proxy.__del__', mock_del)
 @patch('bitcoin.rpc.Proxy.listunspent', mock_listunspent)
-@patch('bitcoin.rpc.Proxy.sendrawtransaction', mock_broadcast)
 class TestConnectors(unittest.TestCase):
 
+
     def test_bitcoind_connector_spendables(self):
+        bitcoin.SelectParams('testnet')
         bc = BitcoindConnector('XTN')
         spendables = bc.spendables_for_address('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
         self.assertEquals(len(spendables), 3)
@@ -62,22 +69,10 @@ class TestConnectors(unittest.TestCase):
         self.assertEquals(spendables[1].coin_value, 2750)
         self.assertEquals(spendables[2].coin_value, 2750)
 
-    def test_broadcast_tx_mainnet(self):
-        """
-        Broadcasting tests fail because the transaction has already been pushed. So we're looking for a 'transaction
-        already in blockchain' error
-        """
-        try:
-            tx = Tx.from_hex(MAINNET_TX)
-            broadcast_tx(tx)
-            self.assertTrue(False)
-        except Exception as e:
-            self.assertTrue('already in block chain', str(e.args[0]))
-            return
-        self.assertTrue(False)
-
     def test_get_balance(self):
-        balance = get_balance('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
+        bitcoin.SelectParams('testnet')
+        connector = ServiceProviderConnector('XTN', 'na')
+        balance = connector.get_balance('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
         self.assertEquals(balance, 49005500)
 
 

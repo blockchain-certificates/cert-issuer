@@ -1,16 +1,13 @@
 import binascii
-import glob
+import collections
 import hashlib
-import logging
+import json
 import os
 import shutil
 import sys
-import time
 
 import glob2
-import requests
 
-from cert_issuer import config, models
 
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
@@ -20,117 +17,121 @@ if sys.version > '3':
 
     def hexlify(hex_bytes): return binascii.hexlify(hex_bytes).decode('utf8')
 
-secrets_file_path = os.path.join(
-    config.get_config().usb_name, config.get_config().key_file)
+
+UNSIGNED_CERTIFICATES_DIR = 'unsigned_certificates'
+SIGNED_CERTIFICATES_DIR = 'signed_certificates'
+SIGNED_TXS_DIR = 'signed_txs'
+UNSIGNED_TXS_DIR = 'unsigned_txs'
+SENT_TXS_DIR = 'sent_txs'
+RECEIPTS_DIR = 'receipts'
+HASHED_CERTIFICATES_DIR = 'hashed_certificates'
+BLOCKCHAIN_CERTIFICATES_DIR = 'blockchain_certificates'
+JSON_EXT = '.json'
+TXT_EXT = '.txt'
 
 
-def internet_off_for_scope(func):
+class CertificateMetadata(object):
+    def __init__(self, uid, unsigned_certs_dir, signed_certs_dir):
+        self.uid = uid
+        self.unsigned_cert_file_name = os.path.join(unsigned_certs_dir, uid + JSON_EXT)
+        self.signed_cert_file_name = os.path.join(signed_certs_dir, uid + JSON_EXT)
+
+
+class ExtendedCertificateMetadata(CertificateMetadata):
+    def __init__(self, uid, unsigned_certs_dir, signed_certs_dir, base_work_dir, public_key, revocation_key):
+        CertificateMetadata.__init__(self, uid, unsigned_certs_dir, signed_certs_dir)
+        self.base_work_dir = base_work_dir
+        self.public_key = public_key
+        self.revocation_key = revocation_key
+        self.hashed_cert_file_name = convert_file_name(base_work_dir, HASHED_CERTIFICATES_DIR, uid, TXT_EXT)
+        self.receipt_file_name = convert_file_name(base_work_dir, RECEIPTS_DIR, uid, JSON_EXT)
+        self.blockchain_cert_file_name = convert_file_name(base_work_dir, BLOCKCHAIN_CERTIFICATES_DIR, uid, JSON_EXT)
+
+
+class BatchMetadata(object):
     """
-    Wraps func with check that internet is off, then on after the call to func
-    :param func:
+    Maintains batch-related metadata, including batch id and output paths
+    """
+    WORK_DIRS = [BLOCKCHAIN_CERTIFICATES_DIR, HASHED_CERTIFICATES_DIR, RECEIPTS_DIR, SENT_TXS_DIR, UNSIGNED_TXS_DIR,
+                 SIGNED_TXS_DIR]
+
+    def __init__(self, base_work_dir, batch_id):
+        self.base_work_dir = base_work_dir
+        self.batch_id = batch_id
+        self.unsigned_tx_file_name = convert_file_name(base_work_dir, UNSIGNED_TXS_DIR, batch_id, TXT_EXT)
+        self.unsent_tx_file_name = convert_file_name(base_work_dir, SIGNED_TXS_DIR, batch_id, TXT_EXT)
+        self.sent_tx_file_name = convert_file_name(base_work_dir, SENT_TXS_DIR, batch_id, TXT_EXT)
+
+    def ensure_output_dirs_exists(self):
+        for d in self.WORK_DIRS:
+            os.makedirs(os.path.join(self.base_work_dir, d), exist_ok=True)
+
+
+def convert_file_name(base_dir, sub_dir, file_name, file_ext):
+    return os.path.join(base_dir, sub_dir, file_name + file_ext)
+
+
+def find_certificates_to_process(unsigned_certs_dir, signed_certs_dir):
+    cert_info = collections.OrderedDict()
+    input_file_pattern = str(os.path.join(unsigned_certs_dir, '*.json'))
+
+    for filename, (uid,) in sorted(glob2.iglob(input_file_pattern, with_matches=True)):
+        certificate_metadata = CertificateMetadata(uid, unsigned_certs_dir, signed_certs_dir)
+        cert_info[uid] = certificate_metadata
+
+    return cert_info
+
+
+def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, work_dir):
+    """
+    Prepares file system for issuing a batch of certificates. If work_dir isn't the parent
+    dir of unsigned/signed certs, this copies the certs over to subdirs under work_dir. Ensures
+    that all output dirs required for processing the batch exist.
+    :param unsigned_certs_dir:
+    :param signed_certs_dir:
+    :param work_dir:
     :return:
     """
+    # determine if we need to copy to work_dir
+    par_dir = os.path.abspath(os.path.join(unsigned_certs_dir, os.pardir))
+    work_dir = os.path.abspath(work_dir)
 
-    def func_wrapper(*args, **kwargs):
-        check_internet_off()
-        result = func(*args, **kwargs)
-        check_internet_on()
-        return result
+    # If work dir is separate, ensure it exists and copy over certificates
+    if work_dir != par_dir:
+        os.makedirs(work_dir, exist_ok=True)
+        unsigned_certs_temp = os.path.join(work_dir, UNSIGNED_CERTIFICATES_DIR)
+        signed_certs_temp = os.path.join(work_dir, SIGNED_CERTIFICATES_DIR)
 
-    return func_wrapper
+        shutil.copytree(unsigned_certs_dir, unsigned_certs_temp)
+        shutil.copytree(signed_certs_dir, signed_certs_temp)
 
+        unsigned_certs_dir = unsigned_certs_temp
+        signed_certs_dir = signed_certs_temp
 
-def import_key():
-    with open(secrets_file_path) as key_file:
-        key = key_file.read().strip()
-    return key
+    cert_info = collections.OrderedDict()
+    input_file_pattern = str(os.path.join(signed_certs_dir, '*.json'))
 
+    for filename, (uid,) in sorted(glob2.iglob(input_file_pattern, with_matches=True)):
+        with open(filename) as cert_file:
+            cert_raw = cert_file.read()
+            cert_json = json.loads(cert_raw)
+            revocation_key = None
+            if 'revocationKey' in cert_json['recipient']:
+                revocation_key = cert_json['recipient']['revocationKey']
 
-def clear_folder(folder_name):
-    files = glob.glob(folder_name + '*')
-    for file_to_remove in files:
-        os.remove(file_to_remove)
-    return True
+            certificate_metadata = ExtendedCertificateMetadata(uid=uid,
+                                                               unsigned_certs_dir=unsigned_certs_dir,
+                                                               signed_certs_dir=signed_certs_dir,
+                                                               base_work_dir=work_dir,
+                                                               public_key=cert_json['recipient']['publicKey'],
+                                                               revocation_key=revocation_key)
 
+            cert_info[uid] = certificate_metadata
 
-def internet_on():
-    """Pings Google to see if the internet is on. If online, returns true. If offline, returns false."""
-    try:
-        requests.get('http://google.com')
-        return True
-    except requests.exceptions.RequestException:
-        return False
-
-
-def check_internet_off():
-    """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    if not config.get_config().safe_mode:
-        logging.warning(
-            'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
-            ' ensure this is what you want, since this is less secure')
-        return True
-
-    while True:
-        if internet_on() is False and os.path.exists(secrets_file_path):
-            break
-        else:
-            print("Turn off your internet and plug in your USB to continue...")
-            time.sleep(10)
-    return True
-
-
-def check_internet_on():
-    """If internet off and USB plugged in, returns true. Else, continues to wait..."""
-    if not config.get_config().safe_mode:
-        logging.warning(
-            'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
-            ' ensure this is what you want, since this is less secure')
-        return True
-    while True:
-        if internet_on() is True and not os.path.exists(secrets_file_path):
-            break
-        else:
-            print("Turn on your internet and unplug your USB to continue...")
-            time.sleep(10)
-    return True
-
-
-def archive_files(from_pattern, archive_dir, to_pattern, batch_id):
-    """
-    Archives files matching from_pattern and renames to to_pattern based on uid in a batch folder
-    :param from_pattern:
-    :param archive_dir
-    :param to_pattern:
-    :param batch_id:
-    :return:
-    """
-    # place archived files in a timestamped folder
-    archive_folder = os.path.join(archive_dir, batch_id)
-    if not os.path.isdir(archive_folder):
-        os.mkdir(archive_folder)
-        os.mkdir(os.path.join(archive_folder, 'unsigned_certs'))
-        os.mkdir(os.path.join(archive_folder, 'signed_certs'))
-        os.mkdir(os.path.join(archive_folder, 'sent_txs'))
-        os.mkdir(os.path.join(archive_folder, 'receipts'))
-        os.mkdir(os.path.join(archive_folder, 'blockchain_certificates'))
-
-    archived_file_pattern = os.path.join(archive_folder, to_pattern)
-    [shutil.move(filename, models.convert_file_name(archived_file_pattern, uid))
-     for filename, (uid,) in glob2.iglob(from_pattern, with_matches=True)]
-
-
-def clear_intermediate_folders(app_config):
-    """
-    Cleanup intermediate state from previous runs
-    :param app_config:
-    :return:
-    """
-    folders_to_clear = [app_config.hashed_certs_file_pattern,
-                        app_config.unsigned_txs_file_pattern,
-                        app_config.signed_txs_file_pattern,
-                        app_config.sent_txs_file_pattern]
-    for folder in folders_to_clear:
-        clear_folder(folder)
+    batch_id = get_batch_id(list(cert_info.keys()))
+    batch_metadata = BatchMetadata(work_dir, batch_id)
+    batch_metadata.ensure_output_dirs_exists()
+    return cert_info, batch_metadata
 
 
 def get_batch_id(uids):

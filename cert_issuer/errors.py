@@ -26,3 +26,38 @@ class UnverifiedTransactionError(Error):
     The transaction could not be verified
     """
     pass
+
+
+class AlreadySignedError(Error):
+    """
+    The certificate has already been signed
+    """
+    pass
+
+
+class NoCertificatesFoundError(Error):
+    """
+    No certificates found
+    """
+    pass
+
+
+class NonemptyOutputDirectoryError(Error):
+    """
+    The output directory is not empty
+    """
+    pass
+
+
+class BroadcastError(Error):
+    """
+    Error broadcasting transaction
+    """
+    pass
+
+
+class UnrecognizedChainError(Error):
+    """
+    Didn't recognize chain
+    """
+    pass
