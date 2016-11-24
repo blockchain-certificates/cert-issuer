@@ -1,6 +1,6 @@
 import os
 from pip.req import parse_requirements
-from setuptools import setup
+from setuptools import setup, find_packages
 from cert_issuer import __version__
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -20,13 +20,12 @@ setup(
     author_email='certs@media.mit.edu',
     description='Issues blockchain certificates using the Bitcoin blockchain',
     long_description=long_description,
-    packages=['cert_issuer'],
+    packages=find_packages(),
     include_package_data=True,
     install_requires=reqs,
     entry_points={
         'console_scripts': [
-            'cert-issuer = cert_issuer.__main__:cert_issuer_main',
-            'cert-signer = cert_issuer.__main__:cert_signer_main'
+            'issuer = service.run:main',
         ]
     }
 )

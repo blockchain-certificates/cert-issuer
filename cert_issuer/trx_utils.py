@@ -22,9 +22,17 @@ BYTES_PER_INPUT = 148  # assuming compressed public key
 BYTES_PER_OUTPUT = 34
 FIXED_EXTRA_BYTES = 10
 OP_RETURN_BYTE_COUNT = 43  # our op_return output values always have the same length because they are SHA-256 hashes
-SATOSHI_PER_BYTE = config.get_satoshi_per_byte()
-RECOMMENDED_FEE_PER_TRANSACTION = config.get_fee_per_trx()
-MIN_PER_OUTPUT = config.get_min_per_output()
+
+RECOMMENDED_FEE_PER_TRANSACTION = None
+MIN_PER_OUTPUT = None
+SATOSHI_PER_BYTE = None
+
+
+def set_cost_constants(recommended_fee_per_transaction, min_per_output, satoshi_per_byte):
+    global RECOMMENDED_FEE_PER_TRANSACTION, MIN_PER_OUTPUT, SATOSHI_PER_BYTE
+    RECOMMENDED_FEE_PER_TRANSACTION = recommended_fee_per_transaction
+    MIN_PER_OUTPUT = min_per_output
+    SATOSHI_PER_BYTE = satoshi_per_byte
 
 
 def create_trx(op_return_val, issuing_transaction_cost,
