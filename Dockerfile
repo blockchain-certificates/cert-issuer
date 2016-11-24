@@ -44,6 +44,7 @@ RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
 
 # Copy configuration file
 RUN mkdir /etc/cert-issuer
+COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
 RUN mkdir /etc/cert-issuer/data
 RUN mkdir /etc/cert-issuer/data/unsigned_certificates
