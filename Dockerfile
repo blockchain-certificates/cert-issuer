@@ -46,7 +46,4 @@ RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
 RUN mkdir /etc/cert-issuer
 COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
-COPY start_issuer.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT bitcoind -daemon && bash
