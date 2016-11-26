@@ -34,8 +34,13 @@ The bitcoin.conf file determines how your bitcoin node will run, and which chain
 3. Edit your conf.ini file (for this application). You can use conf_regtest.ini as a starting point.
 
     ```
-    storage_address = <storage-address>
+    issuing_address = <issuing-address>
     revocation_address = <revocation-address>
+    
+    unsigned_certificates_dir=<path-to-your-unsigned-certificates>
+    signed_certificates_dir=<path-to-your-signed-certificates>
+    blockchain_certificates_dir=<path-to-your-blockchain-certificates>
+    work_dir=<path-to-your-workdir>
     
     usb_name = </Volumes/path-to-usb/>
     key_file = <file-you-saved-pk-to>
@@ -73,8 +78,13 @@ The bitcoin.conf file determines how your bitcoin node will run, and which chain
 3. Edit your conf.ini file (for this application). Note that the difference between this and regtest is the bitcoin_chain setting.
 
     ```
-    storage_address = <storage-address>
+    issuing_address = <issuing-address>
     revocation_address = <revocation-address>
+    
+    unsigned_certificates_dir=<path-to-your-unsigned-certificates>
+    signed_certificates_dir=<path-to-your-signed-certificates>
+    blockchain_certificates_dir=<path-to-your-blockchain-certificates>
+    work_dir=<path-to-your-workdir>
     
     usb_name = </Volumes/path-to-usb/>
     key_file = <file-you-saved-pk-to>

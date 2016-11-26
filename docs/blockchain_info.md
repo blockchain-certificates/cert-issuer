@@ -18,20 +18,26 @@ permission.
 Edit your conf.ini file with your wallet's login info. Note that only the mainnet chain is supported with a Blockchain.info wallet. To experiment with regtest and testnet, you need to use [bitcoind](bitcoind.md)
 
 ```
-issuing_address = "<issuing address>"
-revocation_address = "<revocation address>"
+issuing_address = <issuing-address>
+revocation_address = <revocation-address>
 
-usb_name = "<path to usb>"
-key_file = "<name of private key file>"
+unsigned_certificates_dir=<path-to-your-unsigned-certificates>
+signed_certificates_dir=<path-to-your-signed-certificates>
+blockchain_certificates_dir=<path-to-your-blockchain-certificates>
+work_dir=<path-to-your-workdir>
 
-wallet_guid = "<blockchain.info wallet guid>"                    # Your unique identifier to login to blockchain.info
-wallet_password = "<blockchain.info wallet password>"            # Your password to login to blockchain.info
-storage_address = "<blockchain.info address with storage BTC>"   # optional
-api_key = "<blockchain.info api key>"
+usb_name = </Volumes/path-to-usb/>
+key_file = <file-you-saved-pk-to>
+
+
+api_key = <blockchain.info-api-key>
+wallet_guid = <blockchain.info-wallet-guid>
+wallet_password = <blockchain.info-wallet-password>
+storage_address = <optional-blockchain.info-storage-address>
 
 bitcoin_chain=mainnet
 ```
 
 ## Issuing certificates
 
-Now you're ready to issue certificates. See [issuing instructinos](issuing.md).
+Now you're ready to issue certificates. See [issuing instructions](issuing.md).
