@@ -15,7 +15,7 @@ revocation=`bitcoin-cli getnewaddress`
 sed -i.bak "s/<revocation-address>/$revocation/g" /etc/cert-issuer/conf.ini
 
 # copy sample cert
-cp /cert-issuer/examples/data-testnet/unsigned_certs/6c6bd2ec-d0d6-41a9-bec8-57bb904c62a8.json /etc/cert-issuer/data/unsigned_certificates/
+cp /cert-issuer/examples/data-testnet/unsigned_certificates/6c6bd2ec-d0d6-41a9-bec8-57bb904c62a8.json /etc/cert-issuer/data/unsigned_certificates/
 
 # make sure you have enough BTC in your issuing address
 bitcoin-cli generate 101
