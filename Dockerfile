@@ -1,55 +1,24 @@
-FROM seegno/bitcoind:0.12
+FROM seegno/bitcoind:0.13-alpine
 MAINTAINER Kim Duffy "kimhd@mit.edu"
 
-# Add bitcoind.conf
-RUN mkdir ~/.bitcoin
-
-#RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=8332\ntestnet=1\nserver=1\nrpctimeout=30\n" > ~/.bitcoin/bitcoin.conf
-
-RUN echo "rpcuser=foo\nrpcpassword=bar\nrpcport=8332\nregtest=1\nrelaypriority=0\nrpcallowip=127.0.0.1\nrpcconnect=127.0.0.1\n" > ~/.bitcoin/bitcoin.conf
-
-
-RUN apt-get update
-
-# Install cert-issuer app
-RUN apt-get install -y -q build-essential
-RUN apt-get install -y python python-pip wget
-RUN apt-get install -y python-dev
-
-RUN apt-get install -y libssl-dev openssl wget
-RUN wget -P /opt/ https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz
-RUN tar xzf /opt/Python-3.4.3.tgz -C /opt/
-
-RUN /opt/Python-3.4.3/configure
-RUN cd /opt/Python-3.4.3 & make
-RUN cd /opt/Python-3.4.3 & make install
-
-# Create a working directory.
-RUN mkdir cert-issuer
-
-# Install VirtualEnv.
-RUN pip install virtualenv
-
 COPY . /cert-issuer
+COPY conf_regtest_common.ini /etc/cert-issuer/conf_regtest_common.ini
+COPY conf_testnet_common.ini /etc/cert-issuer/conf_testnet_common.ini
+COPY bitcoin-regtest.conf /etc/cert-issuer/bitcoin-regtest.conf
+COPY bitcoin-testnet.conf /etc/cert-issuer/bitcoin-testnet.conf
+COPY priv.txt /etc/cert-issuer/priv.txt
+COPY entrypoint-regtest.sh /entrypoint-regtest.sh
+COPY entrypoint-testnet.sh /entrypoint-testnet.sh
 
-# Create and set up the virtualenv
-RUN virtualenv -p /usr/local/bin/python3 /cert-issuer/env/
+RUN apk add --update bash python python3 py-pip \
+    && pip3 install --upgrade pip \
+    && mkdir /etc/cert-issuer/work \
+    && mkdir /etc/cert-issuer/data \
+    && mkdir ~/.bitcoin \
+    && pip3 install /cert-issuer/. \
+    && apk del py-pip \
+    && rm -rf /var/cache/apk/* \
+    && chmod +x /entrypoint-regtest.sh \
+    && chmod +x /entrypoint-testnet.sh
 
-RUN chmod +x /cert-issuer/env/bin/activate
-
-RUN /bin/bash -c "source /cert-issuer/env/bin/activate && pip install /cert-issuer/."
-
-# Active this virtualenv when the container run interactively
-RUN echo "source /cert-issuer/env/bin/activate" >> /root/.bashrc
-
-# Copy configuration file
-RUN mkdir /etc/cert-issuer
-COPY conf_regtest.ini /etc/cert-issuer/conf.ini
-
-RUN mkdir /etc/cert-issuer/data
-RUN mkdir /etc/cert-issuer/data/unsigned_certificates
-RUN mkdir /etc/cert-issuer/data/signed_certificates
-RUN mkdir /etc/cert-issuer/data/blockchain_certificates
-RUN mkdir /etc/cert-issuer/work
-
-ENTRYPOINT bitcoind -daemon && bash
+ENTRYPOINT ["/entrypoint-testnet.sh", "/entrypoint-regtest.sh"]

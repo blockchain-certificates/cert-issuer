@@ -13,8 +13,7 @@ if __package__ is None and not hasattr(sys, 'frozen'):
 def cert_issuer_main(args=None):
     from cert_issuer import config
     parsed_config = config.get_config()
-    from cert_issuer import issue_certificates, trx_utils
-    trx_utils.set_cost_constants(parsed_config.tx_fee, parsed_config.dust_threshold, parsed_config.satoshi_per_byte)
+    from cert_issuer import issue_certificates
     issue_certificates.main(parsed_config)
 
 

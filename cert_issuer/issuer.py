@@ -4,10 +4,8 @@ Base class for building blockchain transactions to issue Blockchain Certificates
 import logging
 from abc import abstractmethod
 
-from cert_issuer import trx_utils
+from cert_issuer import tx_utils
 from cert_issuer.helpers import hexlify
-
-OUTPUTS_PER_CERTIFICATE = 2
 
 
 class Issuer:
@@ -17,33 +15,7 @@ class Issuer:
         self.certificates_to_issue = certificates_to_issue
         self.connector = connector
         self.signer = signer
-
-    @staticmethod
-    def get_num_outputs(num_certificates):
-        """
-        There are at most 2 additional outputs for OP_RETURN and change address
-        :param num_certificates:
-        :return:
-        """
-        return OUTPUTS_PER_CERTIFICATE * num_certificates + 2
-
-    @staticmethod
-    def get_cost_for_certificate_batch(num_outputs, allow_transfer):
-        """
-        Get cost for the batch of certificates
-        :param num_outputs:
-        :param allow_transfer:
-        :return:
-        """
-
-        issuing_costs = trx_utils.get_cost(num_outputs)
-        recommended_fee = trx_utils.RECOMMENDED_FEE_PER_TRANSACTION * trx_utils.COIN
-
-        # plus additional fees for transfer
-        if allow_transfer:
-            issuing_costs.set_transfer_fee(recommended_fee)
-
-        return issuing_costs
+        self.total = None
 
     @abstractmethod
     def validate_schema(self):
@@ -59,7 +31,7 @@ class Issuer:
         return
 
     @abstractmethod
-    def create_transactions(self, revocation_address, issuing_transaction_cost):
+    def create_transactions(self, revocation_address):
         return
 
     def hash_certificates(self):
@@ -76,14 +48,13 @@ class Issuer:
         with open(sent_tx_file_name, 'w') as out_file:
             out_file.write(tx_id)
 
-    def issue_on_blockchain(self, revocation_address, issuing_transaction_cost):
+    def issue_on_blockchain(self, revocation_address):
         """
         Issue the certificates on the Bitcoin blockchain
         :param revocation_address:
-        :param issuing_transaction_cost:
         :return:
         """
-        transactions_data = self.create_transactions(revocation_address, issuing_transaction_cost)
+        transactions_data = self.create_transactions(revocation_address)
         for transaction_data in transactions_data:
             unsigned_tx_file_name = transaction_data.batch_metadata.unsigned_tx_file_name
             signed_tx_file_name = transaction_data.batch_metadata.unsent_tx_file_name
@@ -98,7 +69,7 @@ class Issuer:
             signed_tx = self.signer.sign_tx(hex_tx, transaction_data.tx_input, self.netcode)
 
             # log the actual byte count
-            tx_byte_count = trx_utils.get_byte_count(signed_tx)
+            tx_byte_count = tx_utils.get_byte_count(signed_tx)
             logging.info('The actual transaction size is %d bytes', tx_byte_count)
 
             signed_hextx = signed_tx.as_hex()
@@ -106,7 +77,7 @@ class Issuer:
                 out_file.write(signed_hextx)
 
             # verify transaction before broadcasting
-            trx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
+            tx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
 
             # send tx and persist txid
             tx_id = self.connector.broadcast_tx(signed_tx)

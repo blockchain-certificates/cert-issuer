@@ -16,7 +16,7 @@ from pycoin.services.providers import get_default_providers_for_netcode
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
-from cert_issuer.errors import ConnectorError, InsufficientFundsError, BroadcastError, UnrecognizedChainError
+from cert_issuer.errors import ConnectorError, BroadcastError, UnrecognizedChainError
 from cert_issuer.helpers import hexlify
 from cert_issuer.helpers import unhexlify
 
@@ -91,8 +91,8 @@ class BlockrBroadcaster(BlockrioProvider):
 
     def broadcast_tx(self, tx):
         hextx = to_hex(tx)
-        URL = self.url + '/tx/push'
-        response = requests.post(URL, json={'hex': hextx})
+        url = self.url + '/tx/push'
+        response = requests.post(url, json={'hex': hextx})
         if int(response.status_code) == 200:
             tx_id = response.json().get('data', None)
             return tx_id
@@ -142,34 +142,6 @@ class ServiceProviderConnector(object):
     def send_payment(self, from_address, issuing_address, cost, fee):
         self.pay(from_address, issuing_address, cost, fee)
 
-    def check_balance(self, address, transaction_costs):
-        """
-        Returns amount needed in wallet to perform transaction(s). A positive return value indicates funds are missing
-
-        :param address:
-        :param transaction_costs:
-        :return:
-        """
-
-        amount_needed = self.check_balance_no_throw(address, transaction_costs=transaction_costs)
-
-        if amount_needed > 0:
-            error_message = 'Please add {} satoshis to the address {}'.format(
-                amount_needed, address)
-            logging.error(error_message)
-            raise InsufficientFundsError(error_message)
-
-    def check_balance_no_throw(self, address, transaction_costs):
-        """
-        Returns amount needed in wallet to perform transaction(s). A positive return value indicates funds are missing
-        :param address:
-        :param transaction_costs:
-        :return:
-        """
-        address_balance = self.get_balance(address)
-        amount_needed = transaction_costs.difference(address_balance)
-        return amount_needed
-
     def pay(self, from_address, to_address, amount, fee):
         last_exception = None
         for method_provider in service_provider_methods('pay', get_default_providers_for_netcode(self.netcode)):
@@ -188,7 +160,6 @@ class ServiceProviderConnector(object):
         """
         Get unspent outputs at the address
         :param address:
-        :param netcode:
         :return:
         """
         spendables = spendables_for_address(bitcoin_address=address, netcode=self.netcode)

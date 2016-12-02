@@ -5,7 +5,6 @@ This implementation signs the assertion uid, and populates the signature section
 After a Blockchain Certificate has been signed, it can be issed on the blockchain by using issue_certificates.py
 
 """
-import glob
 import json
 import logging
 import os
@@ -13,19 +12,13 @@ import os
 from cert_schema.schema_tools import schema_validator
 
 from cert_issuer import helpers
-from cert_issuer.errors import NoCertificatesFoundError, AlreadySignedError, NonemptyOutputDirectoryError
+from cert_issuer.errors import NoCertificatesFoundError, AlreadySignedError
 from cert_issuer.secure_signing import Signer, FileSecretManager
 
 
 def main(app_config):
     unsigned_certs_dir = app_config.unsigned_certificates_dir
     signed_certs_dir = app_config.signed_certificates_dir
-
-    signed_certs_file_pattern = str(os.path.join(signed_certs_dir, '*.json'))
-    if os.path.exists(signed_certs_dir) and glob.glob(signed_certs_file_pattern):
-        message = "The output directory {} is not empty. Make sure you have cleaned up results from your previous run".format(signed_certs_dir)
-        logging.warning(message)
-        raise NonemptyOutputDirectoryError(message)
 
     # find certificates to sign
     certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
