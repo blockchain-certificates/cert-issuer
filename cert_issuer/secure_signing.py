@@ -56,6 +56,7 @@ class SecretManager(object):
     """
     Abstraction for a secret store. TODO: come up with better names.
     """
+
     def __init__(self):
         pass
 
@@ -71,6 +72,7 @@ class SecretManager(object):
 
 class FileSecretManager(SecretManager):
     def __init__(self, path_to_secret, disable_safe_mode):
+        super().__init__()
         self.path_to_secret = path_to_secret
         self.disable_safe_mode = disable_safe_mode
 

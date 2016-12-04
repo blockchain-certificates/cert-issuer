@@ -5,7 +5,6 @@ from bitcoin.core import COutPoint, lx, x, CScript
 from bitcoin.core.script import OP_EQUALVERIFY, OP_CHECKSIG, OP_DUP, OP_HASH160
 from bitcoin.wallet import P2PKHBitcoinAddress
 from mock import patch
-from pycoin.tx import Tx
 
 from cert_issuer.connectors import ServiceProviderConnector, BitcoindConnector
 from cert_issuer.helpers import hexlify
@@ -45,8 +44,10 @@ def mock_init(self,
               **kwargs):
     pass
 
+
 def mock_del(self):
     pass
+
 
 def mock_broadcast(self, transaction):
     return lx('b59bef6934d043ec2b6c3be7e853b3492e9f493b3559b3bd69864283c122b257')
@@ -56,8 +57,6 @@ def mock_broadcast(self, transaction):
 @patch('bitcoin.rpc.Proxy.__del__', mock_del)
 @patch('bitcoin.rpc.Proxy.listunspent', mock_listunspent)
 class TestConnectors(unittest.TestCase):
-
-
     def test_bitcoind_connector_spendables(self):
         bitcoin.SelectParams('testnet')
         bc = BitcoindConnector('XTN')

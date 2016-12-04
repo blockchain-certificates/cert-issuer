@@ -12,7 +12,7 @@ and generating a receipt in a Chainpoint v2 compliant format (https://www.chainp
 Steps:
 1. Checks that there are signed certificates available to process
 2. Hash signed certificates
-3. Ensure balance is available in the wallet (may involve transferring to issuing address)
+3. Ensure balance is available in the wallet
 4. Prepare payload to put on the blockchain in the OP_RETURN field
 5. Create the Bitcoin transaction
 6. Sign bitcoin transaction
@@ -49,7 +49,6 @@ This script assumes the recipient is assigned a public bitcoin address, located 
 recipient publicKey field. The recipient provides this via the certificate wallet or certificate viewer.
 
 """
-import glob
 import logging
 import os
 import shutil
@@ -58,9 +57,10 @@ import sys
 from cert_issuer import helpers
 from cert_issuer.batch_issuer import BatchIssuer
 from cert_issuer.connectors import ServiceProviderConnector
-from cert_issuer.errors import NoCertificatesFoundError, NonemptyOutputDirectoryError
+from cert_issuer.errors import NoCertificatesFoundError, InsufficientFundsError
 from cert_issuer.secure_signing import Signer, FileSecretManager
 from cert_issuer.secure_signing import verify_signature
+from cert_issuer.tx_utils import TransactionCostConstants
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
@@ -70,20 +70,8 @@ if sys.version_info.major < 3:
 def main(app_config):
     unsigned_certs_dir = app_config.unsigned_certificates_dir
     signed_certs_dir = app_config.signed_certificates_dir
-    work_dir = app_config.work_dir
     blockcerts_dir = app_config.blockchain_certificates_dir
-
-    blockcerts_file_pattern = str(os.path.join(blockcerts_dir, '*.json'))
-    if os.path.exists(blockcerts_dir) and glob.glob(blockcerts_file_pattern):
-        message = "The output directory {} is not empty. Make sure you have cleaned up results from your previous run".format(signed_certs_dir)
-        logging.warning(message)
-        raise NonemptyOutputDirectoryError(message)
-
-    # delete previous work_dir contents
-    for item in os.listdir(work_dir):
-        file_path = os.path.join(work_dir, item)
-        if os.path.isdir(file_path):
-            shutil.rmtree(file_path)
+    work_dir = app_config.work_dir
 
     # find certificates to issue
     certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
@@ -110,12 +98,14 @@ def main(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
 
     signer = Signer(FileSecretManager(path_to_secret=path_to_secret, disable_safe_mode=app_config.safe_mode))
+    tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
     issuer = BatchIssuer(netcode=app_config.netcode,
                          issuing_address=issuing_address,
                          certificates_to_issue=certificates,
                          connector=connector,
                          signer=signer,
+                         tx_cost_constants=tx_constants,
                          batch_metadata=batch_metadata)
 
     issuer.validate_schema()
@@ -127,40 +117,31 @@ def main(app_config):
     logging.info('Hashing signed certificates.')
     issuer.hash_certificates()
 
-    # calculate transaction costs
-    all_costs = issuer.get_cost_for_certificate_batch(app_config.transfer_from_storage_address)
+    # calculate transaction cost
+    transaction_cost = issuer.calculate_cost_for_certificate_batch()
 
-    logging.info('Total cost will be %d satoshis', all_costs.total)
+    logging.info('Total cost will be %d satoshis', transaction_cost)
 
-    if app_config.transfer_from_storage_address:
-        # ensure there is enough in our wallet at the storage/issuing address, transferring from the storage address
-        # if configured
-        logging.info('Checking there is enough balance in the issuing address')
-        funds_needed = connector.check_balance_no_throw(issuing_address, all_costs)
-        if funds_needed > 0:
-            connector.check_balance(app_config.storage_address, all_costs)
-            connector.pay(
-                app_config.storage_address,
-                issuing_address,
-                all_costs.min_per_output,
-                all_costs.fee)
+    # ensure the issuing address has sufficient balance
+    balance = connector.get_balance(issuing_address)
 
-    # ensure the issuing address now has sufficient balance
-    connector.check_balance(issuing_address, all_costs)
+    if transaction_cost > balance:
+        error_message = 'Please add {} satoshis to the address {}'.format(
+            transaction_cost - balance, issuing_address)
+        logging.error(error_message)
+        raise InsufficientFundsError(error_message)
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
-    issuer.issue_on_blockchain(revocation_address=revocation_address,
-                               issuing_transaction_cost=all_costs)
+    issuer.issue_on_blockchain(revocation_address=revocation_address)
 
-    blockcerts_tmp_dir = os.path.join(work_dir, 'blockchain_certificates')
-    if blockcerts_tmp_dir != blockcerts_dir:
-        if not os.path.exists(blockcerts_dir):
-            os.makedirs(blockcerts_dir)
-        for item in os.listdir(blockcerts_tmp_dir):
-            s = os.path.join(blockcerts_tmp_dir, item)
-            d = os.path.join(blockcerts_dir, item)
-            shutil.copy2(s, d)
+    blockcerts_tmp_dir = os.path.join(work_dir, helpers.BLOCKCHAIN_CERTIFICATES_DIR)
+    if not os.path.exists(blockcerts_dir):
+        os.makedirs(blockcerts_dir)
+    for item in os.listdir(blockcerts_tmp_dir):
+        s = os.path.join(blockcerts_tmp_dir, item)
+        d = os.path.join(blockcerts_dir, item)
+        shutil.copy2(s, d)
 
     logging.info('Your Blockchain Certificates are in %s', blockcerts_dir)
     return blockcerts_dir

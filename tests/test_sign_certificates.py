@@ -4,7 +4,6 @@ from mock import MagicMock
 from mock import mock_open
 from mock import patch
 
-
 from cert_issuer.helpers import CertificateMetadata
 from cert_issuer.secure_signing import Signer, SecretManager, _sign
 

@@ -6,10 +6,7 @@ import configargparse
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
-
-RECOMMENDED_FEE_PER_TRANSACTION = None
-MIN_PER_OUTPUT = None
-SATOSHI_PER_BYTE = None
+WORK_PATH = os.path.join(PATH, 'work')
 
 
 def configure_logger():
@@ -47,10 +44,6 @@ def add_arguments(p):
                    help='wallet password. Not needed for bitcoind deployment')
     p.add_argument('--api_key', required=False,
                    help='api key. Not needed for bitcoind deployment')
-    p.add_argument('--transfer_from_storage_address', dest='transfer_from_storage_address', action='store_true',
-                   help='Transfer BTC from storage to issuing address.')
-    p.add_argument('--no_transfer_from_storage_address', dest='transfer_from_storage_address', action='store_false',
-                   help='Prevent transfer BTC from storage to issuing address.')
     p.add_argument('--safe_mode', dest='safe_mode', action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', action='store_false',
@@ -69,8 +62,8 @@ def add_arguments(p):
                    help='Default path to data directory storing signed certs')
     p.add_argument('--blockchain_certificates_dir', default=os.path.join(DATA_PATH, 'blockchain_certificates'),
                    help='Default path to data directory storing blockchain certs')
-    p.add_argument('--work_dir', default=DATA_PATH,
-                   help='Default path to data directory, storing unsigned certs')
+    p.add_argument('--work_dir', default=WORK_PATH,
+                   help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
 
 
 def get_config():
@@ -91,44 +84,4 @@ def get_config():
 
     configure_logger()
 
-    set_fee_per_trx(parsed_config.tx_fee)
-    set_satoshi_per_byte(parsed_config.satoshi_per_byte)
-    set_min_per_output(parsed_config.dust_threshold)
-
     return parsed_config
-
-
-def set_fee_per_trx(recommended_fee_per_transaction):
-    global RECOMMENDED_FEE_PER_TRANSACTION
-    RECOMMENDED_FEE_PER_TRANSACTION = recommended_fee_per_transaction
-
-
-def get_fee_per_trx():
-    global RECOMMENDED_FEE_PER_TRANSACTION
-    if not RECOMMENDED_FEE_PER_TRANSACTION:
-        RECOMMENDED_FEE_PER_TRANSACTION = 0.0001
-    return RECOMMENDED_FEE_PER_TRANSACTION
-
-
-def set_satoshi_per_byte(satoshi_per_byte):
-    global SATOSHI_PER_BYTE
-    SATOSHI_PER_BYTE = satoshi_per_byte
-
-
-def get_satoshi_per_byte():
-    global SATOSHI_PER_BYTE
-    if not SATOSHI_PER_BYTE:
-        SATOSHI_PER_BYTE = 41
-    return SATOSHI_PER_BYTE
-
-
-def set_min_per_output(min_per_output):
-    global MIN_PER_OUTPUT
-    MIN_PER_OUTPUT = min_per_output
-
-
-def get_min_per_output():
-    global MIN_PER_OUTPUT
-    if not MIN_PER_OUTPUT:
-        MIN_PER_OUTPUT = 0.0000275
-    return MIN_PER_OUTPUT

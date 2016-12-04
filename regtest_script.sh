@@ -23,7 +23,6 @@ bitcoin-cli getbalance
 bitcoin-cli sendtoaddress $issuer 5
 
 # sign the certificate
-cd cert-issuer
 cert-signer -c /etc/cert-issuer/conf.ini
 
 # issue the certificates on the blockchain

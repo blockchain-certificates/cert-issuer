@@ -8,11 +8,11 @@ from merkleproof.MerkleTree import sha256
 from pyld import jsonld
 from werkzeug.contrib.cache import SimpleCache
 
-from cert_issuer import trx_utils
+from cert_issuer import tx_utils
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.issuer import Issuer
-from cert_issuer.models import TransactionData
+from cert_issuer.tx_utils import TransactionData
 
 cache = SimpleCache()
 
@@ -28,12 +28,13 @@ def cached_document_loader(url, override_cache=False):
 
 
 class BatchIssuer(Issuer):
-    def __init__(self, netcode, issuing_address, certificates_to_issue, connector, signer, batch_metadata):
+    def __init__(self, netcode, issuing_address, certificates_to_issue, connector, signer, batch_metadata,
+                 tx_cost_constants):
         Issuer.__init__(self, netcode, issuing_address, certificates_to_issue, connector, signer)
         self.tree = MerkleTree(hash_f=sha256)
-
         self.batch_id = batch_metadata.batch_id
         self.batch_metadata = batch_metadata
+        self.tx_cost_constants = tx_cost_constants
 
     def validate_schema(self):
         """
@@ -59,16 +60,21 @@ class BatchIssuer(Issuer):
         self.tree.add_leaf(hashed, False)
         return hashed
 
-    def get_cost_for_certificate_batch(self, allow_transfer):
+    def calculate_cost_for_certificate_batch(self):
         """
         Per certificate, we pay 2*min_per_output (which is based on dust) + fee. Note assumes 1 input
-        per tx. We may also need to pay additional fees for splitting into temp addresses
-        :param allow_transfer:
+        per tx.
         :return:
         """
-        num_certificates = len(self.certificates_to_issue)
-        num_outputs = Issuer.get_num_outputs(num_certificates)
-        return Issuer.get_cost_for_certificate_batch(num_outputs, allow_transfer)
+        num_inputs = 1
+        # output per recipient
+        num_outputs = len(self.certificates_to_issue)
+        # plus revocation outputs
+        num_outputs += sum(1 for c in self.certificates_to_issue.values() if c.revocation_key)
+        # plus global revocation, change output, and OP_RETURN
+        num_outputs += 3
+        self.total = tx_utils.calculate_tx_total(self.tx_cost_constants, num_inputs, num_outputs)
+        return self.total
 
     def persist_tx(self, sent_tx_file_name, tx_id):
         Issuer.persist_tx(self, sent_tx_file_name, tx_id)
@@ -95,11 +101,10 @@ class BatchIssuer(Issuer):
 
             index += 1
 
-    def create_transactions(self, revocation_address, issuing_transaction_cost):
+    def create_transactions(self, revocation_address):
         """
         Create the batch Bitcoin transaction
         :param revocation_address:
-        :param issuing_transaction_cost:
         :return:
         """
         self.tree.make_tree()
@@ -115,12 +120,12 @@ class BatchIssuer(Issuer):
         op_return_value = unhexlify(self.tree.get_merkle_root())
 
         tx_outs = self.build_recipient_tx_outs()
-        tx_outs.append(trx_utils.create_transaction_output(revocation_address,
-                                                           issuing_transaction_cost.min_per_output))
+        tx_outs.append(tx_utils.create_transaction_output(revocation_address,
+                                                          self.tx_cost_constants.get_minimum_output_coin()))
 
-        transaction = trx_utils.create_trx(
+        transaction = tx_utils.create_trx(
             op_return_value,
-            issuing_transaction_cost,
+            self.total,
             self.issuing_address,
             tx_outs,
             last_input)
@@ -141,6 +146,12 @@ class BatchIssuer(Issuer):
         """
         tx_outs = []
         for _, certificate in self.certificates_to_issue.items():
-            tx_outs = tx_outs + trx_utils.create_recipient_outputs(certificate.public_key, certificate.revocation_key)
+            recipient_outs = [tx_utils.create_transaction_output(certificate.public_key,
+                                                                 self.tx_cost_constants.get_minimum_output_coin())]
+            if certificate.revocation_key:
+                recipient_outs.append(tx_utils.create_transaction_output(certificate.revocation_key,
+                                                                         self.tx_cost_constants.get_minimum_output_coin()))
+
+            tx_outs = tx_outs + recipient_outs
 
         return tx_outs

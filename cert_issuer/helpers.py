@@ -1,13 +1,16 @@
 import binascii
 import collections
+import glob
 import hashlib
 import json
+
 import os
 import shutil
 import sys
 
 import glob2
 
+from cert_issuer.errors import NonemptyOutputDirectoryError
 
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
@@ -16,7 +19,6 @@ if sys.version > '3':
 
 
     def hexlify(hex_bytes): return binascii.hexlify(hex_bytes).decode('utf8')
-
 
 UNSIGNED_CERTIFICATES_DIR = 'unsigned_certificates'
 SIGNED_CERTIFICATES_DIR = 'signed_certificates'
@@ -84,29 +86,29 @@ def find_certificates_to_process(unsigned_certs_dir, signed_certs_dir):
 
 def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, work_dir):
     """
-    Prepares file system for issuing a batch of certificates. If work_dir isn't the parent
-    dir of unsigned/signed certs, this copies the certs over to subdirs under work_dir. Ensures
+    Prepares file system for issuing a batch of certificates. Copies inputs to work_dir, and ensures
     that all output dirs required for processing the batch exist.
     :param unsigned_certs_dir:
     :param signed_certs_dir:
     :param work_dir:
     :return:
     """
-    # determine if we need to copy to work_dir
-    par_dir = os.path.abspath(os.path.join(unsigned_certs_dir, os.pardir))
-    work_dir = os.path.abspath(work_dir)
 
-    # If work dir is separate, ensure it exists and copy over certificates
-    if work_dir != par_dir:
-        os.makedirs(work_dir, exist_ok=True)
-        unsigned_certs_temp = os.path.join(work_dir, UNSIGNED_CERTIFICATES_DIR)
-        signed_certs_temp = os.path.join(work_dir, SIGNED_CERTIFICATES_DIR)
+    os.makedirs(work_dir, exist_ok=True)
+    # ensure previous processing state, if any, is cleaned up
+    for item in os.listdir(work_dir):
+        file_path = os.path.join(work_dir, item)
+        if os.path.isdir(file_path):
+            shutil.rmtree(file_path)
 
-        shutil.copytree(unsigned_certs_dir, unsigned_certs_temp)
-        shutil.copytree(signed_certs_dir, signed_certs_temp)
+    unsigned_certs_temp = os.path.join(work_dir, UNSIGNED_CERTIFICATES_DIR)
+    signed_certs_temp = os.path.join(work_dir, SIGNED_CERTIFICATES_DIR)
 
-        unsigned_certs_dir = unsigned_certs_temp
-        signed_certs_dir = signed_certs_temp
+    shutil.copytree(unsigned_certs_dir, unsigned_certs_temp)
+    shutil.copytree(signed_certs_dir, signed_certs_temp)
+
+    unsigned_certs_dir = unsigned_certs_temp
+    signed_certs_dir = signed_certs_temp
 
     cert_info = collections.OrderedDict()
     input_file_pattern = str(os.path.join(signed_certs_dir, '*.json'))
