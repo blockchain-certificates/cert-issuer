@@ -1,6 +1,8 @@
 import io
 import unittest
 
+import bitcoin
+
 from pycoin.serialize import h2b
 from pycoin.tx import Spendable
 from pycoin.tx import Tx
@@ -14,8 +16,9 @@ MAINNET_TX = '0100000001ce379123234bc9662f3f00f2a9c59d5420fc9f9d5e1fd8881b8666e8
 
 class TestTrxUtils(unittest.TestCase):
     def test_verify_transaction(self):
-        tx_input = Spendable(200, '18eKkAWyU9kvRNHPKxnZb6wwtPMrNmRRRA',
-                             h2b('8443b07464c762d7fb404ea918a5ac9b3618d5cd6a0c5ea6e4dd5d7bbe28b154'), 0)
+        bitcoin.SelectParams('testnet')
+        b = h2b('8443b07464c762d7fb404ea918a5ac9b3618d5cd6a0c5ea6e4dd5d7bbe28b154')
+        tx_input = Spendable(200, b'18eKkAWyU9kvRNHPKxnZb6wwtPMrNmRRRA', b, 0)
         tx_outs = [tx_utils.create_transaction_output('mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', 0.0000275)]
         op_return_val = h2b('e9cee71ab932fde863338d08be4de9dfe39ea049bdafb342ce659ec5450b69ae')
         tx = tx_utils.create_trx(op_return_val, 3, 'mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', tx_outs, tx_input)
@@ -41,8 +44,11 @@ class TestTrxUtils(unittest.TestCase):
         self.assertEquals(estimated_byte_count, 136202)
 
     def test_create_trx(self):
-        tx_input = Spendable(200, '18eKkAWyU9kvRNHPKxnZb6wwtPMrNmRRRA',
-                             h2b('8443b07464c762d7fb404ea918a5ac9b3618d5cd6a0c5ea6e4dd5d7bbe28b154'), 0)
+        bitcoin.SelectParams('testnet')
+        b = h2b('8443b07464c762d7fb404ea918a5ac9b3618d5cd6a0c5ea6e4dd5d7bbe28b154')
+        tx_input = Spendable(200, b'18eKkAWyU9kvRNHPKxnZb6wwtPMrNmRRRA',
+                             b, 0)
+        #spendables = [Spendable(COIN_VALUE, standard_tx_out_script(BITCOIN_ADDRESSES[0]), FAKE_HASHES[1], 0)]
         tx_outs = [tx_utils.create_transaction_output('mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', 0.0000275)]
         tx = tx_utils.create_trx('TEST'.encode('utf-8'), 3, 'mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', tx_outs, tx_input)
         hextx = hexlify(tx.serialize())

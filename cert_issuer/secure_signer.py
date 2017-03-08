@@ -132,6 +132,7 @@ class Signer(object):
     """
     Wraps certificate and transaction signing functionality. Uses a secure signer to actually create the signatures.
     """
+
     def __init__(self, secure_signer):
         self.secure_signer = secure_signer
 

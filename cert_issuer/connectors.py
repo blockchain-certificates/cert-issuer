@@ -10,7 +10,6 @@ import requests
 from bitcoin.core import CTransaction
 from pycoin.serialize import b2h
 from pycoin.services import providers
-from pycoin.services import spendables_for_address
 from pycoin.services.providers import BlockrioProvider, InsightProvider
 from pycoin.services.providers import get_default_providers_for_netcode
 from pycoin.services.providers import service_provider_methods

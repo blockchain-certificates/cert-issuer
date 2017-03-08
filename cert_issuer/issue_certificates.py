@@ -55,10 +55,10 @@ import shutil
 import sys
 
 from cert_issuer import helpers
+from cert_issuer import secure_signer
 from cert_issuer.batch_issuer import BatchIssuer
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.errors import NoCertificatesFoundError, InsufficientFundsError
-from cert_issuer import secure_signer
 from cert_issuer.secure_signer import Signer
 from cert_issuer.tx_utils import TransactionCostConstants
 

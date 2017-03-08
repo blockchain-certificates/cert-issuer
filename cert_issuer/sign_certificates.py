@@ -12,13 +12,12 @@ import os
 from cert_schema.schema_tools import schema_validator
 
 from cert_issuer import helpers
-from cert_issuer.errors import NoCertificatesFoundError, AlreadySignedError
 from cert_issuer import secure_signer
+from cert_issuer.errors import NoCertificatesFoundError, AlreadySignedError
 from cert_issuer.secure_signer import Signer
 
 
 def prepare_batch(unsigned_certs_dir, signed_certs_dir):
-
     # find certificates to sign
     certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
     if not certificates:

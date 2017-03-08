@@ -24,8 +24,6 @@ def add_arguments(p):
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
-    p.add_argument('--revocation_address', required=True,
-                   help='revocation address')
     p.add_argument('--usb_name', required=True, help='usb path to key_file')
     p.add_argument('--key_file', required=True,
                    help='name of file on USB containing private key')
@@ -36,14 +34,6 @@ def add_arguments(p):
     p.add_argument('--bitcoin_chain', default='regtest',
                    help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
                         'configured). Other options are testnet and mainnet.')
-    p.add_argument('--storage_address', required=False,
-                   help='storage address. Not needed for bitcoind deployment')
-    p.add_argument('--wallet_guid', required=False,
-                   help='wallet guid. Not needed for bitcoind deployment')
-    p.add_argument('--wallet_password', required=False,
-                   help='wallet password. Not needed for bitcoind deployment')
-    p.add_argument('--api_key', required=False,
-                   help='api key. Not needed for bitcoind deployment')
     p.add_argument('--safe_mode', dest='safe_mode', action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', action='store_false',
