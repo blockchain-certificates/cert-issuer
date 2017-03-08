@@ -85,7 +85,7 @@ def main(app_config, secret_manager=None):
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
 
-    connector = ServiceProviderConnector(app_config.netcode, app_config.wallet_connector_type)
+    connector = ServiceProviderConnector(app_config.bitcoin_chain, app_config.netcode)
 
     if not secret_manager:
         secret_manager = secure_signer.initialize_secret_manager(app_config)

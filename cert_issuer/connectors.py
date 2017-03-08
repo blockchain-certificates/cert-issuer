@@ -108,9 +108,10 @@ class BitcoindConnector(object):
 
 
 class ServiceProviderConnector(object):
-    def __init__(self, netcode, wallet_connector_type, wallet_credentials=None):
+    def __init__(self, bitcoin_chain, netcode):
+        self.bitcoin_chain = bitcoin_chain
         self.netcode = netcode
-        self._init_connectors(netcode, wallet_connector_type, wallet_credentials)
+        self._init_connectors(bitcoin_chain, netcode)
 
     def spendables_for_address(self, bitcoin_address, netcode):
         for m in service_provider_methods("spendables_for_address", get_default_providers_for_netcode(netcode)):
@@ -171,7 +172,7 @@ class ServiceProviderConnector(object):
         logging.error(last_exception, exc_info=True)
         raise last_exception
 
-    def _init_connectors(self, netcode, wallet_connector_type=None, wallet_credentials=None):
+    def _init_connectors(self, bitcoin_chain, netcode):
         """
         Initialize broadcasting and payment connectors. This allows fallback and confirmation across different chains
         :param wallet_connector_type:
@@ -185,10 +186,15 @@ class ServiceProviderConnector(object):
             providers.set_default_providers_for_netcode('BTC', provider_list)
 
         elif netcode == 'XTN':
-            # initialize testnet providers
-            provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, 'XTN')
-            self.patch_providers(provider_list, 'XTN')
-            providers.set_default_providers_for_netcode('XTN', provider_list)
+            if bitcoin_chain == 'regtest':
+                regtest_list = []
+                regtest_list.append(BitcoindConnector('XTN'))
+                providers.set_default_providers_for_netcode('XTN', regtest_list)
+            else:
+                # initialize testnet providers
+                provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, 'XTN')
+                self.patch_providers(provider_list, 'XTN')
+                providers.set_default_providers_for_netcode('XTN', provider_list)
 
         else:
             logging.error('Unrecognized chain %s', netcode)

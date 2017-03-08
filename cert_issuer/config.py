@@ -24,6 +24,8 @@ def add_arguments(p):
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
+    p.add_argument('--revocation_address', required=True,
+                   help='revocation address')
     p.add_argument('--usb_name', required=True, help='usb path to key_file')
     p.add_argument('--key_file', required=True,
                    help='name of file on USB containing private key')

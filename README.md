@@ -22,7 +22,7 @@ experimenting only.
 3. From a command line in cert-issuer dir, build your docker container:
     
     ```
-    docker build -t ml/cert-issuer:1.0 .
+    docker build -t bc/cert-issuer:1.0 .
     ```
 
 4. Read before running!
@@ -32,13 +32,13 @@ experimenting only.
 
         ```
         docker ps -l
-        docker commit <container for your ml/cert-issuer> my_cert_issuer
+        docker commit <container for your bc/cert-issuer> my_cert_issuer
         ```
 
 5. When you're ready to run:
 
     ```
-    docker run -it ml/cert-issuer:1.0 bash
+    docker run -it bc/cert-issuer:1.0 bash
     ```
 
 ## Create issuing and revocation addresses
