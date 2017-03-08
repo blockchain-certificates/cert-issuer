@@ -13,24 +13,20 @@ from cert_schema.schema_tools import schema_validator
 
 from cert_issuer import helpers
 from cert_issuer.errors import NoCertificatesFoundError, AlreadySignedError
-from cert_issuer.secure_signing import Signer, FileSecretManager
+from cert_issuer import secure_signer
+from cert_issuer.secure_signer import Signer
 
 
-def main(app_config):
-    unsigned_certs_dir = app_config.unsigned_certificates_dir
-    signed_certs_dir = app_config.signed_certificates_dir
+def prepare_batch(unsigned_certs_dir, signed_certs_dir):
 
     # find certificates to sign
     certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
     if not certificates:
         logging.warning('No certificates to process')
         raise NoCertificatesFoundError('No certificates to process')
-
     logging.info('Processing %d certificates', len(certificates))
-
     # create output dir if it doesn't exist
     os.makedirs(signed_certs_dir, exist_ok=True)
-
     # validate schema
     for uid, certificate in certificates.items():
         with open(certificate.unsigned_cert_file_name) as cert:
@@ -45,12 +41,19 @@ def main(app_config):
             if 'signature' in cert_json and cert_json['signature']:
                 logging.warning('Certificate with uid=%s has already been signed.', uid)
                 raise AlreadySignedError('Certificate has already been signed')
+    return certificates
+
+
+def main(app_config):
+    unsigned_certs_dir = app_config.unsigned_certificates_dir
+    signed_certs_dir = app_config.signed_certificates_dir
+
+    certificates = prepare_batch(unsigned_certs_dir, signed_certs_dir)
 
     logging.info('Signing certificates and writing to folder %s', signed_certs_dir)
-    path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
-    signer = Signer(FileSecretManager(path_to_secret=path_to_secret, disable_safe_mode=app_config.safe_mode))
+    secret_manager = secure_signer.initialize_secret_manager(app_config)
+    signer = Signer(secret_manager)
     signer.sign_certs(certificates)
-
     logging.info('Signed certificates are in folder %s', signed_certs_dir)
 
 

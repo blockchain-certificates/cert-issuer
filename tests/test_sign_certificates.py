@@ -5,10 +5,10 @@ from mock import mock_open
 from mock import patch
 
 from cert_issuer.helpers import CertificateMetadata
-from cert_issuer.secure_signing import Signer, SecretManager, _sign
+from cert_issuer.secure_signer import Signer, SecureSigner
 
 
-class MockSecretManager(SecretManager):
+class MockSecureSigner(SecureSigner):
     def __init__(self):
         pass
 
@@ -18,30 +18,28 @@ class MockSecretManager(SecretManager):
     def stop(self):
         pass
 
-    def get_wif(self):
-        return 'tcKK1A9Si73zG5ZFnA6XYyhAcb1BNrMVyG'
+    def sign_message(self, message_to_sign):
+        return '456'
+
+    def sign_transaction(self, transaction_to_sign):
+        return '123'
+
 
 
 class TestSignCertificates(unittest.TestCase):
+
     def test_sign_cert(self):
-        signer = Signer(MockSecretManager())
-        cert_metadata = CertificateMetadata('test/unsigned.json', 'test/signed.json')
+        signer = Signer(MockSecureSigner())
+        cert_metadata = CertificateMetadata('123', 'test/unsigned.json', 'test/signed.json')
         cert_info = {'123452': cert_metadata}
 
-        with patch('cert_issuer.secure_signing.open', mock_open(read_data='{"assertion":{"uid": "123"}}'),
-                   create=True) as m, \
-                patch('cert_issuer.secure_signing.SignMessage', return_value=b'123'):
+        with patch('cert_issuer.secure_signer.open', mock_open(read_data='{"assertion":{"uid": "123"}}'),
+                   create=True) as m:
             signer.sign_certs(cert_info)
             handle = m()
             handle.write.assert_called_once_with(
-                bytes('{"assertion": {"uid": "123"}, "signature": "123"}', 'utf-8'))
+                bytes('{"assertion": {"uid": "123"}, "signature": "456"}', 'utf-8'))
 
-    def test_sign_cert(self):
-        mock_privkey = MagicMock('test')
-        mock_privkey.sign_compact = b'4545454'
-        with patch('cert_issuer.secure_signing.SignMessage', return_value=b'123'):
-            signed_cert = _sign('{"assertion":{"uid": "123"}}', mock_privkey)
-            self.assertEqual(signed_cert, '{"assertion": {"uid": "123"}, "signature": "123"}')
 
 
 if __name__ == '__main__':

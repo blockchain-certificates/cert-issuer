@@ -66,7 +66,7 @@ class Issuer:
                 out_file.write(hex_tx)
 
             # sign transaction and persist result
-            signed_tx = self.signer.sign_tx(hex_tx, transaction_data.tx_input, self.netcode)
+            signed_tx = self.signer.sign_tx(hex_tx, [transaction_data.tx_input])
 
             # log the actual byte count
             tx_byte_count = tx_utils.get_byte_count(signed_tx)

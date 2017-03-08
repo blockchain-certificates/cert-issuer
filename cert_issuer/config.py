@@ -50,11 +50,11 @@ def add_arguments(p):
                    help='Turns off safe mode. Only change this option for testing or unit testing.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
-    p.add_argument('--tx_fee', default=0.0001, type=float,
+    p.add_argument('--tx_fee', default=0.0006, type=float,
                    help='recommended tx fee (in BTC) for inclusion in next block. http://bitcoinexchangerate.org/fees')
     p.add_argument('--batch_size', default=10, type=int,
                    help='Certificate batch size')
-    p.add_argument('--satoshi_per_byte', default=41,
+    p.add_argument('--satoshi_per_byte', default=250,
                    type=int, help='Satoshi per byte')
     p.add_argument('--unsigned_certificates_dir', default=os.path.join(DATA_PATH, 'unsigned_certificates'),
                    help='Default path to data directory storing unsigned certs')

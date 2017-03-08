@@ -46,29 +46,6 @@ def to_hex(transaction):
     return tx_as_hex
 
 
-class LocalBlockchainInfoConnector(object):
-    def __init__(self, credentials):
-        self.wallet_guid = credentials['wallet_guid']
-        self.wallet_password = credentials['wallet_password']
-        self.api_key = credentials['api_key']
-
-    def pay(self, from_address, to_address, amount, fee):
-        payment_url = self._make_url('payment', {'from': from_address, 'to': to_address,
-                                                 'amount': amount,
-                                                 'fee': fee})
-        try_get(payment_url)
-
-    def _make_url(self, command, extras={}):
-        url = 'http://localhost:3000/merchant/%s/%s?password=%s&api_code=%s' % (
-            self.wallet_guid, command, self.wallet_password, self.api_key)
-        if len(extras) > 0:
-            addon = ''
-            for name in list(extras.keys()):
-                addon = '%s&%s=%s' % (addon, name, extras[name])
-            url += addon
-        return url
-
-
 class InsightBroadcaster(InsightProvider):
     def __init__(self, base_url, netcode=None):
         InsightProvider.__init__(self, base_url, netcode)
@@ -130,31 +107,22 @@ class BitcoindConnector(object):
             spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
         return spendables
 
-    def pay(self, from_address, issuing_address, amount, fee):
-        self.proxy.sendtoaddress(issuing_address, amount)
-
 
 class ServiceProviderConnector(object):
     def __init__(self, netcode, wallet_connector_type, wallet_credentials=None):
         self.netcode = netcode
         self._init_connectors(netcode, wallet_connector_type, wallet_credentials)
 
-    def send_payment(self, from_address, issuing_address, cost, fee):
-        self.pay(from_address, issuing_address, cost, fee)
-
-    def pay(self, from_address, to_address, amount, fee):
-        last_exception = None
-        for method_provider in service_provider_methods('pay', get_default_providers_for_netcode(self.netcode)):
+    def spendables_for_address(self, bitcoin_address, netcode):
+        for m in service_provider_methods("spendables_for_address", get_default_providers_for_netcode(netcode)):
             try:
-                method_provider(from_address, to_address, amount, fee, self.netcode)
-                return
+                logging.debug('m=%s', m)
+                spendables = m(bitcoin_address)
+                return spendables
             except Exception as e:
-                logging.warning('Caught exception trying provider %s. Trying another. Exception=%s',
-                                str(method_provider), e)
-                last_exception = e
-        logging.error('Failed paying through all providers')
-        logging.error(last_exception, exc_info=True)
-        raise last_exception
+                logging.warning(e)
+                pass
+        return []
 
     def get_unspent_outputs(self, address):
         """
@@ -162,7 +130,8 @@ class ServiceProviderConnector(object):
         :param address:
         :return:
         """
-        spendables = spendables_for_address(bitcoin_address=address, netcode=self.netcode)
+        logging.debug('get_unspent_outputs for address=%s, netcode=%s', address, self.netcode)
+        spendables = self.spendables_for_address(bitcoin_address=address, netcode=self.netcode)
         if spendables:
             return sorted(spendables, key=lambda x: hash(x.coin_value))
         return None
@@ -203,7 +172,7 @@ class ServiceProviderConnector(object):
         logging.error(last_exception, exc_info=True)
         raise last_exception
 
-    def _init_connectors(self, netcode, wallet_connector_type, wallet_credentials=None):
+    def _init_connectors(self, netcode, wallet_connector_type=None, wallet_credentials=None):
         """
         Initialize broadcasting and payment connectors. This allows fallback and confirmation across different chains
         :param wallet_connector_type:
@@ -213,37 +182,31 @@ class ServiceProviderConnector(object):
         if netcode == 'BTC':
             # configure mainnet providers
             provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
-
-            blockio_index = -1
-            for idx, val in enumerate(provider_list):
-                print(idx, val)
-                if isinstance(val, BlockrioProvider):
-                    blockio_index = idx
-
-            if blockio_index > -1:
-                provider_list[blockio_index] = BlockrBroadcaster('BTC')
-            else:
-                provider_list.append(BlockrBroadcaster('BTC'))
-
-            provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', 'BTC'))
-
-            # initialize payment connectors based on config file
-            if wallet_connector_type == 'blockchain.info':
-                provider_list.append(LocalBlockchainInfoConnector(wallet_credentials))
-            else:
-                provider_list.append(BitcoindConnector('BTC'))
-
+            self.patch_providers(provider_list, 'BTC')
             providers.set_default_providers_for_netcode('BTC', provider_list)
 
         elif netcode == 'XTN':
             # initialize testnet providers
-            testnet_list = []
-            testnet_list.append(BitcoindConnector('XTN'))
-            providers.set_default_providers_for_netcode('XTN', testnet_list)
+            provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, 'XTN')
+            self.patch_providers(provider_list, 'XTN')
+            providers.set_default_providers_for_netcode('XTN', provider_list)
 
         else:
             logging.error('Unrecognized chain %s', netcode)
             raise UnrecognizedChainError('Unrecognized chain ' + netcode)
 
+    def patch_providers(self, provider_list, netcode):
+        blockio_index = -1
+        for idx, val in enumerate(provider_list):
+            logging.info('idx=%s,val=%s', idx, val)
+            if isinstance(val, BlockrioProvider):
+                blockio_index = idx
+        if blockio_index > -1:
+            provider_list[blockio_index] = BlockrBroadcaster(netcode)
+        else:
+            provider_list.append(BlockrBroadcaster(netcode))
+        provider_list.append(InsightBroadcaster('https://insight.bitpay.com/', netcode))
+
 
 PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.com chain.so"
+PYCOIN_XTN_PROVIDERS = "blockexplorer.com chain.so"
