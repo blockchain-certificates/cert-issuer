@@ -133,7 +133,7 @@ The quick start instructions use a test mode for issuing certificates. Most of t
 
 - Issuing options
     - [Overview of issuing options](http://www.blockcerts.org/guide/options.html)
-    - [Local Bitcoin node setup and installation](docs/bitcoind.md)
+    - [Issuing options setup](docs/bitcoin_options.md)
 - [Creating addresses](docs/make_addresses.md)
 - [Issuing certificates](docs/issuing.md)
 
