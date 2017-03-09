@@ -57,6 +57,7 @@ import sys
 from cert_issuer import helpers
 from cert_issuer import secure_signer
 from cert_issuer.batch_issuer import BatchIssuer
+from cert_issuer.batch_issuer_v2 import BatchIssuerV2
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.errors import NoCertificatesFoundError, InsufficientFundsError
 from cert_issuer.secure_signer import Signer
@@ -83,6 +84,9 @@ def main(app_config, secret_manager=None):
     logging.info('Processing %d certificates under work path=%s', len(certificates), work_dir)
 
     issuing_address = app_config.issuing_address
+    v2 = app_config.v2
+
+    # not needed for v2
     revocation_address = app_config.revocation_address
 
     connector = ServiceProviderConnector(app_config.bitcoin_chain, app_config.netcode)
@@ -93,7 +97,16 @@ def main(app_config, secret_manager=None):
 
     tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
-    issuer = BatchIssuer(netcode=app_config.netcode,
+    if v2:
+        issuer = BatchIssuerV2(netcode=app_config.netcode,
+                         issuing_address=issuing_address,
+                         certificates_to_issue=certificates,
+                         connector=connector,
+                         signer=signer,
+                         tx_cost_constants=tx_constants,
+                         batch_metadata=batch_metadata)
+    else:
+        issuer = BatchIssuer(netcode=app_config.netcode,
                          issuing_address=issuing_address,
                          certificates_to_issue=certificates,
                          connector=connector,
@@ -103,9 +116,10 @@ def main(app_config, secret_manager=None):
 
     issuer.validate_schema()
 
-    # verify signed certs are signed with issuing key
-    [secure_signer.verify_signature(uid, cert.signed_cert_file_name, issuing_address) for uid, cert in
-     certificates.items()]
+    if not v2:
+        # verify signed certs are signed with issuing key
+        [secure_signer.verify_signature(uid, cert.signed_cert_file_name, issuing_address) for uid, cert in
+         certificates.items()]
 
     logging.info('Hashing signed certificates.')
     issuer.hash_certificates()

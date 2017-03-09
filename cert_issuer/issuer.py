@@ -31,7 +31,7 @@ class Issuer:
         return
 
     @abstractmethod
-    def create_transactions(self, revocation_address):
+    def create_transaction(self, revocation_address):
         return
 
     def hash_certificates(self):
@@ -54,37 +54,37 @@ class Issuer:
         :param revocation_address:
         :return:
         """
-        transactions_data = self.create_transactions(revocation_address)
-        for transaction_data in transactions_data:
-            unsigned_tx_file_name = transaction_data.batch_metadata.unsigned_tx_file_name
-            signed_tx_file_name = transaction_data.batch_metadata.unsent_tx_file_name
-            sent_tx_file_name = transaction_data.batch_metadata.sent_tx_file_name
+        transaction_data = self.create_transaction(revocation_address)
 
-            # persist the transaction in case broadcasting fails
-            hex_tx = hexlify(transaction_data.tx.serialize())
-            with open(unsigned_tx_file_name, 'w') as out_file:
-                out_file.write(hex_tx)
+        unsigned_tx_file_name = transaction_data.batch_metadata.unsigned_tx_file_name
+        signed_tx_file_name = transaction_data.batch_metadata.unsent_tx_file_name
+        sent_tx_file_name = transaction_data.batch_metadata.sent_tx_file_name
 
-            # sign transaction and persist result
-            signed_tx = self.signer.sign_tx(hex_tx, [transaction_data.tx_input])
+        # persist the transaction in case broadcasting fails
+        hex_tx = hexlify(transaction_data.tx.serialize())
+        with open(unsigned_tx_file_name, 'w') as out_file:
+            out_file.write(hex_tx)
 
-            # log the actual byte count
-            tx_byte_count = tx_utils.get_byte_count(signed_tx)
-            logging.info('The actual transaction size is %d bytes', tx_byte_count)
+        # sign transaction and persist result
+        signed_tx = self.signer.sign_tx(hex_tx, [transaction_data.tx_input])
 
-            signed_hextx = signed_tx.as_hex()
-            with open(signed_tx_file_name, 'w') as out_file:
-                out_file.write(signed_hextx)
+        # log the actual byte count
+        tx_byte_count = tx_utils.get_byte_count(signed_tx)
+        logging.info('The actual transaction size is %d bytes', tx_byte_count)
 
-            # verify transaction before broadcasting
-            tx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
+        signed_hextx = signed_tx.as_hex()
+        with open(signed_tx_file_name, 'w') as out_file:
+            out_file.write(signed_hextx)
 
-            # send tx and persist txid
-            tx_id = self.connector.broadcast_tx(signed_tx)
-            if tx_id:
-                logging.info('Broadcast transaction with txid %s', tx_id)
-            else:
-                logging.warning(
-                    'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
+        # verify transaction before broadcasting
+        tx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
 
-            self.persist_tx(sent_tx_file_name, tx_id)
+        # send tx and persist txid
+        tx_id = self.connector.broadcast_tx(signed_tx)
+        if tx_id:
+            logging.info('Broadcast transaction with txid %s', tx_id)
+        else:
+            logging.warning(
+                'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
+
+        self.persist_tx(sent_tx_file_name, tx_id)
