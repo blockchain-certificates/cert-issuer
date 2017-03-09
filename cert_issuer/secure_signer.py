@@ -116,8 +116,6 @@ class FileSecureSigner(SecureSigner):
                 ' ensure this is what you want, since this is less secure')
 
     def sign_message(self, message_to_sign):
-        logging.warning('wif:' + self.wif)
-        logging.warning('message:' + message_to_sign)
         secret_key = CBitcoinSecret(self.wif)
         message = BitcoinMessage(message_to_sign)
         signature = SignMessage(secret_key, message)
