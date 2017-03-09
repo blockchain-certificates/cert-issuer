@@ -11,7 +11,6 @@ data/unsigned_certificates/
 data/signed_certificates/
 data/blockchain_certificates/
 data/work/*
-data_2/*
 
 !data/unsigned_certificates/.*
 !data/signed_certificates/.*
