@@ -82,15 +82,22 @@ class BatchIssuerV2(Issuer):
             with open(metadata.signed_cert_file_name, 'r') as in_file:
                 signed_cert = json.load(in_file)
 
-            blockchain_cert = {
-                '@context': 'https://w3id.org/blockcerts/v1',
-                'type': 'BlockchainCertificate',
-                'document': signed_cert,
-                'receipt': receipt
+            # Test data
+            signature = {
+                "@context": "http://www.blockcerts.org/blockcerts_v2_alpha/context_bc.json",
+                "type": [
+                    "EcdsaKoblitzSignature2016",
+                    "Extension"
+                ],
+                "merkleProof": receipt,
+                "creator": "https://example.org/issuer/keys/1.9.1.1",
+                "created": "2016-09-23T20:21:34Z",
+                "signatureValue": "OGQzNGVkMzVm4NTIyZTkZDY...NmExMgoYzI43Q3ODIyOWM32NjI="
             }
+            signed_cert['bc_ext:signature'] = signature
 
             with open(metadata.blockchain_cert_file_name, 'w') as out_file:
-                out_file.write(json.dumps(blockchain_cert))
+                out_file.write(json.dumps(signed_cert))
 
             index += 1
 

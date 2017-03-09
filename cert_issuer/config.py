@@ -63,12 +63,14 @@ def get_config():
     if not parsed_config.safe_mode:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
-    if parsed_config.wallet_connector_type == 'bitcoind':
-        bitcoin.SelectParams(parsed_config.bitcoin_chain)
+
     if parsed_config.bitcoin_chain == 'mainnet':
         parsed_config.netcode = 'BTC'
     else:
         parsed_config.netcode = 'XTN'
+
+    if parsed_config.bitcoin_chain == 'regtest':
+        bitcoin.SelectParams(parsed_config.bitcoin_chain)
 
     configure_logger()
 

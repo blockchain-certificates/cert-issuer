@@ -74,8 +74,15 @@ def main(app_config, secret_manager=None):
     blockcerts_dir = app_config.blockchain_certificates_dir
     work_dir = app_config.work_dir
 
+    v2 = app_config.v2
+
     # find certificates to issue
-    certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
+    if v2:
+        # TODO: clean up after v2 is finished
+        certificates = helpers.find_certificates_to_process(signed_certs_dir, signed_certs_dir)
+    else:
+        certificates = helpers.find_certificates_to_process(unsigned_certs_dir, signed_certs_dir)
+
     if not certificates:
         logging.warning('No certificates to process')
         raise NoCertificatesFoundError('No certificates to process')
@@ -84,7 +91,6 @@ def main(app_config, secret_manager=None):
     logging.info('Processing %d certificates under work path=%s', len(certificates), work_dir)
 
     issuing_address = app_config.issuing_address
-    v2 = app_config.v2
 
     # not needed for v2
     revocation_address = app_config.revocation_address
