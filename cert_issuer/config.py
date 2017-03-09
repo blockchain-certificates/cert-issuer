@@ -36,25 +36,17 @@ def add_arguments(p):
     p.add_argument('--bitcoin_chain', default='regtest',
                    help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
                         'configured). Other options are testnet and mainnet.')
-    p.add_argument('--storage_address', required=False,
-                   help='storage address. Not needed for bitcoind deployment')
-    p.add_argument('--wallet_guid', required=False,
-                   help='wallet guid. Not needed for bitcoind deployment')
-    p.add_argument('--wallet_password', required=False,
-                   help='wallet password. Not needed for bitcoind deployment')
-    p.add_argument('--api_key', required=False,
-                   help='api key. Not needed for bitcoind deployment')
     p.add_argument('--safe_mode', dest='safe_mode', action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', action='store_false',
                    help='Turns off safe mode. Only change this option for testing or unit testing.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
-    p.add_argument('--tx_fee', default=0.0001, type=float,
+    p.add_argument('--tx_fee', default=0.0006, type=float,
                    help='recommended tx fee (in BTC) for inclusion in next block. http://bitcoinexchangerate.org/fees')
     p.add_argument('--batch_size', default=10, type=int,
                    help='Certificate batch size')
-    p.add_argument('--satoshi_per_byte', default=41,
+    p.add_argument('--satoshi_per_byte', default=250,
                    type=int, help='Satoshi per byte')
     p.add_argument('--unsigned_certificates_dir', default=os.path.join(DATA_PATH, 'unsigned_certificates'),
                    help='Default path to data directory storing unsigned certs')

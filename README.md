@@ -22,7 +22,7 @@ experimenting only.
 3. From a command line in cert-issuer dir, build your docker container:
     
     ```
-    docker build -t ml/cert-issuer:1.0 .
+    docker build -t bc/cert-issuer:1.0 .
     ```
 
 4. Read before running!
@@ -32,13 +32,13 @@ experimenting only.
 
         ```
         docker ps -l
-        docker commit <container for your ml/cert-issuer> my_cert_issuer
+        docker commit <container for your bc/cert-issuer> my_cert_issuer
         ```
 
 5. When you're ready to run:
 
     ```
-    docker run -it ml/cert-issuer:1.0 bash
+    docker run -it bc/cert-issuer:1.0 bash
     ```
 
 ## Create issuing and revocation addresses
@@ -133,11 +133,9 @@ The quick start instructions use a test mode for issuing certificates. Most of t
 
 - Issuing options
     - [Overview of issuing options](http://www.blockcerts.org/guide/options.html)
-    - [Local Bitcoin node setup and installation](docs/bitcoind.md)
-    - [Blockchain.info setup and installation](docs/blockchain_info.md)
+    - [Issuing options setup](docs/bitcoin_options.md)
 - [Creating addresses](docs/make_addresses.md)
 - [Issuing certificates](docs/issuing.md)
-- [Debugging](docs/debugging.md)
 
 ## Examples
 
@@ -155,6 +153,13 @@ raise ScriptError("getitem out of range")
 pycoin.tx.script.ScriptError: getitem out of range
 ```
 
+## Checking transaction status
+
+You can validate your transaction before sending by looking it up by rawtx at blockchain.info. Example:
+
+   ```
+   curl 'https://blockchain.info/rawtx/45a9306dfe99820eb346bb17ae0b64173ac11cac2d0e4227c7a7cacbcc0bad31?cors=true'
+   ```
 
 ## Contact
 

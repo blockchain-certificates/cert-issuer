@@ -52,9 +52,24 @@ def check_internet_on(secrets_file_path):
     return True
 
 
-class SecretManager(object):
+def chain_to_netcode(chain):
+    if chain == 'mainnet':
+        return 'BTC'
+    else:
+        return 'XTN'
+
+
+def initialize_secret_manager(app_config):
+    path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
+    secrets = FileSecureSigner(bitcoin_chain=app_config.bitcoin_chain, path_to_secret=path_to_secret,
+                               disable_safe_mode=app_config.safe_mode)
+
+    return secrets
+
+
+class SecureSigner(object):
     """
-    Abstraction for a secret store. TODO: come up with better names.
+    Abstraction for a component that can sign securely.
     """
 
     def __init__(self):
@@ -66,15 +81,20 @@ class SecretManager(object):
     def stop(self):
         pass
 
-    def get_wif(self):
+    def sign_message(self, message_to_sign):
+        pass
+
+    def sign_transaction(self, transaction_to_sign):
         pass
 
 
-class FileSecretManager(SecretManager):
-    def __init__(self, path_to_secret, disable_safe_mode):
+class FileSecureSigner(SecureSigner):
+    def __init__(self, bitcoin_chain, path_to_secret, disable_safe_mode):
         super().__init__()
+        self.allowable_wif_prefixes = wif_prefix_for_netcode(chain_to_netcode(bitcoin_chain))
         self.path_to_secret = path_to_secret
         self.disable_safe_mode = disable_safe_mode
+        self.wif = None
 
     def start(self):
         if self.disable_safe_mode:
@@ -84,7 +104,10 @@ class FileSecretManager(SecretManager):
                 'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
                 ' ensure this is what you want, since this is less secure')
 
+        self.wif = import_key(self.path_to_secret)
+
     def stop(self):
+        self.wif = None
         if self.disable_safe_mode:
             check_internet_on(self.path_to_secret)
         else:
@@ -92,37 +115,44 @@ class FileSecretManager(SecretManager):
                 'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
                 ' ensure this is what you want, since this is less secure')
 
-    def get_wif(self):
-        return import_key(self.path_to_secret)
+    def sign_message(self, message_to_sign):
+        secret_key = CBitcoinSecret(self.wif)
+        message = BitcoinMessage(message_to_sign)
+        signature = SignMessage(secret_key, message)
+        return str(signature, 'utf-8')
+
+    def sign_transaction(self, transaction_to_sign):
+        secret_exponent = wif_to_secret_exponent(self.wif, self.allowable_wif_prefixes)
+        lookup = build_hash160_lookup([secret_exponent])
+        signed_transaction = transaction_to_sign.sign(lookup)
+        return signed_transaction
 
 
 class Signer(object):
-    def __init__(self, secret_manager):
-        self.secret_manager = secret_manager
+    """
+    Wraps certificate and transaction signing functionality. Uses a secure signer to actually create the signatures.
+    """
 
-    def sign_tx(self, hex_tx, tx_input, netcode):
+    def __init__(self, secure_signer):
+        self.secure_signer = secure_signer
+
+    def sign_tx(self, hex_tx, tx_inputs):
         """
         Sign the transaction with private key
         :param hex_tx:
         :param tx_input:
-        :param netcode:
         :return:
         """
         logging.info('Signing tx with private key')
 
-        self.secret_manager.start()
-        wif = self.secret_manager.get_wif()
-
+        self.secure_signer.start()
         transaction = Tx.from_hex(hex_tx)
-        allowable_wif_prefixes = wif_prefix_for_netcode(netcode)
-
-        se = wif_to_secret_exponent(wif, allowable_wif_prefixes)
-        lookup = build_hash160_lookup([se])
-        transaction.set_unspents([TxOut(coin_value=tx_input.coin_value, script=tx_input.script)])
-        signed_tx = transaction.sign(lookup)
-        self.secret_manager.stop()
+        unspents = [TxOut(coin_value=tx_input.coin_value, script=tx_input.script) for tx_input in tx_inputs]
+        transaction.set_unspents(unspents)
+        signed_transaction = self.secure_signer.sign_transaction(transaction)
+        self.secure_signer.stop()
         logging.info('Finished signing transaction')
-        return signed_tx
+        return signed_transaction
 
     def sign_certs(self, certificates):
         """
@@ -132,32 +162,34 @@ class Signer(object):
         """
         logging.info('signing certificates')
 
-        self.secret_manager.start()
-        wif = self.secret_manager.get_wif()
+        self.secure_signer.start()
 
-        secret_key = CBitcoinSecret(wif)
         for _, certificate in certificates.items():
-            with open(certificate.unsigned_cert_file_name, 'r') as cert_in, \
-                    open(certificate.signed_cert_file_name, 'wb') as signed_cert:
-                cert = _sign(cert_in.read(), secret_key)
-                signed_cert.write(bytes(cert, 'utf-8'))
-        self.secret_manager.stop()
+            with open(certificate.unsigned_cert_file_name, 'r') as unsigned_cert_file, \
+                    open(certificate.signed_cert_file_name, 'wb') as signed_cert_file:
+                cert_json = json.loads(unsigned_cert_file.read())
+
+                # extract field to sign and sign it
+                to_sign = cert_json['assertion']['uid']
+                signature = self.secure_signer.sign_message(message_to_sign=to_sign)
+                cert_json['signature'] = signature
+
+                sorted_cert = json.dumps(cert_json, sort_keys=True)
+                signed_cert_file.write(bytes(sorted_cert, 'utf-8'))
+        self.secure_signer.stop()
 
 
-def _sign(certificate, secret_key):
+def verify_message(address, message, signature):
     """
-    Signs the certificate.
-    :param certificate:
-    :param secret_key:
+    Verify message was signed by the address
+    :param address: signing address
+    :param message: message to check
+    :param signature: signature being tested
     :return:
     """
-    cert = json.loads(certificate)
-    to_sign = cert['assertion']['uid']
-    message = BitcoinMessage(to_sign)
-    signature = SignMessage(secret_key, message)
-    cert['signature'] = str(signature, 'utf-8')
-    sorted_cert = json.dumps(cert, sort_keys=True)
-    return sorted_cert
+    bitcoin_message = BitcoinMessage(message)
+    verified = VerifyMessage(address, bitcoin_message, signature)
+    return verified
 
 
 def verify_signature(uid, signed_cert_file_name, issuing_address):
@@ -179,11 +211,9 @@ def verify_signature(uid, signed_cert_file_name, issuing_address):
     with open(signed_cert_file_name) as in_file:
         signed_cert = in_file.read()
         signed_cert_json = json.loads(signed_cert)
-
         to_verify = signed_cert_json['assertion']['uid']
         signature = signed_cert_json['signature']
-        message = BitcoinMessage(to_verify)
-        verified = VerifyMessage(issuing_address, message, signature)
+        verified = verify_message(issuing_address, to_verify, signature)
         if not verified:
             error_message = 'There was a problem with the signature for certificate uid={}'.format(
                 signed_cert_json['assertion']['uid'])

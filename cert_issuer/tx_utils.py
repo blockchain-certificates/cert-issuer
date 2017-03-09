@@ -28,7 +28,7 @@ TransactionData = namedtuple(
 
 
 class TransactionCostConstants(object):
-    def __init__(self, recommended_tx_fee, min_per_output, satoshi_per_byte):
+    def __init__(self, recommended_tx_fee=0.0006, min_per_output=0.0000275, satoshi_per_byte=250):
         self.recommended_tx_fee = recommended_tx_fee
         self.min_per_output = min_per_output
         self.satoshi_per_byte = satoshi_per_byte

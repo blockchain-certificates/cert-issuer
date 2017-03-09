@@ -1,16 +1,12 @@
 import binascii
 import collections
-import glob
 import hashlib
 import json
-
 import os
 import shutil
 import sys
 
 import glob2
-
-from cert_issuer.errors import NonemptyOutputDirectoryError
 
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify

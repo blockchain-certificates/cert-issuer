@@ -55,11 +55,11 @@ import shutil
 import sys
 
 from cert_issuer import helpers
+from cert_issuer import secure_signer
 from cert_issuer.batch_issuer import BatchIssuer
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.errors import NoCertificatesFoundError, InsufficientFundsError
-from cert_issuer.secure_signing import Signer, FileSecretManager
-from cert_issuer.secure_signing import verify_signature
+from cert_issuer.secure_signer import Signer
 from cert_issuer.tx_utils import TransactionCostConstants
 
 if sys.version_info.major < 3:
@@ -67,7 +67,7 @@ if sys.version_info.major < 3:
     sys.exit(1)
 
 
-def main(app_config):
+def main(app_config, secret_manager=None):
     unsigned_certs_dir = app_config.unsigned_certificates_dir
     signed_certs_dir = app_config.signed_certificates_dir
     blockcerts_dir = app_config.blockchain_certificates_dir
@@ -85,19 +85,12 @@ def main(app_config):
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address
 
-    if app_config.wallet_connector_type == 'blockchain.info':
-        wallet_credentials = {
-            'wallet_guid': app_config.wallet_guid,
-            'wallet_password': app_config.wallet_password,
-            'api_key': app_config.api_key,
-        }
-    else:
-        wallet_credentials = {}
+    connector = ServiceProviderConnector(app_config.bitcoin_chain, app_config.netcode)
 
-    connector = ServiceProviderConnector(app_config.netcode, app_config.wallet_connector_type, wallet_credentials)
-    path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
+    if not secret_manager:
+        secret_manager = secure_signer.initialize_secret_manager(app_config)
+    signer = Signer(secret_manager)
 
-    signer = Signer(FileSecretManager(path_to_secret=path_to_secret, disable_safe_mode=app_config.safe_mode))
     tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
     issuer = BatchIssuer(netcode=app_config.netcode,
@@ -111,7 +104,7 @@ def main(app_config):
     issuer.validate_schema()
 
     # verify signed certs are signed with issuing key
-    [verify_signature(uid, cert.signed_cert_file_name, issuing_address) for uid, cert in
+    [secure_signer.verify_signature(uid, cert.signed_cert_file_name, issuing_address) for uid, cert in
      certificates.items()]
 
     logging.info('Hashing signed certificates.')
