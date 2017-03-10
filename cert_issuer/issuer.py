@@ -88,3 +88,4 @@ class Issuer:
                     'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
 
             self.persist_tx(sent_tx_file_name, tx_id)
+            return tx_id

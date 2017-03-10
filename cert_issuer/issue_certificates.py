@@ -126,7 +126,8 @@ def main(app_config, secret_manager=None):
 
     # issue the certificates on the blockchain
     logging.info('Issuing the certificates on the blockchain')
-    issuer.issue_on_blockchain(revocation_address=revocation_address)
+    txid = issuer.issue_on_blockchain(revocation_address=revocation_address)
+    logging.info('Transaction id=%s', txid)
 
     blockcerts_tmp_dir = os.path.join(work_dir, helpers.BLOCKCHAIN_CERTIFICATES_DIR)
     if not os.path.exists(blockcerts_dir):
@@ -137,7 +138,7 @@ def main(app_config, secret_manager=None):
         shutil.copy2(s, d)
 
     logging.info('Your Blockchain Certificates are in %s', blockcerts_dir)
-    return blockcerts_dir
+    return txid
 
 
 if __name__ == '__main__':
