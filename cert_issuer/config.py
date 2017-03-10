@@ -29,10 +29,6 @@ def add_arguments(p):
     p.add_argument('--usb_name', required=True, help='usb path to key_file')
     p.add_argument('--key_file', required=True,
                    help='name of file on USB containing private key')
-    p.add_argument('--wallet_connector_type', default='bitcoind',
-                   help='connector to use for wallet')
-    p.add_argument('--broadcaster_type', default='bitcoind',
-                   help='connector to use for broadcast')
     p.add_argument('--bitcoin_chain', default='regtest',
                    help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
                         'configured). Other options are testnet and mainnet.')
@@ -67,12 +63,16 @@ def get_config():
     if not parsed_config.safe_mode:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
-    if parsed_config.wallet_connector_type == 'bitcoind':
-        bitcoin.SelectParams(parsed_config.bitcoin_chain)
+
     if parsed_config.bitcoin_chain == 'mainnet':
         parsed_config.netcode = 'BTC'
     else:
         parsed_config.netcode = 'XTN'
+
+    if parsed_config.bitcoin_chain == 'mainnet':
+        bitcoin.SelectParams('mainnet')
+    else:
+        bitcoin.SelectParams('testnet')
 
     configure_logger()
 
