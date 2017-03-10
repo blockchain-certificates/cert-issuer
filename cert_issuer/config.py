@@ -69,8 +69,10 @@ def get_config():
     else:
         parsed_config.netcode = 'XTN'
 
-    if parsed_config.bitcoin_chain == 'regtest':
-        bitcoin.SelectParams(parsed_config.bitcoin_chain)
+    if parsed_config.bitcoin_chain == 'mainnet':
+        bitcoin.SelectParams('mainnet')
+    else:
+        bitcoin.SelectParams('testnet')
 
     configure_logger()
 
