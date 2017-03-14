@@ -4,13 +4,13 @@ import shutil
 import sys
 
 from cert_issuer import helpers
-from cert_issuer import secure_signer
 from cert_issuer.certificate_handler import CertificateV1_2Handler, CertificateV2Handler
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.issuer import Issuer
 from cert_issuer.transaction_handler import TransactionV1_2Handler, TransactionV2Handler
 from cert_issuer.tx_utils import TransactionCostConstants
+from cert_issuer import secure_signer as secure_signer_helper
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
@@ -32,7 +32,7 @@ def main(app_config, secure_signer=None):
 
     logging.info('Signing certificates...')
     if not secure_signer:
-        secure_signer = secure_signer.initialize_secure_signer(app_config)
+        secure_signer = secure_signer_helper.initialize_secure_signer(app_config)
     connector = ServiceProviderConnector(app_config.bitcoin_chain, app_config.netcode)
     tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
     try:
         parsed_config = config.get_config()
-        secret_manager = secure_signer.initialize_secure_signer(parsed_config)
+        secret_manager = secure_signer_helper.initialize_secure_signer(parsed_config)
         main(parsed_config, secret_manager)
     except Exception as ex:
         logging.error(ex, exc_info=True)
