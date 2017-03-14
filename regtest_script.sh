@@ -24,8 +24,5 @@ bitcoin-cli sendtoaddress $issuer 5
 
 sleep 5
 
-# sign the certificate
-cert-signer -c /etc/cert-issuer/conf.ini
-
 # issue the certificates on the blockchain
 cert-issuer -c /etc/cert-issuer/conf.ini

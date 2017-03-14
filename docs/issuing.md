@@ -24,23 +24,15 @@
 
     b. Otherwise send a payment to the issuing address with your online wallet
 
-3. Run the sign_certificates script to sign your certificates. If you've installed the package
-you can run:
 
-    ```
-    python cert-signer -c conf.ini
-    ```
-
-4. Make sure the previous step succeeded. At this point, the signed certs should be under data/signed_certs, and the certs you previously added to unsigned certs should be moved under the 'archive' dir
-
-5. Run the issue_certificates.py script to create your certificates. If you've installed the package
+3. Run the issue_certificates.py script to create your certificates. If you've installed the package
 you can run:
 
     ```
     python cert-issuer -c conf.ini
     ```
 
-6. Output
+4. Output
   - The Blockchain Certificates will be located in data/blockchain_certificates.
   - If you ran in the mainnet or testnet mode, you can also see your transaction on a live blockchain explorer. 
     - For example, Blockr.io has explorers for both [testnet](https://tbtc.blockr.io/) and [mainnet](https://blockr.io/).

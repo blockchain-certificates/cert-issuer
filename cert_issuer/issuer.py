@@ -1,83 +1,99 @@
 """
 Base class for building blockchain transactions to issue Blockchain Certificates.
 """
+import json
 import logging
-from abc import abstractmethod
 
+from chainpoint.chainpoint import MerkleTools
+
+from cert_issuer import certificate_handler
 from cert_issuer import tx_utils
-from cert_issuer.helpers import hexlify
+from cert_issuer.errors import InsufficientFundsError
+from cert_issuer.helpers import unhexlify, hexlify
+from cert_issuer.secure_signer import FinalizableSigner
 
 
 class Issuer:
-    def __init__(self, netcode, issuing_address, certificates_to_issue, connector, signer):
-        self.netcode = netcode
+    def __init__(self, issuing_address, certificates_to_issue, connector, secure_signer, certificate_handler,
+                 transaction_handler):
         self.issuing_address = issuing_address
         self.certificates_to_issue = certificates_to_issue
         self.connector = connector
-        self.signer = signer
-        self.total = None
+        self.secure_signer = secure_signer
+        self.certificate_handler = certificate_handler
+        self.transaction_handler = transaction_handler
+        self.tree = MerkleTools(hash_type='sha256')
 
-    @abstractmethod
-    def validate_schema(self):
-        return
+    def get_certificate_to_issue(self, uid):
+        return self.certificate_handler.get_certificate_to_issue(uid)
 
-    @abstractmethod
-    def do_hash_certificate(self, certificate):
+    def validate_batch(self):
         """
-        Subclasses must return hex strings, not byte arrays
-        :param certificate: certificate to hash, byte array
-        :return: hash as hex string
+        Propagates exception on failure
+        :return:
         """
-        return
+        for _, certificate in self.certificates_to_issue.items():
+            with open(certificate.unsigned_cert_file_name) as cert:
+                certificate_json = json.load(cert)
+                self.certificate_handler.validate(certificate_json)
 
-    @abstractmethod
-    def create_transaction(self, revocation_address):
-        return
+    def calculate_cost_for_certificate_batch(self):
+        return self.transaction_handler.calculate_cost_for_certificate_batch()
 
-    def hash_certificates(self):
-        logging.info('hashing certificates')
-        for _, certificate_metadata in self.certificates_to_issue.items():
-            # we need to keep the signed certificate read binary for backwards compatibility with v1
-            with open(certificate_metadata.signed_cert_file_name, 'rb') as in_file, \
-                    open(certificate_metadata.hashed_cert_file_name, 'w') as out_file:
-                cert = in_file.read()
-                hashed_cert = self.do_hash_certificate(cert)
-                out_file.write(hashed_cert)
+    def sign_certificates(self):
+        with FinalizableSigner(self.secure_signer) as signer:
+            for _, certificate in self.certificates_to_issue.items():
+                with open(certificate.unsigned_cert_file_name, 'r') as cert, \
+                        open(certificate.signed_cert_file_name, 'w') as signed_cert_file:
+                    certificate_json = json.load(cert)
+                    to_sign = self.certificate_handler.get_message_to_sign(certificate_json)
+                    signature = signer.sign_message(to_sign)
+                    result = self.certificate_handler.combine_signature_with_certificate(certificate_json, signature)
+                    signed_cert_file.write(result)
 
-    def persist_tx(self, sent_tx_file_name, tx_id):
-        with open(sent_tx_file_name, 'w') as out_file:
-            out_file.write(tx_id)
+    def prepare_batch(self):
+        for uid, certificate in self.certificates_to_issue.items():
+            cert_json = self.certificate_handler.get_certificate_to_issue(uid)
+            normalized = certificate_handler.normalize_jsonld(cert_json)
+            hashed = certificate_handler.hash_normalized_jsonld(normalized)
+            self.tree.add_leaf(hashed, False)
 
-    def issue_on_blockchain(self, revocation_address):
+    def issue_on_blockchain(self):
         """
         Issue the certificates on the Bitcoin blockchain
         :param revocation_address:
         :return:
         """
-        transaction_data = self.create_transaction(revocation_address)
 
-        unsigned_tx_file_name = transaction_data.batch_metadata.unsigned_tx_file_name
-        signed_tx_file_name = transaction_data.batch_metadata.unsent_tx_file_name
-        sent_tx_file_name = transaction_data.batch_metadata.sent_tx_file_name
+        self.tree.make_tree()
+        op_return_value_bytes = unhexlify(self.tree.get_merkle_root())
+        op_return_value = hexlify(op_return_value_bytes)
+        spendables = self.connector.get_unspent_outputs(self.issuing_address)
+        if not spendables:
+            error_message = 'No money to spend at address {}'.format(self.issuing_address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
 
-        # persist the transaction in case broadcasting fails
-        hex_tx = hexlify(transaction_data.tx.serialize())
-        with open(unsigned_tx_file_name, 'w') as out_file:
-            out_file.write(hex_tx)
+        last_input = spendables[-1]
 
-        # sign transaction and persist result
-        signed_tx = self.signer.sign_tx(hex_tx, [transaction_data.tx_input])
+        tx = self.transaction_handler.create_transaction(last_input, op_return_value_bytes)
+
+        hex_tx = hexlify(tx.serialize())
+        logging.info('Unsigned hextx=%s', hex_tx)
+
+        prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, [last_input])
+        with FinalizableSigner(self.secure_signer) as signer:
+            signed_tx = signer.sign_transaction(prepared_tx)
 
         # log the actual byte count
         tx_byte_count = tx_utils.get_byte_count(signed_tx)
         logging.info('The actual transaction size is %d bytes', tx_byte_count)
 
         signed_hextx = signed_tx.as_hex()
-        with open(signed_tx_file_name, 'w') as out_file:
-            out_file.write(signed_hextx)
+        logging.info('Signed hextx=%s', signed_hextx)
 
         # verify transaction before broadcasting
-        tx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
+        tx_utils.verify_transaction(signed_hextx, op_return_value)
 
         # send tx and persist txid
         tx_id = self.connector.broadcast_tx(signed_tx)
@@ -87,4 +103,29 @@ class Issuer:
             logging.warning(
                 'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
 
-        self.persist_tx(sent_tx_file_name, tx_id)
+        return tx_id
+
+    def finish_batch(self, tx_id):
+        root = self.tree.get_merkle_root()
+        index = 0
+        for uid, metadata in self.certificates_to_issue.items():
+            proof = self.tree.get_proof(index)
+            target_hash = self.tree.get_leaf(index)
+
+            merkle_proof = {
+                "@context": "https://w3id.org/chainpoint/v2",
+                "type": "ChainpointSHA256v2",
+                "merkleRoot": root,
+                "targetHash": target_hash,
+                "proof": proof,
+                "anchors": [{
+                    "sourceId": tx_id,
+                    "type": "BTCOpReturn"
+                }]}
+
+            certificate_json = self.certificate_handler.get_certificate_to_issue(uid)
+            blockchain_certificate = self.certificate_handler.create_receipt(uid, merkle_proof, certificate_json)
+            with open(metadata.blockchain_cert_file_name, 'w') as out_file:
+                out_file.write(json.dumps(blockchain_certificate))
+
+            index += 1

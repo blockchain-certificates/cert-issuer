@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import time
+from abc import abstractmethod
 
 import requests
 from bitcoin.signmessage import BitcoinMessage, SignMessage
@@ -9,7 +10,6 @@ from bitcoin.signmessage import VerifyMessage
 from bitcoin.wallet import CBitcoinSecret
 from pycoin.encoding import wif_to_secret_exponent
 from pycoin.networks import wif_prefix_for_netcode
-from pycoin.tx import TxOut, Tx
 from pycoin.tx.pay_to import build_hash160_lookup
 
 from cert_issuer.errors import UnverifiedSignatureError
@@ -59,7 +59,7 @@ def chain_to_netcode(chain):
         return 'XTN'
 
 
-def initialize_secret_manager(app_config):
+def initialize_secure_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
     secrets = FileSecureSigner(bitcoin_chain=app_config.bitcoin_chain, path_to_secret=path_to_secret,
                                disable_safe_mode=app_config.safe_mode)
@@ -75,15 +75,19 @@ class SecureSigner(object):
     def __init__(self):
         pass
 
+    @abstractmethod
     def start(self):
         pass
 
+    @abstractmethod
     def stop(self):
         pass
 
+    @abstractmethod
     def sign_message(self, message_to_sign):
         pass
 
+    @abstractmethod
     def sign_transaction(self, transaction_to_sign):
         pass
 
@@ -128,54 +132,17 @@ class FileSecureSigner(SecureSigner):
         return signed_transaction
 
 
-class Signer(object):
-    """
-    Wraps certificate and transaction signing functionality. Uses a secure signer to actually create the signatures.
-    """
-
+class FinalizableSigner(object):
     def __init__(self, secure_signer):
         self.secure_signer = secure_signer
 
-    def sign_tx(self, hex_tx, tx_inputs):
-        """
-        Sign the transaction with private key
-        :param hex_tx:
-        :param tx_input:
-        :return:
-        """
-        logging.info('Signing tx with private key')
-
+    def __enter__(self):
+        logging.info('Starting finalizable transaction signer')
         self.secure_signer.start()
-        transaction = Tx.from_hex(hex_tx)
-        unspents = [TxOut(coin_value=tx_input.coin_value, script=tx_input.script) for tx_input in tx_inputs]
-        transaction.set_unspents(unspents)
-        signed_transaction = self.secure_signer.sign_transaction(transaction)
-        self.secure_signer.stop()
-        logging.info('Finished signing transaction')
-        return signed_transaction
+        return self.secure_signer
 
-    def sign_certs(self, certificates):
-        """
-        Sign certificates. Internet should be off for the scope of this function.
-        :param certificates:
-        :return:
-        """
-        logging.info('signing certificates')
-
-        self.secure_signer.start()
-
-        for _, certificate in certificates.items():
-            with open(certificate.unsigned_cert_file_name, 'r') as unsigned_cert_file, \
-                    open(certificate.signed_cert_file_name, 'wb') as signed_cert_file:
-                cert_json = json.loads(unsigned_cert_file.read())
-
-                # extract field to sign and sign it
-                to_sign = cert_json['assertion']['uid']
-                signature = self.secure_signer.sign_message(message_to_sign=to_sign)
-                cert_json['signature'] = signature
-
-                sorted_cert = json.dumps(cert_json, sort_keys=True)
-                signed_cert_file.write(bytes(sorted_cert, 'utf-8'))
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        logging.info('Stopping finalizable transaction signer')
         self.secure_signer.stop()
 
 

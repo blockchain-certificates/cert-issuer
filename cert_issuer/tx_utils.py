@@ -8,11 +8,11 @@ Helpers for bitcoin transactions, including:
 
 import io
 import logging
-from collections import namedtuple
 
 from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn, COutPoint
 from bitcoin.core.script import OP_RETURN
 from bitcoin.wallet import CBitcoinAddress
+from pycoin.tx import TxOut, Tx
 
 from cert_issuer.errors import UnverifiedTransactionError
 
@@ -22,9 +22,6 @@ FIXED_EXTRA_BYTES = 10
 OP_RETURN_BYTE_COUNT = 43  # our op_return output values always have the same length because they are SHA-256 hashes
 
 COIN = 100000000  # satoshis in 1 btc
-
-TransactionData = namedtuple(
-    'TransactionData', ['uid', 'tx', 'tx_input', 'op_return_value', 'batch_metadata'])
 
 
 class TransactionCostConstants(object):
@@ -112,6 +109,14 @@ def get_byte_count(signed_tx):
     signed_tx.stream(s)
     tx_byte_count = len(s.getvalue())
     return tx_byte_count
+
+
+def prepare_tx_for_signing(hex_tx, tx_inputs):
+    logging.info('Preparing tx for signing')
+    transaction = Tx.from_hex(hex_tx)
+    unspents = [TxOut(coin_value=tx_input.coin_value, script=tx_input.script) for tx_input in tx_inputs]
+    transaction.set_unspents(unspents)
+    return transaction
 
 
 def verify_transaction(signed_hextx, op_return_value):
