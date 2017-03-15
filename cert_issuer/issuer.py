@@ -6,7 +6,6 @@ import logging
 
 from chainpoint.chainpoint import MerkleTools
 
-from cert_issuer import certificate_handler
 from cert_issuer import tx_utils
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.helpers import unhexlify, hexlify
@@ -14,49 +13,25 @@ from cert_issuer.secure_signer import FinalizableSigner
 
 
 class Issuer:
-    def __init__(self, issuing_address, certificates_to_issue, connector, secure_signer, certificate_handler,
-                 transaction_handler):
+    def __init__(self, issuing_address, connector, secure_signer, certificate_handler, transaction_handler):
         self.issuing_address = issuing_address
-        self.certificates_to_issue = certificates_to_issue
         self.connector = connector
         self.secure_signer = secure_signer
         self.certificate_handler = certificate_handler
         self.transaction_handler = transaction_handler
         self.tree = MerkleTools(hash_type='sha256')
 
-    def get_certificate_to_issue(self, uid):
-        return self.certificate_handler.get_certificate_to_issue(uid)
-
-    def validate_batch(self):
-        """
-        Propagates exception on failure
-        :return:
-        """
-        for _, certificate in self.certificates_to_issue.items():
-            with open(certificate.unsigned_cert_file_name) as cert:
-                certificate_json = json.load(cert)
-                self.certificate_handler.validate(certificate_json)
-
     def calculate_cost_for_certificate_batch(self):
         return self.transaction_handler.calculate_cost_for_certificate_batch()
 
-    def sign_certificates(self):
+    def sign_batch(self):
         with FinalizableSigner(self.secure_signer) as signer:
-            for _, certificate in self.certificates_to_issue.items():
-                with open(certificate.unsigned_cert_file_name, 'r') as cert, \
-                        open(certificate.signed_cert_file_name, 'w') as signed_cert_file:
-                    certificate_json = json.load(cert)
-                    to_sign = self.certificate_handler.get_message_to_sign(certificate_json)
-                    signature = signer.sign_message(to_sign)
-                    result = self.certificate_handler.combine_signature_with_certificate(certificate_json, signature)
-                    signed_cert_file.write(result)
+            self.certificate_handler.sign_batch(signer)
 
     def prepare_batch(self):
-        for uid, certificate in self.certificates_to_issue.items():
-            cert_json = self.certificate_handler.get_certificate_to_issue(uid)
-            normalized = certificate_handler.normalize_jsonld(cert_json)
-            hashed = certificate_handler.hash_normalized_jsonld(normalized)
-            self.tree.add_leaf(hashed, False)
+        node_generator = self.certificate_handler.create_node_generator()
+        for node in node_generator:
+            self.tree.add_leaf(node, False)
 
     def issue_on_blockchain(self):
         """
@@ -106,26 +81,39 @@ class Issuer:
         return tx_id
 
     def finish_batch(self, tx_id):
-        root = self.tree.get_merkle_root()
-        index = 0
-        for uid, metadata in self.certificates_to_issue.items():
-            proof = self.tree.get_proof(index)
-            target_hash = self.tree.get_leaf(index)
+        def create_proof_generator(tree):
+            root = tree.get_merkle_root()
+            node_count = len(tree.leaves)
+            for index in range(0, node_count):
+                proof = tree.get_proof(index)
+                target_hash = tree.get_leaf(index)
+                merkle_proof = {
+                    "@context": "https://w3id.org/chainpoint/v2",
+                    "type": "ChainpointSHA256v2",
+                    "merkleRoot": root,
+                    "targetHash": target_hash,
+                    "proof": proof,
+                    "anchors": [{
+                        "sourceId": tx_id,
+                        "type": "BTCOpReturn"
+                    }]}
+                yield merkle_proof
 
-            merkle_proof = {
-                "@context": "https://w3id.org/chainpoint/v2",
-                "type": "ChainpointSHA256v2",
-                "merkleRoot": root,
-                "targetHash": target_hash,
-                "proof": proof,
-                "anchors": [{
-                    "sourceId": tx_id,
-                    "type": "BTCOpReturn"
-                }]}
+        self.certificate_handler.add_proofs(create_proof_generator, self.tree)
 
-            certificate_json = self.certificate_handler.get_certificate_to_issue(uid)
-            blockchain_certificate = self.certificate_handler.create_receipt(uid, merkle_proof, certificate_json)
-            with open(metadata.blockchain_cert_file_name, 'w') as out_file:
-                out_file.write(json.dumps(blockchain_certificate))
+    def issue_certificates(self):
+        logging.info('Preparing certificate batch')
+        self.certificate_handler.validate_batch()
 
-            index += 1
+        logging.info('Signing certificates')
+        self.sign_batch()
+
+        logging.info('Preparing certificate batch')
+        self.prepare_batch()
+
+        logging.info('Issuing the certificates on the blockchain')
+        tx_id = self.issue_on_blockchain()
+
+        logging.info('Finishing batch with txid=%s', tx_id)
+        self.finish_batch(tx_id)
+        return tx_id

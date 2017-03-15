@@ -47,7 +47,6 @@ def main(app_config, secure_signer=None):
                                                      revocation_address=revocation_address)
 
     issuer = Issuer(issuing_address=issuing_address,
-                    certificates_to_issue=certificates,
                     connector=connector,
                     secure_signer=secure_signer,
                     certificate_handler=certificate_handler,
@@ -64,20 +63,7 @@ def main(app_config, secure_signer=None):
         logging.error(error_message)
         raise InsufficientFundsError(error_message)
 
-    logging.info('Preparing certificate batch')
-    issuer.validate_batch()
-
-    logging.info('Signing certificates')
-    issuer.sign_certificates()
-
-    logging.info('Preparing certificate batch')
-    issuer.prepare_batch()
-
-    logging.info('Issuing the certificates on the blockchain')
-    tx_id = issuer.issue_on_blockchain()
-
-    logging.info('Finishing batch with txid=%s', tx_id)
-    issuer.finish_batch(tx_id)
+    tx_id = issuer.issue_certificates()
 
     blockcerts_tmp_dir = os.path.join(work_dir, helpers.BLOCKCHAIN_CERTIFICATES_DIR)
     if not os.path.exists(blockchain_certificates_dir):
