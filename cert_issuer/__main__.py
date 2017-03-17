@@ -17,12 +17,5 @@ def cert_issuer_main(args=None):
     issue_certificates.main(parsed_config)
 
 
-def cert_signer_main(args=None):
-    from cert_issuer import config
-    parsed_config = config.get_config()
-    from cert_issuer import sign_certificates
-    sign_certificates.main(parsed_config)
-
-
 if __name__ == '__main__':
     cert_issuer_main()

@@ -2,90 +2,117 @@
 Base class for building blockchain transactions to issue Blockchain Certificates.
 """
 import logging
-from abc import abstractmethod
+
+from chainpoint.chainpoint import MerkleTools
 
 from cert_issuer import tx_utils
-from cert_issuer.helpers import hexlify
+from cert_issuer.errors import InsufficientFundsError
+from cert_issuer.helpers import unhexlify, hexlify
+from cert_issuer.secure_signer import FinalizableSigner
 
 
 class Issuer:
-    def __init__(self, netcode, issuing_address, certificates_to_issue, connector, signer):
-        self.netcode = netcode
+    def __init__(self, issuing_address, connector, secure_signer, certificate_batch_handler, transaction_handler):
         self.issuing_address = issuing_address
-        self.certificates_to_issue = certificates_to_issue
         self.connector = connector
-        self.signer = signer
-        self.total = None
+        self.secure_signer = secure_signer
+        self.certificate_batch_handler = certificate_batch_handler
+        self.transaction_handler = transaction_handler
+        self.tree = MerkleTools(hash_type='sha256')
 
-    @abstractmethod
-    def validate_schema(self):
-        return
+    def calculate_cost_for_certificate_batch(self):
+        return self.transaction_handler.calculate_cost_for_certificate_batch()
 
-    @abstractmethod
-    def do_hash_certificate(self, certificate):
-        """
-        Subclasses must return hex strings, not byte arrays
-        :param certificate: certificate to hash, byte array
-        :return: hash as hex string
-        """
-        return
+    def sign_batch(self):
+        with FinalizableSigner(self.secure_signer) as signer:
+            self.certificate_batch_handler.sign_batch(signer)
 
-    @abstractmethod
-    def create_transactions(self, revocation_address):
-        return
+    def prepare_batch(self):
+        node_generator = self.certificate_batch_handler.create_node_generator()
+        for node in node_generator:
+            self.tree.add_leaf(node, False)
 
-    def hash_certificates(self):
-        logging.info('hashing certificates')
-        for _, certificate_metadata in self.certificates_to_issue.items():
-            # we need to keep the signed certificate read binary for backwards compatibility with v1
-            with open(certificate_metadata.signed_cert_file_name, 'rb') as in_file, \
-                    open(certificate_metadata.hashed_cert_file_name, 'w') as out_file:
-                cert = in_file.read()
-                hashed_cert = self.do_hash_certificate(cert)
-                out_file.write(hashed_cert)
-
-    def persist_tx(self, sent_tx_file_name, tx_id):
-        with open(sent_tx_file_name, 'w') as out_file:
-            out_file.write(tx_id)
-
-    def issue_on_blockchain(self, revocation_address):
+    def issue_on_blockchain(self):
         """
         Issue the certificates on the Bitcoin blockchain
         :param revocation_address:
         :return:
         """
-        transactions_data = self.create_transactions(revocation_address)
-        for transaction_data in transactions_data:
-            unsigned_tx_file_name = transaction_data.batch_metadata.unsigned_tx_file_name
-            signed_tx_file_name = transaction_data.batch_metadata.unsent_tx_file_name
-            sent_tx_file_name = transaction_data.batch_metadata.sent_tx_file_name
 
-            # persist the transaction in case broadcasting fails
-            hex_tx = hexlify(transaction_data.tx.serialize())
-            with open(unsigned_tx_file_name, 'w') as out_file:
-                out_file.write(hex_tx)
+        self.tree.make_tree()
+        op_return_value_bytes = unhexlify(self.tree.get_merkle_root())
+        op_return_value = hexlify(op_return_value_bytes)
+        spendables = self.connector.get_unspent_outputs(self.issuing_address)
+        if not spendables:
+            error_message = 'No money to spend at address {}'.format(self.issuing_address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
 
-            # sign transaction and persist result
-            signed_tx = self.signer.sign_tx(hex_tx, [transaction_data.tx_input])
+        last_input = spendables[-1]
 
-            # log the actual byte count
-            tx_byte_count = tx_utils.get_byte_count(signed_tx)
-            logging.info('The actual transaction size is %d bytes', tx_byte_count)
+        tx = self.transaction_handler.create_transaction(last_input, op_return_value_bytes)
 
-            signed_hextx = signed_tx.as_hex()
-            with open(signed_tx_file_name, 'w') as out_file:
-                out_file.write(signed_hextx)
+        hex_tx = hexlify(tx.serialize())
+        logging.info('Unsigned hextx=%s', hex_tx)
 
-            # verify transaction before broadcasting
-            tx_utils.verify_transaction(signed_hextx, transaction_data.op_return_value)
+        prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, [last_input])
+        with FinalizableSigner(self.secure_signer) as signer:
+            signed_tx = signer.sign_transaction(prepared_tx)
 
-            # send tx and persist txid
-            tx_id = self.connector.broadcast_tx(signed_tx)
-            if tx_id:
-                logging.info('Broadcast transaction with txid %s', tx_id)
-            else:
-                logging.warning(
-                    'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
+        # log the actual byte count
+        tx_byte_count = tx_utils.get_byte_count(signed_tx)
+        logging.info('The actual transaction size is %d bytes', tx_byte_count)
 
-            self.persist_tx(sent_tx_file_name, tx_id)
-            return tx_id
+        signed_hextx = signed_tx.as_hex()
+        logging.info('Signed hextx=%s', signed_hextx)
+
+        # verify transaction before broadcasting
+        tx_utils.verify_transaction(signed_hextx, op_return_value)
+
+        # send tx and persist txid
+        tx_id = self.connector.broadcast_tx(signed_tx)
+        if tx_id:
+            logging.info('Broadcast transaction with txid %s', tx_id)
+        else:
+            logging.warning(
+                'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
+
+        return tx_id
+
+    def finish_batch(self, tx_id):
+        def create_proof_generator(tree):
+            root = tree.get_merkle_root()
+            node_count = len(tree.leaves)
+            for index in range(0, node_count):
+                proof = tree.get_proof(index)
+                target_hash = tree.get_leaf(index)
+                merkle_proof = {
+                    "@context": "https://w3id.org/chainpoint/v2",
+                    "type": "ChainpointSHA256v2",
+                    "merkleRoot": root,
+                    "targetHash": target_hash,
+                    "proof": proof,
+                    "anchors": [{
+                        "sourceId": tx_id,
+                        "type": "BTCOpReturn"
+                    }]}
+                yield merkle_proof
+
+        self.certificate_batch_handler.add_proofs(create_proof_generator, self.tree)
+
+    def issue_certificates(self):
+        logging.info('Preparing certificate batch')
+        self.certificate_batch_handler.validate_batch()
+
+        logging.info('Signing certificates')
+        self.sign_batch()
+
+        logging.info('Preparing certificate batch')
+        self.prepare_batch()
+
+        logging.info('Issuing the certificates on the blockchain')
+        tx_id = self.issue_on_blockchain()
+
+        logging.info('Finishing batch with txid=%s', tx_id)
+        self.finish_batch(tx_id)
+        return tx_id

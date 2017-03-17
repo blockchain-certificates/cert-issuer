@@ -94,20 +94,13 @@ corresponding private key for testing issuing certificates:
     bitcoin-cli sendtoaddress $issuer 5
     ```
 
-3. Sign the certificates (open badge compliance step). After this step, the unsigned certificates will be archived (moved to the 'archive' folder) and the signed certificates will be added to 'data/signed_certificates'
-
-    ```
-    cd cert-issuer
-    cert-signer -c /etc/cert-issuer/conf.ini
-    ```
-
-4. Issue the certificates on the blockchain
+3. Issue the certificates on the blockchain
 
     ```
     cert-issuer -c /etc/cert-issuer/conf.ini
     ```
     
-5. Your Blockchain certificates are located in `/etc/cert-issuer/data/blockchain_certificates`. Copy these to your local machine, and add them to cert-viewer's `cert_data` folder to see your certificates in the Certificate Viewer.
+4. Your Blockchain certificates are located in `/etc/cert-issuer/data/blockchain_certificates`. Copy these to your local machine, and add them to cert-viewer's `cert_data` folder to see your certificates in the Certificate Viewer.
 
 ```
 docker ps  // shows the docker containerId

@@ -26,7 +26,6 @@ setup(
     entry_points={
         'console_scripts': [
             'cert-issuer = cert_issuer.__main__:cert_issuer_main',
-            'cert-signer = cert_issuer.__main__:cert_signer_main'
         ]
     }
 )

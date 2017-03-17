@@ -52,7 +52,7 @@ def add_arguments(p):
                    help='Default path to data directory storing blockchain certs')
     p.add_argument('--work_dir', default=WORK_PATH,
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
-
+    p.add_argument('--v2', dest='v2', action='store_true', default=False, help='Issue v2 certificates')
 
 def get_config():
     p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf.ini'),
