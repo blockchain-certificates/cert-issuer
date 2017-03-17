@@ -1,7 +1,6 @@
 """
 Base class for building blockchain transactions to issue Blockchain Certificates.
 """
-import json
 import logging
 
 from chainpoint.chainpoint import MerkleTools
@@ -13,11 +12,11 @@ from cert_issuer.secure_signer import FinalizableSigner
 
 
 class Issuer:
-    def __init__(self, issuing_address, connector, secure_signer, certificate_handler, transaction_handler):
+    def __init__(self, issuing_address, connector, secure_signer, certificate_batch_handler, transaction_handler):
         self.issuing_address = issuing_address
         self.connector = connector
         self.secure_signer = secure_signer
-        self.certificate_handler = certificate_handler
+        self.certificate_batch_handler = certificate_batch_handler
         self.transaction_handler = transaction_handler
         self.tree = MerkleTools(hash_type='sha256')
 
@@ -26,10 +25,10 @@ class Issuer:
 
     def sign_batch(self):
         with FinalizableSigner(self.secure_signer) as signer:
-            self.certificate_handler.sign_batch(signer)
+            self.certificate_batch_handler.sign_batch(signer)
 
     def prepare_batch(self):
-        node_generator = self.certificate_handler.create_node_generator()
+        node_generator = self.certificate_batch_handler.create_node_generator()
         for node in node_generator:
             self.tree.add_leaf(node, False)
 
@@ -99,11 +98,11 @@ class Issuer:
                     }]}
                 yield merkle_proof
 
-        self.certificate_handler.add_proofs(create_proof_generator, self.tree)
+        self.certificate_batch_handler.add_proofs(create_proof_generator, self.tree)
 
     def issue_certificates(self):
         logging.info('Preparing certificate batch')
-        self.certificate_handler.validate_batch()
+        self.certificate_batch_handler.validate_batch()
 
         logging.info('Signing certificates')
         self.sign_batch()

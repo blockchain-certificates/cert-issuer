@@ -4,7 +4,7 @@ import shutil
 import sys
 
 from cert_issuer import helpers
-from cert_issuer.certificate_handler import CertificateV1_2Handler, CertificateV2Handler
+from cert_issuer.certificate_handler import CertificateV1_2Handler, CertificateV2Handler, CertificateBatchHandler
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.issuer import Issuer
@@ -37,19 +37,20 @@ def main(app_config, secure_signer=None):
     tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
     if v2:
-        certificate_handler = CertificateV2Handler(certificates_to_issue=certificates)
+        certificate_handler = CertificateV2Handler()
         transaction_handler = TransactionV2Handler(tx_cost_constants=tx_constants, issuing_address=issuing_address)
     else:
-        certificate_handler = CertificateV1_2Handler(certificates_to_issue=certificates)
+        certificate_handler = CertificateV1_2Handler()
         transaction_handler = TransactionV1_2Handler(tx_cost_constants=tx_constants,
                                                      issuing_address=issuing_address,
                                                      certificates_to_issue=certificates,
                                                      revocation_address=revocation_address)
-
+    certificate_batch_handler = CertificateBatchHandler(certificates_to_issue=certificates,
+                                                        certificate_handler=certificate_handler)
     issuer = Issuer(issuing_address=issuing_address,
                     connector=connector,
                     secure_signer=secure_signer,
-                    certificate_handler=certificate_handler,
+                    certificate_batch_handler=certificate_batch_handler,
                     transaction_handler=transaction_handler)
     transaction_cost = issuer.calculate_cost_for_certificate_batch()
     logging.info('Total cost will be %d satoshis', transaction_cost)
