@@ -12,8 +12,7 @@ from cert_issuer.secure_signer import FinalizableSigner
 
 
 class Issuer:
-    def __init__(self, issuing_address, connector, secure_signer, certificate_batch_handler, transaction_handler):
-        self.issuing_address = issuing_address
+    def __init__(self, connector, secure_signer, certificate_batch_handler, transaction_handler):
         self.connector = connector
         self.secure_signer = secure_signer
         self.certificate_batch_handler = certificate_batch_handler
@@ -42,9 +41,9 @@ class Issuer:
         self.tree.make_tree()
         op_return_value_bytes = unhexlify(self.tree.get_merkle_root())
         op_return_value = hexlify(op_return_value_bytes)
-        spendables = self.connector.get_unspent_outputs(self.issuing_address)
+        spendables = self.connector.get_unspent_outputs(self.secure_signer.issuing_address)
         if not spendables:
-            error_message = 'No money to spend at address {}'.format(self.issuing_address)
+            error_message = 'No money to spend at address {}'.format(self.secure_signer.issuing_address)
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 

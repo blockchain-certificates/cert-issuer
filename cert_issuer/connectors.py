@@ -9,6 +9,8 @@ import requests
 from bitcoin.core import CTransaction
 from pycoin.serialize import b2h
 from pycoin.services import providers
+from pycoin.services.blockr_io import BlockrioProvider
+from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
@@ -206,7 +208,7 @@ class ServiceProviderConnector(object):
 
 
 PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.com chain.so"
-PYCOIN_XTN_PROVIDERS = "blockexplorer.com chain.so"
+PYCOIN_XTN_PROVIDERS = "blockexplorer.com" # chain.so
 
 # initialize connectors
 connectors = {}
@@ -215,12 +217,16 @@ connectors = {}
 provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
 provider_list.append(BlockrIOBroadcaster('https://btc.blockr.io/api/v1'))
 provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
+provider_list.append(BlockrioProvider('BTC'))
+provider_list.append(InsightProvider(netcode='BTC'))
 connectors['BTC'] = provider_list
 
 # configure testnet providers
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, 'XTN')
 xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
 xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
+xtn_provider_list.append(BlockrioProvider('XTN'))
+xtn_provider_list.append(InsightProvider(netcode='XTN'))
 connectors['XTN'] = xtn_provider_list
 
 # workaround for regtest
