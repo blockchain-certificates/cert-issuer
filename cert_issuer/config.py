@@ -4,6 +4,7 @@ import os
 import bitcoin
 import configargparse
 
+from cert_core import Chain
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
 WORK_PATH = os.path.join(PATH, 'work')
@@ -64,15 +65,9 @@ def get_config():
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
-    if parsed_config.bitcoin_chain == 'mainnet':
-        parsed_config.netcode = 'BTC'
-    else:
-        parsed_config.netcode = 'XTN'
-
-    if parsed_config.bitcoin_chain == 'mainnet':
-        bitcoin.SelectParams('mainnet')
-    else:
-        bitcoin.SelectParams('testnet')
+    # overwrite with enum
+    parsed_config.bitcoin_chain = Chain.parse_from_chain(parsed_config.bitcoin_chain)
+    bitcoin.SelectParams(parsed_config.bitcoin_chain.name)
 
     configure_logger()
 
