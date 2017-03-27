@@ -8,3 +8,4 @@ tox==2.3.1
 cert-schema==2.0a1
 pyld>=0.7.1
 chainpoint==0.0.2
+cert-core>=0.0.7

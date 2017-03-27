@@ -12,6 +12,7 @@ from pycoin.services import providers
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
+from cert_core import Chain
 from cert_issuer.errors import ConnectorError, BroadcastError
 from cert_issuer.helpers import hexlify
 from cert_issuer.helpers import unhexlify
@@ -124,13 +125,11 @@ class BitcoindConnector(object):
 
 
 class ServiceProviderConnector(object):
-    def __init__(self, bitcoin_chain, netcode):
+    def __init__(self, bitcoin_chain):
         self.bitcoin_chain = bitcoin_chain
-        self.netcode = netcode
 
     def spendables_for_address(self, bitcoin_address):
-        for m in service_provider_methods('spendables_for_address', get_providers_for_netcode(self.netcode,
-                                                                                              self.bitcoin_chain)):
+        for m in service_provider_methods('spendables_for_address', get_providers_for_chain(self.bitcoin_chain)):
             try:
                 logging.debug('m=%s', m)
                 spendables = m(bitcoin_address)
@@ -146,7 +145,7 @@ class ServiceProviderConnector(object):
         :param address:
         :return:
         """
-        logging.debug('get_unspent_outputs for address=%s, netcode=%s', address)
+        logging.debug('get_unspent_outputs for address=%s', address)
         spendables = self.spendables_for_address(bitcoin_address=address)
         if spendables:
             return sorted(spendables, key=lambda x: hash(x.coin_value))
@@ -174,22 +173,22 @@ class ServiceProviderConnector(object):
         :return:
         """
 
-        return ServiceProviderConnector.broadcast_tx_with_netcode(tx, self.netcode, self.bitcoin_chain)
+        return ServiceProviderConnector.broadcast_tx_with_chain(tx, self.bitcoin_chain)
 
     @staticmethod
-    def broadcast_tx_with_netcode(tx, netcode, bitcoin_chain=None):
+    def broadcast_tx_with_chain(tx, bitcoin_chain):
         """
         Broadcast the transaction through the configured set of providers
 
         :param tx:
-        :param netcode:
+        :param bitcoin_chain:
         :return:
         """
         last_exception = None
         final_tx_id = None
         # Unlike other providers, we want to broadcast to all available apis
         for method_provider in service_provider_methods('broadcast_tx',
-                                                        get_providers_for_netcode(netcode, bitcoin_chain)):
+                                                        get_providers_for_chain(bitcoin_chain)):
             try:
                 tx_id = method_provider(tx)
                 if tx_id:
@@ -212,25 +211,25 @@ PYCOIN_XTN_PROVIDERS = "blockexplorer.com chain.so"
 connectors = {}
 
 # configure mainnet providers
-provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, 'BTC')
+provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, Chain.mainnet.netcode)
 provider_list.append(BlockrIOBroadcaster('https://btc.blockr.io/api/v1'))
 provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
 connectors['BTC'] = provider_list
 
 # configure testnet providers
-xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, 'XTN')
+xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, Chain.testnet.netcode)
 xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
 xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
-connectors['XTN'] = xtn_provider_list
+connectors[Chain.testnet.netcode] = xtn_provider_list
 
 # workaround for regtest
-connectors['REG'] = [BitcoindConnector('XTN')]
+connectors['REG'] = [BitcoindConnector(Chain.testnet.netcode)]
 
 
-def get_providers_for_netcode(netcode, bitcoin_chain):
-    if bitcoin_chain and bitcoin_chain == 'regtest' and netcode == 'XTN':
+def get_providers_for_chain(bitcoin_chain):
+    if bitcoin_chain == Chain.regtest:
         return connectors['REG']
-    return connectors[netcode]
+    return connectors[bitcoin_chain.netcode]
 
 
 # Additional providers to add:
