@@ -33,7 +33,7 @@ def main(app_config, secure_signer=None):
     logging.info('Signing certificates...')
     if not secure_signer:
         secure_signer = secure_signer_helper.initialize_secure_signer(app_config)
-    connector = ServiceProviderConnector(app_config.bitcoin_chain, app_config.netcode)
+    connector = ServiceProviderConnector(app_config.bitcoin_chain)
     tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
     if v2:

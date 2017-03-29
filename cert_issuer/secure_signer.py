@@ -52,13 +52,6 @@ def check_internet_on(secrets_file_path):
     return True
 
 
-def chain_to_netcode(chain):
-    if chain == 'mainnet':
-        return 'BTC'
-    else:
-        return 'XTN'
-
-
 def initialize_secure_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
     secrets = FileSecureSigner(bitcoin_chain=app_config.bitcoin_chain, path_to_secret=path_to_secret,
@@ -95,7 +88,7 @@ class SecureSigner(object):
 class FileSecureSigner(SecureSigner):
     def __init__(self, bitcoin_chain, path_to_secret, disable_safe_mode, bitcoin_address=None):
         super().__init__()
-        self.allowable_wif_prefixes = wif_prefix_for_netcode(chain_to_netcode(bitcoin_chain))
+        self.allowable_wif_prefixes = wif_prefix_for_netcode(bitcoin_chain.netcode)
         self.path_to_secret = path_to_secret
         self.disable_safe_mode = disable_safe_mode
         self.wif = None

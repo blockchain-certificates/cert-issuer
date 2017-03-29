@@ -174,15 +174,11 @@ class CertificateV2Handler(CertificateHandler):
             if not signer.bitcoin_address:
                 raise Exception('TODO: fix signer constructor')
 
-            iso_datetime_pre = datetime.datetime.now(pytz.timezone('GMT')).replace(microsecond=0).isoformat()
-            iso_datetime = str(iso_datetime_pre).replace('+00:00', 'Z')
             signature = {
                 "type": [
-                    "EcdsaKoblitzSignature2016",
+                    "LinkedDataEcdsaKoblitzSignature",
                     "Extension"
                 ],
-                "creator": PUBKEY_PREFIX + signer.bitcoin_address,
-                "created": iso_datetime,
                 "signatureValue": cert_signature
             }
 
