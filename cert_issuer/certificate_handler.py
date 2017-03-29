@@ -12,9 +12,9 @@ from werkzeug.contrib.cache import SimpleCache
 from pyld.jsonld import JsonLdProcessor
 
 SECURITY_CONTEXT_URL = 'https://w3id.org/security/v1'
-BLOCKCERTS_V2_CONTEXT = 'http://www.blockcerts.org/blockcerts_v2_alpha/context_bc.json'
+BLOCKCERTS_V2_CONTEXT = 'https://www.blockcerts.org/blockcerts_v2_alpha/context_bc.json'
 PUBKEY_PREFIX = 'ecdsa-koblitz-pubkey:'
-BLOCKCERTS_PREFIX = 'bc_ext:'
+BLOCKCERTS_PREFIX = 'bc:'
 
 cache = SimpleCache()
 
@@ -129,7 +129,7 @@ class CertificateV1_2Handler(CertificateHandler):
         with open(certificate_metadata.unsigned_cert_file_name, 'r') as cert, \
                 open(certificate_metadata.signed_cert_file_name, 'w') as signed_cert_file:
             certificate_json = json.load(cert)
-            to_sign = certificate_json['assertion']['uid']
+            to_sign = certificate_metadata.uid
             signature = signer.sign_message(to_sign)
             certificate_json['signature'] = signature
             sorted_cert = json.dumps(certificate_json, sort_keys=True)
@@ -170,10 +170,6 @@ class CertificateV2Handler(CertificateHandler):
             to_sign = normalize_jsonld(certificate_json)
             cert_signature = signer.sign_message(to_sign)
 
-            # TODO:
-            if not signer.bitcoin_address:
-                raise Exception('TODO: fix signer constructor')
-
             signature = {
                 "type": [
                     "LinkedDataEcdsaKoblitzSignature",
@@ -182,7 +178,7 @@ class CertificateV2Handler(CertificateHandler):
                 "signatureValue": cert_signature
             }
 
-            signed_cert_file.write(signature)
+            signed_cert_file.write(json.dumps(signature))
 
     def get_certificate_to_issue(self, certificate_metadata):
         with open(certificate_metadata.unsigned_cert_file_name, 'r') as unsigned_cert_file:

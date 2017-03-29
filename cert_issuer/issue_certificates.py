@@ -47,8 +47,7 @@ def main(app_config, secure_signer=None):
                                                      revocation_address=revocation_address)
     certificate_batch_handler = CertificateBatchHandler(certificates_to_issue=certificates,
                                                         certificate_handler=certificate_handler)
-    issuer = Issuer(issuing_address=issuing_address,
-                    connector=connector,
+    issuer = Issuer(connector=connector,
                     secure_signer=secure_signer,
                     certificate_batch_handler=certificate_batch_handler,
                     transaction_handler=transaction_handler)

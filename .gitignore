@@ -17,6 +17,9 @@ data/work/*
 !data/blockchain_certificates/.*
 !data/work/.*
 
+data*/*
+dist/*
+
 .idea/*
 *.ini*
 

@@ -55,7 +55,7 @@ def check_internet_on(secrets_file_path):
 def initialize_secure_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
     secrets = FileSecureSigner(bitcoin_chain=app_config.bitcoin_chain, path_to_secret=path_to_secret,
-                               disable_safe_mode=app_config.safe_mode, bitcoin_address=app_config.issuing_address)
+                               disable_safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
 
     return secrets
 
@@ -86,13 +86,13 @@ class SecureSigner(object):
 
 
 class FileSecureSigner(SecureSigner):
-    def __init__(self, bitcoin_chain, path_to_secret, disable_safe_mode, bitcoin_address=None):
+    def __init__(self, bitcoin_chain, path_to_secret, disable_safe_mode, issuing_address=None):
         super().__init__()
         self.allowable_wif_prefixes = wif_prefix_for_netcode(bitcoin_chain.netcode)
         self.path_to_secret = path_to_secret
         self.disable_safe_mode = disable_safe_mode
         self.wif = None
-        self.bitcoin_address = bitcoin_address
+        self.issuing_address = issuing_address
 
     def start(self):
         if self.disable_safe_mode:
@@ -172,12 +172,11 @@ def verify_signature(uid, signed_cert_file_name, issuing_address):
     with open(signed_cert_file_name) as in_file:
         signed_cert = in_file.read()
         signed_cert_json = json.loads(signed_cert)
-        to_verify = signed_cert_json['assertion']['uid']
+        to_verify = uid
         signature = signed_cert_json['signature']
         verified = verify_message(issuing_address, to_verify, signature)
         if not verified:
-            error_message = 'There was a problem with the signature for certificate uid={}'.format(
-                signed_cert_json['assertion']['uid'])
+            error_message = 'There was a problem with the signature for certificate uid={}'.format(uid)
             raise UnverifiedSignatureError(error_message)
 
         logging.info('verified signature')
