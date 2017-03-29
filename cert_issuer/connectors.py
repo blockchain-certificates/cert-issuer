@@ -3,6 +3,7 @@ Connectors wrap the details of communicating with different Bitcoin clients and 
 """
 import io
 import logging
+import time
 
 import bitcoin.rpc
 import requests
@@ -189,21 +190,26 @@ class ServiceProviderConnector(object):
         last_exception = None
         final_tx_id = None
         # Unlike other providers, we want to broadcast to all available apis
-        for method_provider in service_provider_methods('broadcast_tx',
-                                                        get_providers_for_chain(bitcoin_chain)):
-            try:
-                tx_id = method_provider(tx)
-                if tx_id:
-                    final_tx_id = tx_id
-            except Exception as e:
-                logging.warning('Caught exception trying provider %s. Trying another. Exception=%s',
-                                str(method_provider), e)
-                last_exception = e
-        if final_tx_id:
-            return final_tx_id
+        max_attempts = 3
+        for attempt_number in range(0, max_attempts):
+            for method_provider in service_provider_methods('broadcast_tx',
+                                                            get_providers_for_chain(bitcoin_chain)):
+                try:
+                    tx_id = method_provider(tx)
+                    if tx_id:
+                        final_tx_id = tx_id
+                except Exception as e:
+                    logging.warning('Caught exception trying provider %s. Trying another. Exception=%s',
+                                    str(method_provider), e)
+                    last_exception = e
+            if final_tx_id:
+                return final_tx_id
+            else:
+                logging.warning('Broadcasting failed. Waiting before retrying. This is attempt number %d', attempt_number)
+                time.sleep(60)
         logging.error('Failed broadcasting through all providers')
         logging.error(last_exception, exc_info=True)
-        raise last_exception
+        raise BroadcastError(last_exception)
 
 
 PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.com chain.so"

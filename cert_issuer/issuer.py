@@ -6,7 +6,7 @@ import logging
 from chainpoint.chainpoint import MerkleTools
 
 from cert_issuer import tx_utils
-from cert_issuer.errors import InsufficientFundsError
+from cert_issuer.errors import InsufficientFundsError, BroadcastError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.secure_signer import FinalizableSigner
 
@@ -41,42 +41,46 @@ class Issuer:
         self.tree.make_tree()
         op_return_value_bytes = unhexlify(self.tree.get_merkle_root())
         op_return_value = hexlify(op_return_value_bytes)
-        spendables = self.connector.get_unspent_outputs(self.secure_signer.issuing_address)
-        if not spendables:
-            error_message = 'No money to spend at address {}'.format(self.secure_signer.issuing_address)
-            logging.error(error_message)
-            raise InsufficientFundsError(error_message)
 
-        last_input = spendables[-1]
+        max_attempts = 10
+        for attempt_number in range(0, max_attempts):
+            try:
+                spendables = self.connector.get_unspent_outputs(self.secure_signer.issuing_address)
+                if not spendables:
+                    error_message = 'No money to spend at address {}'.format(self.secure_signer.issuing_address)
+                    logging.error(error_message)
+                    raise InsufficientFundsError(error_message)
 
-        tx = self.transaction_handler.create_transaction(last_input, op_return_value_bytes)
+                last_input = spendables[-1]
 
-        hex_tx = hexlify(tx.serialize())
-        logging.info('Unsigned hextx=%s', hex_tx)
+                tx = self.transaction_handler.create_transaction(last_input, op_return_value_bytes)
 
-        prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, [last_input])
-        with FinalizableSigner(self.secure_signer) as signer:
-            signed_tx = signer.sign_transaction(prepared_tx)
+                hex_tx = hexlify(tx.serialize())
+                logging.info('Unsigned hextx=%s', hex_tx)
 
-        # log the actual byte count
-        tx_byte_count = tx_utils.get_byte_count(signed_tx)
-        logging.info('The actual transaction size is %d bytes', tx_byte_count)
+                prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, [last_input])
+                with FinalizableSigner(self.secure_signer) as signer:
+                    signed_tx = signer.sign_transaction(prepared_tx)
 
-        signed_hextx = signed_tx.as_hex()
-        logging.info('Signed hextx=%s', signed_hextx)
+                # log the actual byte count
+                tx_byte_count = tx_utils.get_byte_count(signed_tx)
+                logging.info('The actual transaction size is %d bytes', tx_byte_count)
 
-        # verify transaction before broadcasting
-        tx_utils.verify_transaction(signed_hextx, op_return_value)
+                signed_hextx = signed_tx.as_hex()
+                logging.info('Signed hextx=%s', signed_hextx)
 
-        # send tx and persist txid
-        tx_id = self.connector.broadcast_tx(signed_tx)
-        if tx_id:
-            logging.info('Broadcast transaction with txid %s', tx_id)
-        else:
-            logging.warning(
-                'could not broadcast transaction but you can manually do it! signed hextx=%s', signed_hextx)
+                # verify transaction before broadcasting
+                tx_utils.verify_transaction(signed_hextx, op_return_value)
 
-        return tx_id
+                # send tx and persist txid
+                tx_id = self.connector.broadcast_tx(signed_tx)
+                logging.info('Broadcast transaction with txid %s', tx_id)
+                return tx_id
+            except BroadcastError:
+                logging.warning(
+                    'Failed broadcast reattempts. Trying to recreate transaction. This is attempt number %d', attempt_number)
+        logging.error('All attempts to broadcast failed. Try rerunning issuer.')
+        return None
 
     def finish_batch(self, tx_id):
         def create_proof_generator(tree):

@@ -14,7 +14,8 @@ from pyld.jsonld import JsonLdProcessor
 SECURITY_CONTEXT_URL = 'https://w3id.org/security/v1'
 BLOCKCERTS_V2_CONTEXT = 'https://www.blockcerts.org/blockcerts_v2_alpha/context_bc.json'
 PUBKEY_PREFIX = 'ecdsa-koblitz-pubkey:'
-BLOCKCERTS_PREFIX = 'bc:'
+BLOCKCERTS_PREFIX_LONG = 'https://www.blockcerts.org/blockcerts_v2_alpha/vocab/blockcerts#'
+BLOCKCERTS_PREFIX_SHORT = 'bc:'
 
 cache = SimpleCache()
 
@@ -195,12 +196,13 @@ class CertificateV2Handler(CertificateHandler):
         with open(certificate_metadata.signed_cert_file_name) as signature_file:
             cert_signature = json.load(signature_file)
 
-        # add merkle proof to signature, and signature to certificate
-        tmp = {'https://w3id.org/security#signature': cert_signature}
-        ctx = {'@context': SECURITY_CONTEXT_URL}
-        compacted_signature = jsonld.compact(tmp, ctx, options={'documentLoader': cached_document_loader})
+        contexts = [BLOCKCERTS_V2_CONTEXT, SECURITY_CONTEXT_URL]
+        ctx = {'@context': contexts}
+        cert_signature['@context'] = contexts
+        compacted_signature = jsonld.compact(cert_signature, ctx, options={'documentLoader': cached_document_loader})
+        del compacted_signature['@context']
         compacted_signature['merkleProof'] = merkle_proof
-        certificate_json[BLOCKCERTS_PREFIX + 'signature'] = compacted_signature
+        certificate_json[BLOCKCERTS_PREFIX_SHORT + 'signature'] = compacted_signature
 
         # add security context to certificate
         prev_contexts = JsonLdProcessor.get_values(certificate_json, '@context')
