@@ -1,12 +1,21 @@
 import hashlib
 import json
 from abc import abstractmethod
+import pytz
+import datetime
 
 from cert_schema import jsonld_document_loader
 from cert_schema import validate_unsigned_v1_2
 from cert_schema import validate_v2
 from pyld import jsonld
 from werkzeug.contrib.cache import SimpleCache
+from pyld.jsonld import JsonLdProcessor
+
+SECURITY_CONTEXT_URL = 'https://w3id.org/security/v1'
+BLOCKCERTS_V2_CONTEXT = 'https://www.blockcerts.org/blockcerts_v2_alpha/context_bc.json'
+PUBKEY_PREFIX = 'ecdsa-koblitz-pubkey:'
+BLOCKCERTS_PREFIX_LONG = 'https://www.blockcerts.org/blockcerts_v2_alpha/vocab/blockcerts#'
+BLOCKCERTS_PREFIX_SHORT = 'bc:'
 
 cache = SimpleCache()
 
@@ -31,6 +40,21 @@ def normalize_jsonld(certificate_json):
     normalized = jsonld.normalize(certificate_json, options=options)
     return normalized
 
+def _getDataToHash(input, options):
+    toHash = ''
+    headers = {
+        'http://purl.org/dc/elements/1.1/created': options.date,
+        'https://w3id.org/security#domain': options.domain,
+        'https://w3id.org/security#nonce': options.nonce
+    }
+    # add headers in lexicographical order
+    import collections
+    keys = collections.OrderedDict(sorted(headers.items()))
+    for k, v in keys.items():
+        if v:
+            toHash += k + ': ' + v + '\n'
+    toHash += input
+    return toHash
 
 def hash_normalized_jsonld(normalized):
     """
@@ -106,7 +130,7 @@ class CertificateV1_2Handler(CertificateHandler):
         with open(certificate_metadata.unsigned_cert_file_name, 'r') as cert, \
                 open(certificate_metadata.signed_cert_file_name, 'w') as signed_cert_file:
             certificate_json = json.load(cert)
-            to_sign = certificate_json['assertion']['uid']
+            to_sign = certificate_metadata.uid
             signature = signer.sign_message(to_sign)
             certificate_json['signature'] = signature
             sorted_cert = json.dumps(certificate_json, sort_keys=True)
@@ -145,8 +169,17 @@ class CertificateV2Handler(CertificateHandler):
                 open(certificate_metadata.signed_cert_file_name, 'w') as signed_cert_file:
             certificate_json = json.load(cert)
             to_sign = normalize_jsonld(certificate_json)
-            signature = signer.sign_message(to_sign)
-            signed_cert_file.write(signature)
+            cert_signature = signer.sign_message(to_sign)
+
+            signature = {
+                "type": [
+                    "LinkedDataEcdsaKoblitzSignature",
+                    "Extension"
+                ],
+                "signatureValue": cert_signature
+            }
+
+            signed_cert_file.write(json.dumps(signature))
 
     def get_certificate_to_issue(self, certificate_metadata):
         with open(certificate_metadata.unsigned_cert_file_name, 'r') as unsigned_cert_file:
@@ -161,18 +194,22 @@ class CertificateV2Handler(CertificateHandler):
         """
         certificate_json = self.get_certificate_to_issue(certificate_metadata)
         with open(certificate_metadata.signed_cert_file_name) as signature_file:
-            cert_signature = signature_file.read()
-        signature = {
-            "@context": "http://www.blockcerts.org/blockcerts_v2_alpha/context_bc.json",
-            "type": [
-                "EcdsaKoblitzSignature2016",
-                "Extension"
-            ],
-            "merkleProof": merkle_proof,
-            "creator": "https://example.org/issuer/keys/1.9.1.1",
-            "created": "2016-09-23T20:21:34Z",
-            "signatureValue": cert_signature
-        }
-        certificate_json['bc_ext:signature'] = signature
+            cert_signature = json.load(signature_file)
+
+        contexts = [BLOCKCERTS_V2_CONTEXT, SECURITY_CONTEXT_URL]
+        ctx = {'@context': contexts}
+        cert_signature['@context'] = contexts
+        compacted_signature = jsonld.compact(cert_signature, ctx, options={'documentLoader': cached_document_loader})
+        del compacted_signature['@context']
+        compacted_signature['merkleProof'] = merkle_proof
+        certificate_json[BLOCKCERTS_PREFIX_SHORT + 'signature'] = compacted_signature
+
+        # add security context to certificate
+        prev_contexts = JsonLdProcessor.get_values(certificate_json, '@context')
+        contexts = []
+        [contexts.append(c) for c in prev_contexts]
+        contexts.append(SECURITY_CONTEXT_URL)
+        certificate_json['@context'] = contexts
+
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
             out_file.write(json.dumps(certificate_json))

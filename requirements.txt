@@ -5,7 +5,7 @@ mock==2.0.0
 glob2==0.4.1
 configargparse==0.10.0
 tox==2.3.1
-cert-schema==2.0a1
+cert-schema==2.0a2
 pyld>=0.7.1
 chainpoint==0.0.2
 cert-core>=0.0.7
