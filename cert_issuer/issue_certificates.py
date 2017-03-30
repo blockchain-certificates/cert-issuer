@@ -28,7 +28,12 @@ def main(app_config, secure_signer=None):
 
     certificates, batch_metadata = helpers.prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir,
                                                                   blockchain_certificates_dir, work_dir)
-    logging.info('Processing %d certificates under work path=%s', len(certificates), work_dir)
+    num_certificates = len(certificates)
+    if num_certificates < 1:
+        logging.warning('No certificates to process')
+        return None
+
+    logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
 
     logging.info('Signing certificates...')
     if not secure_signer:
@@ -83,7 +88,13 @@ if __name__ == '__main__':
     try:
         parsed_config = config.get_config()
         secret_manager = secure_signer_helper.initialize_secure_signer(parsed_config)
-        main(parsed_config, secret_manager)
+        tx_id = main(parsed_config, secret_manager)
+        if tx_id:
+            logging.info('Transaction id is %s', tx_id)
+        else:
+            logging.error('Certificate issuing failed')
+            exit(1)
+
     except Exception as ex:
         logging.error(ex, exc_info=True)
         exit(1)
