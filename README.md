@@ -72,7 +72,7 @@ corresponding private key for testing issuing certificates:
 
     ```
     # To use a sample unsigned certificate as follows:
-    cp <cert-issuer-home>/examples/data-testnet/unsigned_certificates/6c6bd2ec-d0d6-41a9-bec8-57bb904c62a8.json /etc/cert-issuer/data/unsigned_certificates/
+    cp /cert-issuer/examples/data-testnet/unsigned_certificates/6c6bd2ec-d0d6-41a9-bec8-57bb904c62a8.json /etc/cert-issuer/data/unsigned_certificates/ 
     
     # If you created your own unsigned certificate using cert-tools (assuming you placed it under data/unsigned_certificates):
     cp <cert-issuer-home>/data/unsigned_certificates/<your-cert-guid>.json /etc/cert-issuer/data/unsigned_certificates/

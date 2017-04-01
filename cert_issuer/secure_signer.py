@@ -55,7 +55,7 @@ def check_internet_on(secrets_file_path):
 def initialize_secure_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
     secrets = FileSecureSigner(bitcoin_chain=app_config.bitcoin_chain, path_to_secret=path_to_secret,
-                               disable_safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
+                               safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
 
     return secrets
 
@@ -86,16 +86,16 @@ class SecureSigner(object):
 
 
 class FileSecureSigner(SecureSigner):
-    def __init__(self, bitcoin_chain, path_to_secret, disable_safe_mode, issuing_address=None):
+    def __init__(self, bitcoin_chain, path_to_secret, safe_mode=True, issuing_address=None):
         super().__init__()
         self.allowable_wif_prefixes = wif_prefix_for_netcode(bitcoin_chain.netcode)
         self.path_to_secret = path_to_secret
-        self.disable_safe_mode = disable_safe_mode
+        self.safe_mode = safe_mode
         self.wif = None
         self.issuing_address = issuing_address
 
     def start(self):
-        if self.disable_safe_mode:
+        if self.safe_mode:
             check_internet_off(self.path_to_secret)
         else:
             logging.warning(
@@ -106,7 +106,7 @@ class FileSecureSigner(SecureSigner):
 
     def stop(self):
         self.wif = None
-        if self.disable_safe_mode:
+        if self.safe_mode:
             check_internet_on(self.path_to_secret)
         else:
             logging.warning(

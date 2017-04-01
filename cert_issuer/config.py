@@ -33,9 +33,9 @@ def add_arguments(p):
     p.add_argument('--bitcoin_chain', default='regtest',
                    help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
                         'configured). Other options are testnet and mainnet.')
-    p.add_argument('--safe_mode', dest='safe_mode', action='store_true',
+    p.add_argument('--safe_mode', dest='safe_mode', default=True, action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
-    p.add_argument('--no_safe_mode', dest='safe_mode', action='store_false',
+    p.add_argument('--no_safe_mode', dest='safe_mode', default=False, action='store_false',
                    help='Turns off safe mode. Only change this option for testing or unit testing.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
