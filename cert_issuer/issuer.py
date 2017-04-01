@@ -12,11 +12,12 @@ from cert_issuer.secure_signer import FinalizableSigner
 
 
 class Issuer:
-    def __init__(self, connector, secure_signer, certificate_batch_handler, transaction_handler):
+    def __init__(self, connector, secure_signer, certificate_batch_handler, transaction_handler, max_retry=10):
         self.connector = connector
         self.secure_signer = secure_signer
         self.certificate_batch_handler = certificate_batch_handler
         self.transaction_handler = transaction_handler
+        self.max_retry = max_retry
         self.tree = MerkleTools(hash_type='sha256')
 
     def calculate_cost_for_certificate_batch(self):
@@ -42,8 +43,7 @@ class Issuer:
         op_return_value_bytes = unhexlify(self.tree.get_merkle_root())
         op_return_value = hexlify(op_return_value_bytes)
 
-        max_attempts = 10
-        for attempt_number in range(0, max_attempts):
+        for attempt_number in range(0, self.max_retry):
             try:
                 spendables = self.connector.get_unspent_outputs(self.secure_signer.issuing_address)
                 if not spendables:

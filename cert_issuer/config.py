@@ -54,6 +54,8 @@ def add_arguments(p):
     p.add_argument('--work_dir', default=WORK_PATH,
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
     p.add_argument('--v2', dest='v2', action='store_true', default=False, help='Issue v2 certificates')
+    p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure')
+
 
 def get_config():
     p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf.ini'),

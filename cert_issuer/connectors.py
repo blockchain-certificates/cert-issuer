@@ -28,6 +28,9 @@ except ImportError:
     from urllib.parse import urlencode
 
 
+MAX_BROADCAST_ATTEMPTS = 3
+
+
 def try_get(url):
     """throw error if call fails"""
     response = requests.get(url)
@@ -190,8 +193,7 @@ class ServiceProviderConnector(object):
         last_exception = None
         final_tx_id = None
         # Unlike other providers, we want to broadcast to all available apis
-        max_attempts = 3
-        for attempt_number in range(0, max_attempts):
+        for attempt_number in range(0, MAX_BROADCAST_ATTEMPTS):
             for method_provider in service_provider_methods('broadcast_tx',
                                                             get_providers_for_chain(bitcoin_chain)):
                 try:

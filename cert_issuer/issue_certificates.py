@@ -55,7 +55,8 @@ def main(app_config, secure_signer=None):
     issuer = Issuer(connector=connector,
                     secure_signer=secure_signer,
                     certificate_batch_handler=certificate_batch_handler,
-                    transaction_handler=transaction_handler)
+                    transaction_handler=transaction_handler,
+                    max_retry=app_config.max_retry)
     transaction_cost = issuer.calculate_cost_for_certificate_batch()
     logging.info('Total cost will be %d satoshis', transaction_cost)
 
