@@ -22,7 +22,5 @@ bitcoin-cli generate 101
 bitcoin-cli getbalance
 bitcoin-cli sendtoaddress $issuer 5
 
-sleep 5
-
 # issue the certificates on the blockchain
 cert-issuer -c /etc/cert-issuer/conf.ini

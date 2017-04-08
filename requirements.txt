@@ -9,4 +9,4 @@ cert-schema==2.0b1
 pyld>=0.7.1
 chainpoint==0.0.2
 cert-core>=0.0.15
-ld-koblitz-signatures>=0.0.1
+ld-koblitz-signatures>=0.0.2
