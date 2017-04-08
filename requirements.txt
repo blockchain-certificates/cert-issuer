@@ -1,11 +1,12 @@
-pycoin==0.76
+pycoin==0.77
 python-bitcoinlib==0.7.0
-requests>=2.12.1
+requests>=2.13.0
 mock==2.0.0
 glob2==0.4.1
 configargparse==0.10.0
 tox==2.3.1
-cert-schema==2.0a3
+cert-schema==2.0b1
 pyld>=0.7.1
 chainpoint==0.0.2
-cert-core>=0.0.9
+cert-core>=0.0.15
+ld-koblitz-signatures>=0.0.2
