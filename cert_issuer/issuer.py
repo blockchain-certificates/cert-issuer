@@ -89,8 +89,10 @@ class Issuer:
             for index in range(0, node_count):
                 proof = tree.get_proof(index)
                 target_hash = tree.get_leaf(index)
+                # chainpoint context is causing intermittent SSL errors. This isn't part of the JSON-normalized payload,
+                # so we can omit it here
                 merkle_proof = {
-                    "@context": "https://w3id.org/chainpoint/v2",
+                    # "@context": "https://w3id.org/chainpoint/v2",
                     "type": "ChainpointSHA256v2",
                     "merkleRoot": root,
                     "targetHash": target_hash,
