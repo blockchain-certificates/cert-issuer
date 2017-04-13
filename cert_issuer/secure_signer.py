@@ -12,7 +12,7 @@ from pycoin.encoding import wif_to_secret_exponent
 from pycoin.networks import wif_prefix_for_netcode
 from pycoin.tx.pay_to import build_hash160_lookup
 
-from cert_issuer.errors import UnverifiedSignatureError
+from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
 
 
 def import_key(secrets_file_path):
@@ -123,6 +123,11 @@ class FileSecureSigner(SecureSigner):
         secret_exponent = wif_to_secret_exponent(self.wif, self.allowable_wif_prefixes)
         lookup = build_hash160_lookup([secret_exponent])
         signed_transaction = transaction_to_sign.sign(lookup)
+        # Because signing failures silently continue, first check that the inputs are signed
+        for input in signed_transaction.txs_in:
+            if len(input.script) == 0:
+                logging.error('Unable to sign transaction. hextx=%s', signed_transaction.as_hex())
+                raise UnableToSignTxError('Unable to sign transaction')
         return signed_transaction
 
 

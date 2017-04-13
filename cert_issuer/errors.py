@@ -21,6 +21,13 @@ class UnverifiedSignatureError(Error):
     pass
 
 
+class UnableToSignTxError(Error):
+    """
+    The transaction could not be signed
+    """
+    pass
+
+
 class UnverifiedTransactionError(Error):
     """
     The transaction could not be verified
