@@ -10,9 +10,12 @@ from cert_issuer.errors import InsufficientFundsError, BroadcastError
 from cert_issuer.helpers import unhexlify, hexlify
 from cert_issuer.secure_signer import FinalizableSigner
 
+MAX_TX_RETRIES = 5
+
 
 class Issuer:
-    def __init__(self, connector, secure_signer, certificate_batch_handler, transaction_handler, max_retry=10):
+    def __init__(self, connector, secure_signer, certificate_batch_handler, transaction_handler,
+                 max_retry=MAX_TX_RETRIES):
         self.connector = connector
         self.secure_signer = secure_signer
         self.certificate_batch_handler = certificate_batch_handler
@@ -78,7 +81,8 @@ class Issuer:
                 return tx_id
             except BroadcastError:
                 logging.warning(
-                    'Failed broadcast reattempts. Trying to recreate transaction. This is attempt number %d', attempt_number)
+                    'Failed broadcast reattempts. Trying to recreate transaction. This is attempt number %d',
+                    attempt_number)
         logging.error('All attempts to broadcast failed. Try rerunning issuer.')
         return None
 

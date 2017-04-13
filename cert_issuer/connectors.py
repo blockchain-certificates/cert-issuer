@@ -20,6 +20,8 @@ from cert_issuer.errors import ConnectorError, BroadcastError
 from cert_issuer.helpers import hexlify
 from cert_issuer.helpers import unhexlify
 
+BROADCAST_RETRY_INTERVAL = 30
+
 try:
     from urllib2 import urlopen, HTTPError
     from urllib import urlencode
@@ -199,6 +201,11 @@ class ServiceProviderConnector(object):
                 try:
                     tx_id = method_provider(tx)
                     if tx_id:
+                        logging.info('Broadcasting succeeded with method_provider=%s, txid=%s', str(method_provider), tx_id)
+                        if final_tx_id and final_tx_id != tx_id:
+                            logging.error('This should never happen; fail and investigate if it does. Got conflicting tx_ids=%s and %s. Hextx=%s',
+                                          final_tx_id, tx_id, tx.as_hex())
+                            raise Exception('Got conflicting tx_ids.')
                         final_tx_id = tx_id
                 except Exception as e:
                     logging.warning('Caught exception trying provider %s. Trying another. Exception=%s',
@@ -208,7 +215,7 @@ class ServiceProviderConnector(object):
                 return final_tx_id
             else:
                 logging.warning('Broadcasting failed. Waiting before retrying. This is attempt number %d', attempt_number)
-                time.sleep(60)
+                time.sleep(BROADCAST_RETRY_INTERVAL)
         logging.error('Failed broadcasting through all providers')
         logging.error(last_exception, exc_info=True)
         raise BroadcastError(last_exception)
