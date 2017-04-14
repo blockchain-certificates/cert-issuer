@@ -21,7 +21,7 @@ class TestTrxUtils(unittest.TestCase):
         tx_input = Spendable(200, b'18eKkAWyU9kvRNHPKxnZb6wwtPMrNmRRRA', b, 0)
         tx_outs = [tx_utils.create_transaction_output('mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', 0.0000275)]
         op_return_val = h2b('e9cee71ab932fde863338d08be4de9dfe39ea049bdafb342ce659ec5450b69ae')
-        tx = tx_utils.create_trx(op_return_val, 3, 'mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', tx_outs, tx_input)
+        tx = tx_utils.create_trx(op_return_val, 3, 'mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', tx_outs, [tx_input])
 
         hextx = hexlify(tx.serialize())
 
@@ -49,7 +49,7 @@ class TestTrxUtils(unittest.TestCase):
         tx_input = Spendable(200, b'18eKkAWyU9kvRNHPKxnZb6wwtPMrNmRRRA',
                              b, 0)
         tx_outs = [tx_utils.create_transaction_output('mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', 0.0000275)]
-        tx = tx_utils.create_trx('TEST'.encode('utf-8'), 3, 'mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', tx_outs, tx_input)
+        tx = tx_utils.create_trx('TEST'.encode('utf-8'), 3, 'mgAqW5ZCnEp7fjvpj8RUL3WxsBy8rcDcCi', tx_outs, [tx_input])
         hextx = hexlify(tx.serialize())
         self.assertEquals(hextx,
                           '01000000018443b07464c762d7fb404ea918a5ac9b3618d5cd6a0c5ea6e4dd5d7bbe28b1540000000000ffffffff0300000000000000001976a914072a22e5913cd939904c46bbd0bc56755543384b88acc5000000000000001976a914072a22e5913cd939904c46bbd0bc56755543384b88ac0000000000000000066a045445535400000000')
