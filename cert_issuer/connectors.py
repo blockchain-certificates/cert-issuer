@@ -242,8 +242,6 @@ xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
 xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
 xtn_provider_list.append(InsightProvider(netcode=Chain.testnet.netcode))
 connectors[Chain.testnet.netcode] = xtn_provider_list
-connectors[Chain.testnet.netcode] = xtn_provider_list
-
 
 # workaround for regtest
 connectors['REG'] = [BitcoindConnector(Chain.testnet.netcode)]
