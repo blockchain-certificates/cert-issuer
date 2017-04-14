@@ -230,7 +230,7 @@ connectors = {}
 # configure mainnet providers
 provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, Chain.mainnet.netcode)
 provider_list.append(BlockrIOBroadcaster('https://btc.blockr.io/api/v1'))
-provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
+#provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
 provider_list.append(BlockrioProvider(Chain.mainnet.netcode))
 provider_list.append(InsightProvider(netcode=Chain.mainnet.netcode))
 connectors[Chain.mainnet.netcode] = provider_list
@@ -238,7 +238,7 @@ connectors[Chain.mainnet.netcode] = provider_list
 # configure testnet providers
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, Chain.testnet.netcode)
 xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
-xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
+#xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
 xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
 xtn_provider_list.append(InsightProvider(netcode=Chain.testnet.netcode))
 connectors[Chain.testnet.netcode] = xtn_provider_list
