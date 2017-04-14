@@ -39,7 +39,7 @@ class TransactionCostConstants(object):
         return self.recommended_tx_fee * COIN
 
 
-def create_trx(op_return_val, issuing_transaction_cost, issuing_address, tx_outs, tx_input):
+def create_trx(op_return_val, issuing_transaction_cost, issuing_address, tx_outs, tx_inputs):
     """
 
     :param op_return_val:
@@ -50,8 +50,11 @@ def create_trx(op_return_val, issuing_transaction_cost, issuing_address, tx_outs
     :return:
     """
     cert_out = CMutableTxOut(0, CScript([OP_RETURN, op_return_val]))
-    tx_ins = [CTxIn(COutPoint(tx_input.tx_hash, tx_input.tx_out_index))]
-    value_in = tx_input.coin_value
+    tx_ins = []
+    value_in = 0
+    for tx_input in tx_inputs:
+        tx_ins.append(CTxIn(COutPoint(tx_input.tx_hash, tx_input.tx_out_index)))
+        value_in += tx_input.coin_value
 
     # send change back to our address
     amount = value_in - issuing_transaction_cost

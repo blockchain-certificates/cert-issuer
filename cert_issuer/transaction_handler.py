@@ -39,7 +39,7 @@ class TransactionV1_2Handler(TransactionHandler):
         total = tx_utils.calculate_tx_total(self.tx_cost_constants, num_inputs, num_outputs)
         return total
 
-    def create_transaction(self, last_input, op_return_value):
+    def create_transaction(self, inputs, op_return_value):
         tx_outs = self.build_recipient_tx_outs()
         tx_outs.append(tx_utils.create_transaction_output(self.revocation_address,
                                                           self.tx_cost_constants.get_minimum_output_coin()))
@@ -50,7 +50,7 @@ class TransactionV1_2Handler(TransactionHandler):
             total,
             self.issuing_address,
             tx_outs,
-            last_input)
+            inputs)
 
         return transaction
 
@@ -86,13 +86,13 @@ class TransactionV2Handler(TransactionHandler):
         total = tx_utils.calculate_tx_total(self.tx_cost_constants, 1, 2)
         return total
 
-    def create_transaction(self, last_input, op_return_value):
+    def create_transaction(self, inputs, op_return_value):
         total = self.calculate_cost_for_certificate_batch()
         transaction = tx_utils.create_trx(
             op_return_value,
             total,
             self.issuing_address,
             [],
-            last_input)
+            inputs)
 
         return transaction

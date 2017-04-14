@@ -46,6 +46,8 @@ class Issuer:
         op_return_value_bytes = unhexlify(self.tree.get_merkle_root())
         op_return_value = hexlify(op_return_value_bytes)
 
+        import random
+
         for attempt_number in range(0, self.max_retry):
             try:
                 spendables = self.connector.get_unspent_outputs(self.secure_signer.issuing_address)
@@ -54,14 +56,21 @@ class Issuer:
                     logging.error(error_message)
                     raise InsufficientFundsError(error_message)
 
-                last_input = spendables[-1]
+                cost = self.transaction_handler.calculate_cost_for_certificate_batch()
+                current_total = 0
+                inputs = []
+                random.shuffle(spendables)
+                for s in spendables:
+                    inputs.append(s)
+                    current_total += s.coin_value
+                    if current_total > cost:
+                        break
 
-                tx = self.transaction_handler.create_transaction(last_input, op_return_value_bytes)
-
+                tx = self.transaction_handler.create_transaction(inputs, op_return_value_bytes)
                 hex_tx = hexlify(tx.serialize())
                 logging.info('Unsigned hextx=%s', hex_tx)
 
-                prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, [last_input])
+                prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, inputs)
                 with FinalizableSigner(self.secure_signer) as signer:
                     signed_tx = signer.sign_transaction(prepared_tx)
 
@@ -84,7 +93,7 @@ class Issuer:
                     'Failed broadcast reattempts. Trying to recreate transaction. This is attempt number %d',
                     attempt_number)
         logging.error('All attempts to broadcast failed. Try rerunning issuer.')
-        return None
+        raise BroadcastError('All attempts to broadcast failed. Try rerunning issuer.')
 
     def finish_batch(self, tx_id):
         def create_proof_generator(tree):
