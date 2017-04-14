@@ -8,7 +8,7 @@ import time
 import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
-from pycoin.serialize import b2h
+from pycoin.serialize import b2h, b2h_rev
 from pycoin.services import providers
 from pycoin.services.blockr_io import BlockrioProvider
 from pycoin.services.insight import InsightProvider
@@ -194,6 +194,7 @@ class ServiceProviderConnector(object):
         """
         last_exception = None
         final_tx_id = None
+
         # Unlike other providers, we want to broadcast to all available apis
         for attempt_number in range(0, MAX_BROADCAST_ATTEMPTS):
             for method_provider in service_provider_methods('broadcast_tx',
@@ -211,6 +212,7 @@ class ServiceProviderConnector(object):
                     logging.warning('Caught exception trying provider %s. Trying another. Exception=%s',
                                     str(method_provider), e)
                     last_exception = e
+            # At least 1 provider succeeded, so return
             if final_tx_id:
                 return final_tx_id
             else:
@@ -230,7 +232,7 @@ connectors = {}
 # configure mainnet providers
 provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, Chain.mainnet.netcode)
 provider_list.append(BlockrIOBroadcaster('https://btc.blockr.io/api/v1'))
-#provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
+provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
 provider_list.append(BlockrioProvider(Chain.mainnet.netcode))
 provider_list.append(InsightProvider(netcode=Chain.mainnet.netcode))
 connectors[Chain.mainnet.netcode] = provider_list
@@ -238,7 +240,7 @@ connectors[Chain.mainnet.netcode] = provider_list
 # configure testnet providers
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, Chain.testnet.netcode)
 xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
-#xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
+xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
 xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
 xtn_provider_list.append(InsightProvider(netcode=Chain.testnet.netcode))
 connectors[Chain.testnet.netcode] = xtn_provider_list
