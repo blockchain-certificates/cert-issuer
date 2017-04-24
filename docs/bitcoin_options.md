@@ -1,6 +1,6 @@
 # Local Bitcoin node instructions
 
-See [Certificate Issuing Options](http://www.blockcerts.org/guide/options.html) for an overview of issuing options. This describes installing and configuring bitcoind for regtest and testnet modes.
+See [Certificate Issuing Options](http://community.blockcerts.org/t/issuing-options/28) for an overview of issuing options. This describes installing and configuring bitcoind for regtest and testnet modes.
 
 The quick start guide runs a Bitcoin node in a Docker container. These instructions show how to install it locally.
 
