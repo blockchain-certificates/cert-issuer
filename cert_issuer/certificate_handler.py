@@ -155,7 +155,6 @@ class CertificateV2Handler(CertificateHandler):
         certificate_json = self.get_certificate_to_issue(certificate_metadata)
 
         merkle_proof['type'] = ['MerkleProof2017', 'Extension']
-        merkle_proof['creator'] = self.issuing_address
         certificate_json['signature'] = merkle_proof
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
