@@ -1,16 +1,12 @@
-import datetime
 import hashlib
 import json
 from abc import abstractmethod
 
-import pytz
 from cert_core import PUBKEY_PREFIX
-from cert_core import parse_chain_from_address
+from cert_schema import jsonld_document_loader
+from cert_schema import normalize_jsonld
 from cert_schema import validate_unsigned_v1_2
 from cert_schema import validate_v2
-from ld_koblitz_signatures import signatures
-from ld_koblitz_signatures.document_loader import jsonld_document_loader
-from ld_koblitz_signatures.signatures import SignatureOptions
 from werkzeug.contrib.cache import SimpleCache
 
 cache = SimpleCache()
@@ -42,6 +38,7 @@ class CertificateBatchHandler(object):
 
     In this case, certificates are initialized as an Ordered Dictionary, and we iterate in insertion order.
     """
+
     def __init__(self, certificates_to_issue, certificate_handler):
         self.certificates_to_issue = certificates_to_issue
         self.certificate_handler = certificate_handler
@@ -61,7 +58,8 @@ class CertificateBatchHandler(object):
     def create_node_generator(self):
         for uid, metadata in self.certificates_to_issue.items():
             cert_json = self.certificate_handler.get_certificate_to_issue(metadata)
-            normalized = signatures.normalize_jsonld(cert_json)
+            normalized = normalize_jsonld(cert_json, document_loader=cached_document_loader,
+                                          detect_unmapped_fields=False)
             hashed = hash_normalized_jsonld(normalized)
             yield hashed
 
@@ -132,23 +130,16 @@ class CertificateV2Handler(CertificateHandler):
     def validate_certificate(self, certificate_metadata):
         with open(certificate_metadata.unsigned_cert_file_name) as cert:
             certificate_json = json.load(cert)
+            # Both tests raise exception on failure
+            # 1. json schema validation
             validate_v2(certificate_json)
+            # 2. detect if there are any unmapped fields
+            normalize_jsonld(certificate_json, document_loader=cached_document_loader,
+                             detect_unmapped_fields=True)
 
     def sign_certificate(self, signer, certificate_metadata):
-        with open(certificate_metadata.unsigned_cert_file_name, 'r') as cert, \
-                open(certificate_metadata.signed_cert_file_name, 'w') as signed_cert_file:
-            certificate_json = json.load(cert)
-
-            iso_datetime_pre = datetime.datetime.now(pytz.timezone('GMT')).replace(microsecond=0).isoformat()
-            iso_datetime = str(iso_datetime_pre).replace('+00:00', 'Z')
-            creator_address = PUBKEY_PREFIX + signer.issuing_address
-
-            options = SignatureOptions(iso_datetime, creator_address)
-            signed = signatures.sign(certificate_json, signer.wif, options,
-                            parse_chain_from_address(signer.issuing_address).name)
-            signed['signature']['type'] = ['EcdsaKoblitzSignature2016', 'Extension', 'LinkedDataEcdsaKoblitzSignature']
-
-            signed_cert_file.write(json.dumps(signed))
+        self.issuing_address = PUBKEY_PREFIX + signer.issuing_address
+        return
 
     def get_certificate_to_issue(self, certificate_metadata):
         with open(certificate_metadata.unsigned_cert_file_name, 'r') as unsigned_cert_file:
@@ -162,10 +153,9 @@ class CertificateV2Handler(CertificateHandler):
         :return:
         """
         certificate_json = self.get_certificate_to_issue(certificate_metadata)
-        with open(certificate_metadata.signed_cert_file_name) as signature_file:
-            cert_signature = json.load(signature_file)
 
-        cert_signature['signature']['merkleProof'] = merkle_proof
+        merkle_proof['type'] = ['MerkleProof2017', 'Extension']
+        certificate_json['signature'] = merkle_proof
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
-            out_file.write(json.dumps(cert_signature))
+            out_file.write(json.dumps(certificate_json))
