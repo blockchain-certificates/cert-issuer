@@ -41,7 +41,7 @@ experimenting only.
     docker run -it bc/cert-issuer:1.0 bash
     ```
 
-## Create issuing and revocation addresses
+## Create issuing address
 
 __Important__: this is a simplification to avoid using a USB, which needs to be inserted and removed during the
 standard certficate issuing process. Do not use these addresses or private keys for anything other than experimenting.
@@ -55,16 +55,8 @@ Ensure your docker image is running and bitcoind process is started
     sed -i.bak "s/<issuing-address>/$issuer/g" /etc/cert-issuer/conf.ini
     bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/pk_issuer.txt
     ```
-
-2. Create a 'revocation address' and save the output as follows. Note that we don't need to save this
-corresponding private key for testing issuing certificates:
-
-    ```
-    revocation=`bitcoin-cli getnewaddress`
-    sed -i.bak "s/<revocation-address>/$revocation/g" /etc/cert-issuer/conf.ini
-    ```
-
-3. Don't forget to save snapshots so you don't lose your work (see step 3 of client setup)
+    
+2. Don't forget to save snapshots so you don't lose your work (see step 3 of client setup)
 
 ## Issuing certificates
 
@@ -72,7 +64,7 @@ corresponding private key for testing issuing certificates:
 
     ```
     # To use a sample unsigned certificate as follows:
-    cp /cert-issuer/examples/data-testnet/unsigned_certificates/6c6bd2ec-d0d6-41a9-bec8-57bb904c62a8.json /etc/cert-issuer/data/unsigned_certificates/ 
+    cp /cert-issuer/examples/data-testnet/unsigned_certificates/bc9bdbb5-d734-4242-9edc-d1bc3f8f7a6e.json /etc/cert-issuer/data/unsigned_certificates/ 
     
     # If you created your own unsigned certificate using cert-tools (assuming you placed it under data/unsigned_certificates):
     cp <cert-issuer-home>/data/unsigned_certificates/<your-cert-guid>.json /etc/cert-issuer/data/unsigned_certificates/

@@ -22,7 +22,7 @@ def main(app_config, secure_signer=None):
     signed_certs_dir = app_config.signed_certificates_dir
     blockchain_certificates_dir = app_config.blockchain_certificates_dir
     work_dir = app_config.work_dir
-    v2 = app_config.v2
+    v1 = app_config.v1
     issuing_address = app_config.issuing_address
     revocation_address = app_config.revocation_address  # not needed for v2
 
@@ -41,15 +41,16 @@ def main(app_config, secure_signer=None):
     connector = ServiceProviderConnector(app_config.bitcoin_chain)
     tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
-    if v2:
-        certificate_handler = CertificateV2Handler()
-        transaction_handler = TransactionV2Handler(tx_cost_constants=tx_constants, issuing_address=issuing_address)
-    else:
+    if v1:
         certificate_handler = CertificateV1_2Handler()
         transaction_handler = TransactionV1_2Handler(tx_cost_constants=tx_constants,
                                                      issuing_address=issuing_address,
                                                      certificates_to_issue=certificates,
                                                      revocation_address=revocation_address)
+    else:
+        certificate_handler = CertificateV2Handler()
+        transaction_handler = TransactionV2Handler(tx_cost_constants=tx_constants, issuing_address=issuing_address)
+
     certificate_batch_handler = CertificateBatchHandler(certificates_to_issue=certificates,
                                                         certificate_handler=certificate_handler)
     issuer = Issuer(connector=connector,

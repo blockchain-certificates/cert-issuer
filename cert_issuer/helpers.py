@@ -111,7 +111,6 @@ def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, blockchain_cert
             if 'revocationKey' in cert_json['recipient']:
                 revocation_key = cert_json['recipient']['revocationKey']
 
-            # TODO: v2 special case
             public_key = None
             if 'publicKey' in cert_json['recipient']:
                 public_key = cert_json['recipient']['publicKey']
@@ -122,10 +121,6 @@ def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, blockchain_cert
                                                                base_work_dir=work_dir,
                                                                public_key=public_key,
                                                                revocation_key=revocation_key)
-            # certificate_metadata = ExtendedCertificateMetadata(uid=uid,
-            #                                                   unsigned_certs_dir=unsigned_certs_work_dir,
-            #                                                   signed_certs_dir=signed_certs_work_dir,
-            #                                                   base_work_dir=work_dir)
             cert_info[uid] = certificate_metadata
 
     logging.info('Processing %d certificates', len(cert_info))

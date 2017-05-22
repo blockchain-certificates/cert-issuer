@@ -25,8 +25,7 @@ def add_arguments(p):
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address')
-    p.add_argument('--revocation_address', required=True,
-                   help='revocation address')
+    p.add_argument('--revocation_address', help='revocation address')
     p.add_argument('--usb_name', required=True, help='usb path to key_file')
     p.add_argument('--key_file', required=True,
                    help='name of file on USB containing private key')
@@ -53,7 +52,7 @@ def add_arguments(p):
                    help='Default path to data directory storing blockchain certs')
     p.add_argument('--work_dir', default=WORK_PATH,
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
-    p.add_argument('--v2', dest='v2', action='store_true', default=False, help='Issue v2 certificates')
+    p.add_argument('--v1', dest='v1', action='store_true', default=False, help='Issue v2 certificates')
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure')
 
 
