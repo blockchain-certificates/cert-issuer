@@ -254,13 +254,3 @@ def get_providers_for_chain(bitcoin_chain):
         return connectors['REG']
     return connectors[bitcoin_chain.netcode]
 
-
-# Additional providers to add:
-# - chain.so
-#   - API docs https://chain.so/api#send-transaction
-#   - Broadcast: https://chain.so/api/v2/send_tx/{NETWORK} -> response tx_hex={}
-# - blocktrail
-#   - https://api.blocktrail.com/v1/tBTC (and BTC)
-# - blockcypher (needs API tokens)
-#   - provider_list.append(BlockcypherBroadcaster('https://api.blockcypher.com/v1/btc/main'))
-#   - xtn_provider_list.append(BlockcypherBroadcaster('https://api.blockcypher.com/v1/btc/test3'))
