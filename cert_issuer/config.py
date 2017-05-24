@@ -52,7 +52,7 @@ def add_arguments(p):
                    help='Default path to data directory storing blockchain certs')
     p.add_argument('--work_dir', default=WORK_PATH,
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
-    p.add_argument('--v1', dest='v1', action='store_true', default=False, help='Issue v2 certificates')
+    p.add_argument('--v1', dest='v1', action='store_true', default=False, help='Issue v1 certificates')
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure')
 
 
