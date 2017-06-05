@@ -84,7 +84,7 @@ class TransactionV2Handler(TransactionHandler):
         super().__init__(tx_cost_constants, issuing_address)
 
     def estimate_cost_for_certificate_batch(self, num_inputs=ESTIMATE_NUM_INPUTS):
-        total = tx_utils.calculate_tx_total(self.tx_cost_constants, num_inputs, V2_NUM_OUTPUTS)
+        total = tx_utils.calculate_tx_fee(self.tx_cost_constants, num_inputs, V2_NUM_OUTPUTS)
         return total
 
     def create_transaction(self, inputs, op_return_value):
