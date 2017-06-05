@@ -17,7 +17,7 @@ if sys.version_info.major < 3:
     sys.exit(1)
 
 
-def main(app_config, secure_signer=None):
+def main(app_config, secure_signer=None, prepared_inputs=None):
     unsigned_certs_dir = app_config.unsigned_certificates_dir
     signed_certs_dir = app_config.signed_certificates_dir
     blockchain_certificates_dir = app_config.blockchain_certificates_dir
@@ -57,7 +57,8 @@ def main(app_config, secure_signer=None):
                     secure_signer=secure_signer,
                     certificate_batch_handler=certificate_batch_handler,
                     transaction_handler=transaction_handler,
-                    max_retry=app_config.max_retry)
+                    max_retry=app_config.max_retry,
+                    prepared_inputs=prepared_inputs)
     transaction_cost = issuer.calculate_cost_for_certificate_batch()
     logging.info('Total cost will be %d satoshis', transaction_cost)
 

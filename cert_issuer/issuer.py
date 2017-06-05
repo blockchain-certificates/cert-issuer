@@ -2,6 +2,7 @@
 Base class for building blockchain transactions to issue Blockchain Certificates.
 """
 import logging
+import random
 
 from chainpoint.chainpoint import MerkleTools
 
@@ -15,13 +16,14 @@ MAX_TX_RETRIES = 5
 
 class Issuer:
     def __init__(self, connector, secure_signer, certificate_batch_handler, transaction_handler,
-                 max_retry=MAX_TX_RETRIES):
+                 max_retry=MAX_TX_RETRIES, prepared_inputs=None):
         self.connector = connector
         self.secure_signer = secure_signer
         self.certificate_batch_handler = certificate_batch_handler
         self.transaction_handler = transaction_handler
         self.max_retry = max_retry
         self.tree = MerkleTools(hash_type='sha256')
+        self.prepared_inputs = prepared_inputs
 
     def calculate_cost_for_certificate_batch(self):
         return self.transaction_handler.calculate_cost_for_certificate_batch()
@@ -46,25 +48,26 @@ class Issuer:
         op_return_value_bytes = unhexlify(self.tree.get_merkle_root())
         op_return_value = hexlify(op_return_value_bytes)
 
-        import random
-
         for attempt_number in range(0, self.max_retry):
             try:
-                spendables = self.connector.get_unspent_outputs(self.secure_signer.issuing_address)
-                if not spendables:
-                    error_message = 'No money to spend at address {}'.format(self.secure_signer.issuing_address)
-                    logging.error(error_message)
-                    raise InsufficientFundsError(error_message)
+                if self.prepared_inputs:
+                    inputs = self.prepared_inputs
+                else:
+                    spendables = self.connector.get_unspent_outputs(self.secure_signer.issuing_address)
+                    if not spendables:
+                        error_message = 'No money to spend at address {}'.format(self.secure_signer.issuing_address)
+                        logging.error(error_message)
+                        raise InsufficientFundsError(error_message)
 
-                cost = self.transaction_handler.calculate_cost_for_certificate_batch()
-                current_total = 0
-                inputs = []
-                random.shuffle(spendables)
-                for s in spendables:
-                    inputs.append(s)
-                    current_total += s.coin_value
-                    if current_total > cost:
-                        break
+                    cost = self.transaction_handler.calculate_cost_for_certificate_batch()
+                    current_total = 0
+                    inputs = []
+                    random.shuffle(spendables)
+                    for s in spendables:
+                        inputs.append(s)
+                        current_total += s.coin_value
+                        if current_total > cost:
+                            break
 
                 tx = self.transaction_handler.create_transaction(inputs, op_return_value_bytes)
                 hex_tx = hexlify(tx.serialize())
