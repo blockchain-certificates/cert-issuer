@@ -26,7 +26,10 @@ class Issuer:
         self.prepared_inputs = prepared_inputs
 
     def estimate_cost_for_certificate_batch(self):
-        return self.transaction_handler.estimate_cost_for_certificate_batch()
+        if self.prepared_inputs:
+            return self.transaction_handler.estimate_cost_for_certificate_batch(num_inputs=len(self.prepared_inputs))
+        else:
+            return self.transaction_handler.estimate_cost_for_certificate_batch()
 
     def sign_batch(self):
         with FinalizableSigner(self.secure_signer) as signer:
