@@ -39,11 +39,11 @@ class TransactionCostConstants(object):
         return self.recommended_tx_fee * COIN
 
 
-def create_trx(op_return_val, issuing_transaction_cost, issuing_address, tx_outs, tx_inputs):
+def create_trx(op_return_val, issuing_transaction_fee, issuing_address, tx_outs, tx_inputs):
     """
 
     :param op_return_val:
-    :param issuing_transaction_cost:
+    :param issuing_transaction_fee:
     :param issuing_address:
     :param tx_outs:
     :param tx_input:
@@ -57,7 +57,7 @@ def create_trx(op_return_val, issuing_transaction_cost, issuing_address, tx_outs
         value_in += tx_input.coin_value
 
     # send change back to our address
-    amount = value_in - issuing_transaction_cost
+    amount = value_in - issuing_transaction_fee
     if amount > 0:
         change_out = create_transaction_output(issuing_address, amount)
         tx_outs = tx_outs + [change_out]

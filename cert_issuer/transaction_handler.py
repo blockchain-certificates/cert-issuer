@@ -9,7 +9,7 @@ class TransactionHandler(object):
         self.issuing_address = issuing_address
 
     @abstractmethod
-    def calculate_cost_for_certificate_batch(self):
+    def estimate_cost_for_certificate_batch(self):
         pass
 
     @abstractmethod
@@ -23,7 +23,7 @@ class TransactionV1_2Handler(TransactionHandler):
         self.certificates_to_issue = certificates_to_issue
         self.revocation_address = revocation_address
 
-    def calculate_cost_for_certificate_batch(self):
+    def estimate_cost_for_certificate_batch(self):
         """
         Per certificate, we pay 2*min_per_output (which is based on dust) + fee. Note assumes 1 input
         per tx.
@@ -44,7 +44,7 @@ class TransactionV1_2Handler(TransactionHandler):
         tx_outs.append(tx_utils.create_transaction_output(self.revocation_address,
                                                           self.tx_cost_constants.get_minimum_output_coin()))
 
-        total = self.calculate_cost_for_certificate_batch()
+        total = self.estimate_cost_for_certificate_batch()
         transaction = tx_utils.create_trx(
             op_return_value,
             total,
@@ -77,20 +77,20 @@ class TransactionV2Handler(TransactionHandler):
     def __init__(self, tx_cost_constants, issuing_address):
         super().__init__(tx_cost_constants, issuing_address)
 
-    def calculate_cost_for_certificate_batch(self):
+    def estimate_cost_for_certificate_batch(self):
         """
-        2 outputs (which is based on dust) + transaction fee. Note assumes 1 input per tx.
+        We'll estimate worst case 3 inputs and 1 output for change). Calculation is based on size including OP_RETURN
         :return:
         """
-
-        total = tx_utils.calculate_tx_total(self.tx_cost_constants, 1, 2)
+        total = tx_utils.calculate_tx_total(self.tx_cost_constants, 3, 1)
         return total
 
     def create_transaction(self, inputs, op_return_value):
-        total = self.calculate_cost_for_certificate_batch()
+        # 1 output for change
+        fee = tx_utils.calculate_tx_fee(self.tx_cost_constants, len(inputs), 1)
         transaction = tx_utils.create_trx(
             op_return_value,
-            total,
+            fee,
             self.issuing_address,
             [],
             inputs)

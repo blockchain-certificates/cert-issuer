@@ -25,8 +25,8 @@ class Issuer:
         self.tree = MerkleTools(hash_type='sha256')
         self.prepared_inputs = prepared_inputs
 
-    def calculate_cost_for_certificate_batch(self):
-        return self.transaction_handler.calculate_cost_for_certificate_batch()
+    def estimate_cost_for_certificate_batch(self):
+        return self.transaction_handler.estimate_cost_for_certificate_batch()
 
     def sign_batch(self):
         with FinalizableSigner(self.secure_signer) as signer:
@@ -59,7 +59,7 @@ class Issuer:
                         logging.error(error_message)
                         raise InsufficientFundsError(error_message)
 
-                    cost = self.transaction_handler.calculate_cost_for_certificate_batch()
+                    cost = self.transaction_handler.estimate_cost_for_certificate_batch()
                     current_total = 0
                     inputs = []
                     random.shuffle(spendables)
