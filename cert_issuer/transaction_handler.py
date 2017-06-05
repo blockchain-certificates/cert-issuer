@@ -2,6 +2,13 @@ from abc import abstractmethod
 
 from cert_issuer import tx_utils
 
+# Estimate fees assuming worst case 3 inputs
+ESTIMATE_NUM_INPUTS = 3
+
+# Estimate fees assuming 1 output for change.
+# Note that tx_utils calculations add on cost due to OP_RETURN size, so it doesn't need to be added here.
+V2_NUM_OUTPUTS = 1
+
 
 class TransactionHandler(object):
     def __init__(self, tx_cost_constants, issuing_address):
@@ -9,7 +16,7 @@ class TransactionHandler(object):
         self.issuing_address = issuing_address
 
     @abstractmethod
-    def calculate_cost_for_certificate_batch(self):
+    def estimate_cost_for_certificate_batch(self, num_inputs=ESTIMATE_NUM_INPUTS):
         pass
 
     @abstractmethod
@@ -23,13 +30,12 @@ class TransactionV1_2Handler(TransactionHandler):
         self.certificates_to_issue = certificates_to_issue
         self.revocation_address = revocation_address
 
-    def calculate_cost_for_certificate_batch(self):
+    def estimate_cost_for_certificate_batch(self, num_inputs=ESTIMATE_NUM_INPUTS):
         """
         Per certificate, we pay 2*min_per_output (which is based on dust) + fee. Note assumes 1 input
         per tx.
         :return:
         """
-        num_inputs = 1
         # output per recipient
         num_outputs = len(self.certificates_to_issue)
         # plus revocation outputs
@@ -44,7 +50,7 @@ class TransactionV1_2Handler(TransactionHandler):
         tx_outs.append(tx_utils.create_transaction_output(self.revocation_address,
                                                           self.tx_cost_constants.get_minimum_output_coin()))
 
-        total = self.calculate_cost_for_certificate_batch()
+        total = self.estimate_cost_for_certificate_batch()
         transaction = tx_utils.create_trx(
             op_return_value,
             total,
@@ -77,20 +83,15 @@ class TransactionV2Handler(TransactionHandler):
     def __init__(self, tx_cost_constants, issuing_address):
         super().__init__(tx_cost_constants, issuing_address)
 
-    def calculate_cost_for_certificate_batch(self):
-        """
-        2 outputs (which is based on dust) + transaction fee. Note assumes 1 input per tx.
-        :return:
-        """
-
-        total = tx_utils.calculate_tx_total(self.tx_cost_constants, 1, 2)
+    def estimate_cost_for_certificate_batch(self, num_inputs=ESTIMATE_NUM_INPUTS):
+        total = tx_utils.calculate_tx_total(self.tx_cost_constants, num_inputs, V2_NUM_OUTPUTS)
         return total
 
     def create_transaction(self, inputs, op_return_value):
-        total = self.calculate_cost_for_certificate_batch()
+        fee = tx_utils.calculate_tx_fee(self.tx_cost_constants, len(inputs), V2_NUM_OUTPUTS)
         transaction = tx_utils.create_trx(
             op_return_value,
-            total,
+            fee,
             self.issuing_address,
             [],
             inputs)

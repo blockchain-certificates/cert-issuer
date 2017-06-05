@@ -59,7 +59,7 @@ def main(app_config, secure_signer=None, prepared_inputs=None):
                     transaction_handler=transaction_handler,
                     max_retry=app_config.max_retry,
                     prepared_inputs=prepared_inputs)
-    transaction_cost = issuer.calculate_cost_for_certificate_batch()
+    transaction_cost = issuer.estimate_cost_for_certificate_batch()
     logging.info('Total cost will be %d satoshis', transaction_cost)
 
     # ensure the issuing address has sufficient balance
