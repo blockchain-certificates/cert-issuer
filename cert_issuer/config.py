@@ -3,8 +3,8 @@ import os
 
 import bitcoin
 import configargparse
+from cert_schema import Chain
 
-from cert_core import Chain
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
 WORK_PATH = os.path.join(PATH, 'work')

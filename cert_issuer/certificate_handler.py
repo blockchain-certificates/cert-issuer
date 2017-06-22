@@ -2,24 +2,10 @@ import hashlib
 import json
 from abc import abstractmethod
 
-from cert_core import PUBKEY_PREFIX
-from cert_schema import jsonld_document_loader
+from cert_schema import PUBKEY_PREFIX
 from cert_schema import normalize_jsonld
 from cert_schema import validate_unsigned_v1_2
 from cert_schema import validate_v2
-from werkzeug.contrib.cache import SimpleCache
-
-cache = SimpleCache()
-
-
-def cached_document_loader(url, override_cache=False):
-    if not override_cache:
-        result = cache.get(url)
-        if result:
-            return result
-    doc = jsonld_document_loader(url)
-    cache.set(url, doc)
-    return doc
 
 
 def hash_normalized_jsonld(normalized):
@@ -58,8 +44,7 @@ class CertificateBatchHandler(object):
     def create_node_generator(self):
         for uid, metadata in self.certificates_to_issue.items():
             cert_json = self.certificate_handler.get_certificate_to_issue(metadata)
-            normalized = normalize_jsonld(cert_json, document_loader=cached_document_loader,
-                                          detect_unmapped_fields=False)
+            normalized = normalize_jsonld(cert_json, detect_unmapped_fields=False)
             hashed = hash_normalized_jsonld(normalized)
             yield hashed
 
@@ -134,8 +119,7 @@ class CertificateV2Handler(CertificateHandler):
             # 1. json schema validation
             validate_v2(certificate_json)
             # 2. detect if there are any unmapped fields
-            normalize_jsonld(certificate_json, document_loader=cached_document_loader,
-                             detect_unmapped_fields=True)
+            normalize_jsonld(certificate_json, detect_unmapped_fields=True)
 
     def sign_certificate(self, signer, certificate_metadata):
         self.issuing_address = PUBKEY_PREFIX + signer.issuing_address

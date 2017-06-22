@@ -4,20 +4,20 @@ import shutil
 import sys
 
 from cert_issuer import helpers
+from cert_issuer import secure_signer as secure_signer_helper
 from cert_issuer.certificate_handler import CertificateV1_2Handler, CertificateV2Handler, CertificateBatchHandler
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.issuer import Issuer
 from cert_issuer.transaction_handler import TransactionV1_2Handler, TransactionV2Handler
 from cert_issuer.tx_utils import TransactionCostConstants
-from cert_issuer import secure_signer as secure_signer_helper
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
 
 
-def main(app_config, secure_signer=None, prepared_inputs=None):
+def main(app_config, secure_signer=None, prepared_inputs=None, certificate_batch_handler=None):
     unsigned_certs_dir = app_config.unsigned_certificates_dir
     signed_certs_dir = app_config.signed_certificates_dir
     blockchain_certificates_dir = app_config.blockchain_certificates_dir
@@ -42,17 +42,23 @@ def main(app_config, secure_signer=None, prepared_inputs=None):
     tx_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
     if v1:
-        certificate_handler = CertificateV1_2Handler()
+        if not certificate_batch_handler:
+            certificate_handler = CertificateV1_2Handler()
         transaction_handler = TransactionV1_2Handler(tx_cost_constants=tx_constants,
                                                      issuing_address=issuing_address,
                                                      certificates_to_issue=certificates,
                                                      revocation_address=revocation_address)
     else:
-        certificate_handler = CertificateV2Handler()
+        if not certificate_batch_handler:
+            certificate_handler = CertificateV2Handler()
         transaction_handler = TransactionV2Handler(tx_cost_constants=tx_constants, issuing_address=issuing_address)
 
-    certificate_batch_handler = CertificateBatchHandler(certificates_to_issue=certificates,
-                                                        certificate_handler=certificate_handler)
+    if not certificate_batch_handler:
+        certificate_batch_handler = CertificateBatchHandler(certificates_to_issue=certificates,
+                                                            certificate_handler=certificate_handler)
+    else:
+        certificate_batch_handler.certificates_to_issue = certificates
+
     issuer = Issuer(connector=connector,
                     secure_signer=secure_signer,
                     certificate_batch_handler=certificate_batch_handler,

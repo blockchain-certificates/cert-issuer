@@ -8,14 +8,14 @@ import time
 import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
-from pycoin.serialize import b2h, b2h_rev
+from cert_schema import Chain
+from pycoin.serialize import b2h
 from pycoin.services import providers
 from pycoin.services.blockr_io import BlockrioProvider
 from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
-from cert_core import Chain
 from cert_issuer.errors import ConnectorError, BroadcastError
 from cert_issuer.helpers import hexlify
 from cert_issuer.helpers import unhexlify
@@ -28,7 +28,6 @@ try:
 except ImportError:
     from urllib.request import urlopen, HTTPError
     from urllib.parse import urlencode
-
 
 MAX_BROADCAST_ATTEMPTS = 3
 
@@ -202,10 +201,12 @@ class ServiceProviderConnector(object):
                 try:
                     tx_id = method_provider(tx)
                     if tx_id:
-                        logging.info('Broadcasting succeeded with method_provider=%s, txid=%s', str(method_provider), tx_id)
+                        logging.info('Broadcasting succeeded with method_provider=%s, txid=%s', str(method_provider),
+                                     tx_id)
                         if final_tx_id and final_tx_id != tx_id:
-                            logging.error('This should never happen; fail and investigate if it does. Got conflicting tx_ids=%s and %s. Hextx=%s',
-                                          final_tx_id, tx_id, tx.as_hex())
+                            logging.error(
+                                'This should never happen; fail and investigate if it does. Got conflicting tx_ids=%s and %s. Hextx=%s',
+                                final_tx_id, tx_id, tx.as_hex())
                             raise Exception('Got conflicting tx_ids.')
                         final_tx_id = tx_id
                 except Exception as e:
@@ -216,15 +217,16 @@ class ServiceProviderConnector(object):
             if final_tx_id:
                 return final_tx_id
             else:
-                logging.warning('Broadcasting failed. Waiting before retrying. This is attempt number %d', attempt_number)
+                logging.warning('Broadcasting failed. Waiting before retrying. This is attempt number %d',
+                                attempt_number)
                 time.sleep(BROADCAST_RETRY_INTERVAL)
         logging.error('Failed broadcasting through all providers')
         logging.error(last_exception, exc_info=True)
         raise BroadcastError(last_exception)
 
 
-PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockr.io blockcypher.com chain.so"
-PYCOIN_XTN_PROVIDERS = "blockexplorer.com" # chain.so
+PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockcypher.com chain.so"
+PYCOIN_XTN_PROVIDERS = "blockexplorer.com"  # chain.so
 
 # initialize connectors
 connectors = {}
@@ -239,10 +241,10 @@ connectors[Chain.mainnet.netcode] = provider_list
 
 # configure testnet providers
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, Chain.testnet.netcode)
+xtn_provider_list.append(InsightProvider(base_url='https://test-insight.bitpay.com', netcode=Chain.testnet.netcode))
 xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
 xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
 xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
-xtn_provider_list.append(InsightProvider(netcode=Chain.testnet.netcode))
 connectors[Chain.testnet.netcode] = xtn_provider_list
 
 # workaround for regtest
@@ -253,4 +255,3 @@ def get_providers_for_chain(bitcoin_chain):
     if bitcoin_chain == Chain.regtest:
         return connectors['REG']
     return connectors[bitcoin_chain.netcode]
-
