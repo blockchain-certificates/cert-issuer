@@ -9,7 +9,6 @@ RUN apk add --update bash python3 python3-dev ca-certificates linux-headers gcc 
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
     && mkdir -p /etc/cert-issuer/data/unsigned_certificates \
-    && mkdir /etc/cert-issuer/data/signed_certificates \
     && mkdir /etc/cert-issuer/data/blockchain_certificates \
     && mkdir ~/.bitcoin \
     && echo $'rpcuser=foo\nrpcpassword=bar\nrpcport=8332\nregtest=1\nrelaypriority=0\nrpcallowip=127.0.0.1\nrpcconnect=127.0.0.1\n' > /root/.bitcoin/bitcoin.conf \
