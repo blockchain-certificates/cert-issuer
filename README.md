@@ -12,7 +12,7 @@ recipient on the Bitcoin blockchain that includes the hash of the certificate it
 This uses bitcoind in regtest mode. This route makes many simplifications to allow a quick start, and is intended for
 experimenting only.
 
-1. First ensure you have Docker installed. [See our Docker installation help](https://github.com/blockchain-certificates/developer-common-docs/blob/master/docker_install.md).
+1. First ensure you have Docker installed. [See our Docker installation help](docs/docker_install.md).
 
 2. Clone the repo and change to the directory
 
@@ -105,7 +105,7 @@ docker cp <containerId>:/etc/cert-issuer/data/blockchain_certificates <localPath
 
 This project uses tox to validate against several python environments.
 
-1. Ensure you have an python environment. [Recommendations](https://github.com/blockchain-certificates/developer-common-docs/blob/master/virtualenv.md)
+1. Ensure you have an python environment. [Recommendations](docs/virtualenv.md)
 
 2. Run tests
     ```
