@@ -125,14 +125,14 @@ The issuer builds a Merkle tree of certificate hashes and registers the Merkle r
 
 Suppose the batch contains `n` certificates, and certificate `i` contains recipient `i`'s information. The issuer hashes each certificate and combines them into a Merkle tree:
 
-[](img/merkle.png)
+![](img/merkle.png)
 
 
 The root of the Merkle tree, which is a 256-bit hash, is issued on the Bitcoin blockchain. The complete Bitcoin transaction outputs are described in 'Transaction structure'.
 
 The Blockchain Certificate given to recipient `i` contains a [Chainpoint V2-formatted Merkle receipt](https://github.com/chainpoint/whitepaper/raw/master/chainpoint_white_paper.pdf) proving that certificate `i` is contained in the Merkle tree. 
 
-[](img/blockchain_certificate_components.png)
+![](img/blockchain_certificate_components.png)
 
 This receipt contains:
 
@@ -165,7 +165,7 @@ How a batch is defined can vary, but it should be defined such that it changes i
 
 One Bitcoin transaction is performed for every batch of certificates. There is no limit to the number of certificates that may be included in a batch, so typically batches are defined in logical groups such as "Graduates of Fall 2017 Robotics Class".
 
-[](/img/tx_out.png)
+![](/img/tx_out.png)
 
 
 The transaction structure is the following:
