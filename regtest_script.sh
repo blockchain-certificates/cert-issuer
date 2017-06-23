@@ -11,7 +11,7 @@ sed -i.bak "s/<issuing-address>/$issuer/g" /etc/cert-issuer/conf.ini
 bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/pk_issuer.txt
 
 # copy sample cert
-cp /cert-issuer/examples/data-testnet/unsigned_certificates/925c0074-ebd7-4967-a5f7-0fd217061113.json /etc/cert-issuer/data/unsigned_certificates/
+cp /cert-issuer/examples/data-testnet/unsigned_certificates/13a58c4a-f49f-4b63-9c82-125b944f5dfb.json /etc/cert-issuer/data/unsigned_certificates/
 
 # make sure you have enough BTC in your issuing address
 bitcoin-cli generate 101
