@@ -1,4 +1,4 @@
-cert-schema==2.0b20
+cert-schema==2.0
 chainpoint==0.0.2
 configargparse==0.10.0
 glob2==0.4.1
