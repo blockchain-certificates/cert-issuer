@@ -7,6 +7,7 @@
     - regtest or testnet addresses will start with 'm' or 'n'
     - mainnet addresses will start with '1'
 - Ensure you've transferred sufficient funds to your issuing address to cover the transaction fee. 
+    - The transaction fee is the same no matter the number of certificates in the batch
     - The default transaction fee used by cert-issuer is 60,000 satoshis (~$1.50 USD, 7/3/2017). 
     - Because the transaction fee is a factor in confirmation time, you may decide to increase or decrease this value in the config file (read more about current transaction fee/latency estimates: https://bitcoinfees.21.co/)
 - If you haven't already, make sure your conf.ini (for this application) is correct. See [issuing options](bitcoin_options.md) for details
