@@ -1,6 +1,4 @@
 import logging
-import os
-import shutil
 import sys
 
 from cert_issuer import helpers
@@ -22,15 +20,15 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
     blockchain_certificates_dir = app_config.blockchain_certificates_dir
     work_dir = app_config.work_dir
 
-    certificates, batch_metadata = helpers.prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir,
-                                                                  blockchain_certificates_dir, work_dir)
-    num_certificates = len(certificates)
+    certificates_metadata = helpers.prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir,
+                                                           blockchain_certificates_dir, work_dir)
+    num_certificates = len(certificates_metadata)
     if num_certificates < 1:
         logging.warning('No certificates to process')
         return None
 
     logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
-    certificate_batch_handler.certificates_to_issue = certificates
+    certificate_batch_handler.set_certificates_in_batch(certificates_metadata)
 
     transaction_handler.ensure_balance()
 
@@ -40,13 +38,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
         max_retry=app_config.max_retry)
     tx_id = issuer.issue_certificates()
 
-    blockcerts_tmp_dir = os.path.join(work_dir, helpers.BLOCKCHAIN_CERTIFICATES_DIR)
-    if not os.path.exists(blockchain_certificates_dir):
-        os.makedirs(blockchain_certificates_dir)
-    for item in os.listdir(blockcerts_tmp_dir):
-        s = os.path.join(blockcerts_tmp_dir, item)
-        d = os.path.join(blockchain_certificates_dir, item)
-        shutil.copy2(s, d)
+    helpers.copy_output(certificates_metadata)
 
     logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
     return tx_id

@@ -14,7 +14,6 @@ MAINNET_TX = '0100000001ce379123234bc9662f3f00f2a9c59d5420fc9f9d5e1fd8881b8666e8
 
 
 def mock_listunspent(self, addrs):
-    print('mock listunspent')
     output1 = {'outpoint': COutPoint(lx('34eb81bc0d1a822369f75174fd4916b1ec490d8fbcba33168e820cc78a52f608'), 0),
                'confirmations': 62952, 'address': P2PKHBitcoinAddress('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT'),
                'spendable': False, 'amount': 49000000, 'solvable': False, 'scriptPubKey': CScript(

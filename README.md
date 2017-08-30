@@ -186,6 +186,7 @@ The Issuer Bitcoin address and timestamp from the transaction are also critical 
 - [Issuing options](docs/bitcoin_options.md)
 - [Creating addresses](docs/make_addresses.md)
 - [Issuing certificates](docs/issuing.md)
+- [Class design](docs/class_design.md)
 
 ## Examples
 
