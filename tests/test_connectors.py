@@ -14,7 +14,6 @@ MAINNET_TX = '0100000001ce379123234bc9662f3f00f2a9c59d5420fc9f9d5e1fd8881b8666e8
 
 
 def mock_listunspent(self, addrs):
-    print('mock listunspent')
     output1 = {'outpoint': COutPoint(lx('34eb81bc0d1a822369f75174fd4916b1ec490d8fbcba33168e820cc78a52f608'), 0),
                'confirmations': 62952, 'address': P2PKHBitcoinAddress('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT'),
                'spendable': False, 'amount': 49000000, 'solvable': False, 'scriptPubKey': CScript(
@@ -68,13 +67,13 @@ class TestConnectors(unittest.TestCase):
         self.assertEquals(spendables[1].coin_value, 2750)
         self.assertEquals(spendables[2].coin_value, 2750)
 
-    # TODO: this test isn't calling the bitcoin RPC proxy because of the changed configuration. This will most likely
-    # need to be different in the open source. Fix this test and connectors.
-    #def test_get_balance(self):
-    #    bitcoin.SelectParams('testnet')
-    #    connector = ServiceProviderConnector('XTN', 'na')
-    #    balance = connector.get_balance('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
-    #    self.assertEquals(balance, 49005500)
+        # TODO: this test isn't calling the bitcoin RPC proxy because of the changed configuration. This will most likely
+        # need to be different in the open source. Fix this test and connectors.
+        # def test_get_balance(self):
+        #    bitcoin.SelectParams('testnet')
+        #    connector = ServiceProviderConnector('XTN', 'na')
+        #    balance = connector.get_balance('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
+        #    self.assertEquals(balance, 49005500)
 
 
 if __name__ == '__main__':

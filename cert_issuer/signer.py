@@ -52,21 +52,58 @@ def check_internet_on(secrets_file_path):
     return True
 
 
-def initialize_secure_signer(app_config):
+def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
-    secrets = FileSecureSigner(bitcoin_chain=app_config.bitcoin_chain, path_to_secret=path_to_secret,
-                               safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
+    signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain)
+    secret_manager = FileSecretManager(signer=signer, path_to_secret=path_to_secret,
+                                       safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
+    return secret_manager
 
-    return secrets
 
-
-class SecureSigner(object):
+class Signer(object):
     """
-    Abstraction for a component that can sign securely.
+    Abstraction for a component that can sign.
     """
 
     def __init__(self):
         pass
+
+    @abstractmethod
+    def sign_message(self, wif, message_to_sign):
+        pass
+
+    @abstractmethod
+    def sign_transaction(self, wif, transaction_to_sign):
+        pass
+
+
+class BitcoinSigner(Signer):
+    def __init__(self, bitcoin_chain):
+        self.bitcoin_chain = bitcoin_chain
+        self.allowable_wif_prefixes = wif_prefix_for_netcode(bitcoin_chain.netcode)
+
+    def sign_message(self, wif, message_to_sign):
+        secret_key = CBitcoinSecret(wif)
+        message = BitcoinMessage(message_to_sign)
+        signature = SignMessage(secret_key, message)
+        return str(signature, 'utf-8')
+
+    def sign_transaction(self, wif, transaction_to_sign):
+        secret_exponent = wif_to_secret_exponent(wif, self.allowable_wif_prefixes)
+        lookup = build_hash160_lookup([secret_exponent])
+        signed_transaction = transaction_to_sign.sign(lookup)
+        # Because signing failures silently continue, first check that the inputs are signed
+        for input in signed_transaction.txs_in:
+            if len(input.script) == 0:
+                logging.error('Unable to sign transaction. hextx=%s', signed_transaction.as_hex())
+                raise UnableToSignTxError('Unable to sign transaction')
+        return signed_transaction
+
+
+class SecretManager(object):
+    def __init__(self, signer):
+        self.signer = signer
+        self.wif = None
 
     @abstractmethod
     def start(self):
@@ -76,22 +113,18 @@ class SecureSigner(object):
     def stop(self):
         pass
 
-    @abstractmethod
     def sign_message(self, message_to_sign):
-        pass
+        return self.signer.sign_message(self.wif, message_to_sign)
 
-    @abstractmethod
     def sign_transaction(self, transaction_to_sign):
-        pass
+        return self.signer.sign_transaction(self.wif, transaction_to_sign)
 
 
-class FileSecureSigner(SecureSigner):
-    def __init__(self, bitcoin_chain, path_to_secret, safe_mode=True, issuing_address=None):
-        super().__init__()
-        self.allowable_wif_prefixes = wif_prefix_for_netcode(bitcoin_chain.netcode)
+class FileSecretManager(SecretManager):
+    def __init__(self, signer, path_to_secret, safe_mode=True, issuing_address=None):
+        super().__init__(signer)
         self.path_to_secret = path_to_secret
         self.safe_mode = safe_mode
-        self.wif = None
         self.issuing_address = issuing_address
 
     def start(self):
@@ -113,36 +146,19 @@ class FileSecureSigner(SecureSigner):
                 'app is configured to skip the wifi check when the USB is plugged in. Read the documentation to'
                 ' ensure this is what you want, since this is less secure')
 
-    def sign_message(self, message_to_sign):
-        secret_key = CBitcoinSecret(self.wif)
-        message = BitcoinMessage(message_to_sign)
-        signature = SignMessage(secret_key, message)
-        return str(signature, 'utf-8')
-
-    def sign_transaction(self, transaction_to_sign):
-        secret_exponent = wif_to_secret_exponent(self.wif, self.allowable_wif_prefixes)
-        lookup = build_hash160_lookup([secret_exponent])
-        signed_transaction = transaction_to_sign.sign(lookup)
-        # Because signing failures silently continue, first check that the inputs are signed
-        for input in signed_transaction.txs_in:
-            if len(input.script) == 0:
-                logging.error('Unable to sign transaction. hextx=%s', signed_transaction.as_hex())
-                raise UnableToSignTxError('Unable to sign transaction')
-        return signed_transaction
-
 
 class FinalizableSigner(object):
-    def __init__(self, secure_signer):
-        self.secure_signer = secure_signer
+    def __init__(self, secret_manager):
+        self.secret_manager = secret_manager
 
     def __enter__(self):
-        logging.info('Starting finalizable transaction signer')
-        self.secure_signer.start()
-        return self.secure_signer
+        logging.info('Starting finalizable signer')
+        self.secret_manager.start()
+        return self.secret_manager
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        logging.info('Stopping finalizable transaction signer')
-        self.secure_signer.stop()
+        logging.info('Stopping finalizable signer')
+        self.secret_manager.stop()
 
 
 def verify_message(address, message, signature):

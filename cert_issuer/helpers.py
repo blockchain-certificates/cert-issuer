@@ -1,7 +1,5 @@
 import binascii
 import collections
-import hashlib
-import json
 import logging
 import os
 import shutil
@@ -14,9 +12,11 @@ from cert_issuer.errors import NoCertificatesFoundError
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
 if sys.version > '3':
+    # returns bytes
     def unhexlify(hex_string): return binascii.unhexlify(hex_string.encode('utf8'))
 
 
+    # returns string
     def hexlify(hex_bytes): return binascii.hexlify(hex_bytes).decode('utf8')
 
 UNSIGNED_CERTIFICATES_DIR = 'unsigned_certificates'
@@ -26,60 +26,34 @@ JSON_EXT = '.json'
 
 
 class CertificateMetadata(object):
-    def __init__(self, uid, unsigned_certs_dir, signed_certs_dir):
+    def __init__(self, uid, unsigned_certs_dir, signed_certs_dir, blockcerts_dir, final_blockcerts_dir,
+                 file_extension=JSON_EXT):
         self.uid = uid
-        self.unsigned_cert_file_name = os.path.join(unsigned_certs_dir, uid + JSON_EXT)
+        self.unsigned_cert_file_name = os.path.join(unsigned_certs_dir, uid + file_extension)
         if signed_certs_dir:
-            self.signed_cert_file_name = os.path.join(signed_certs_dir, uid + JSON_EXT)
+            self.signed_cert_file_name = os.path.join(signed_certs_dir, uid + file_extension)
+        self.blockchain_cert_file_name = os.path.join(blockcerts_dir, uid + file_extension)
+        self.final_blockchain_cert_file_name = os.path.join(final_blockcerts_dir, uid + file_extension)
 
 
-class ExtendedCertificateMetadata(CertificateMetadata):
-    def __init__(self, uid, unsigned_certs_dir, signed_certs_dir, base_work_dir, public_key=None, revocation_key=None):
-        CertificateMetadata.__init__(self, uid, unsigned_certs_dir, signed_certs_dir)
-        self.base_work_dir = base_work_dir
-        self.public_key = public_key
-        self.revocation_key = revocation_key
-        self.blockchain_cert_file_name = convert_file_name(base_work_dir, BLOCKCHAIN_CERTIFICATES_DIR, uid, JSON_EXT)
-
-
-class BatchMetadata(object):
-    """
-    Maintains batch-related metadata, including batch id and output paths
-    """
-    WORK_DIRS = [BLOCKCHAIN_CERTIFICATES_DIR]
-
-    def __init__(self, base_work_dir, batch_id):
-        self.base_work_dir = base_work_dir
-        self.batch_id = batch_id
-
-    def ensure_output_dirs_exists(self):
-        for d in self.WORK_DIRS:
-            os.makedirs(os.path.join(self.base_work_dir, d), exist_ok=True)
-
-
-def convert_file_name(base_dir, sub_dir, file_name, file_ext):
-    return os.path.join(base_dir, sub_dir, file_name + file_ext)
-
-
-def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, blockchain_certs_dir, work_dir):
+def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, blockchain_certs_dir, work_dir,
+                           file_extension=JSON_EXT):
     """
     Prepares file system for issuing a batch of certificates. Copies inputs to work_dir, and ensures
     that all output dirs required for processing the batch exist.
-    :param unsigned_certs_dir:
-    :param signed_certs_dir:
-    :param work_dir:
+    :param unsigned_certs_dir: input certificates
+    :param signed_certs_dir: output dir
+    :param blockchain_certs_dir: output dir
+    :param work_dir: work dir
     :return:
     """
 
-    os.makedirs(blockchain_certs_dir, exist_ok=True)
-    os.makedirs(signed_certs_dir, exist_ok=True)
+    # create work dir if it doesn't already exist
     os.makedirs(work_dir, exist_ok=True)
 
-    # ensure previous processing state, if any, is cleaned up
-    for item in os.listdir(work_dir):
-        file_path = os.path.join(work_dir, item)
-        if os.path.isdir(file_path):
-            shutil.rmtree(file_path)
+    # create final output dirs if they don't already exist
+    os.makedirs(blockchain_certs_dir, exist_ok=True)
+    os.makedirs(signed_certs_dir, exist_ok=True)
 
     # ensure previous processing state, if any, is cleaned up
     for item in os.listdir(work_dir):
@@ -87,53 +61,40 @@ def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, blockchain_cert
         if os.path.isdir(file_path):
             shutil.rmtree(file_path)
 
+    # define work subdirs
     unsigned_certs_work_dir = os.path.join(work_dir, UNSIGNED_CERTIFICATES_DIR)
     signed_certs_work_dir = os.path.join(work_dir, SIGNED_CERTIFICATES_DIR)
     blockchain_certs_work_dir = os.path.join(work_dir, BLOCKCHAIN_CERTIFICATES_DIR)
 
+    # copy input certs to unsigned certs work subdir and create output subdirs
     shutil.copytree(unsigned_certs_dir, unsigned_certs_work_dir)
     os.makedirs(signed_certs_work_dir, exist_ok=True)
     os.makedirs(blockchain_certs_work_dir, exist_ok=True)
 
     cert_info = collections.OrderedDict()
-    input_file_pattern = str(os.path.join(unsigned_certs_work_dir, '*.json'))
+    input_file_pattern = str(os.path.join(unsigned_certs_work_dir, '*' + file_extension))
 
     matches = glob2.iglob(input_file_pattern, with_matches=True)
     if not matches:
         logging.warning('No certificates to process')
         raise NoCertificatesFoundError('No certificates to process')
 
+    # create certificate metadata for each certificates
     for filename, (uid,) in sorted(matches):
-        with open(filename) as cert_file:
-            cert_raw = cert_file.read()
-            cert_json = json.loads(cert_raw)
-            revocation_key = None
-            if 'revocationKey' in cert_json['recipient']:
-                revocation_key = cert_json['recipient']['revocationKey']
-
-            public_key = None
-            if 'publicKey' in cert_json['recipient']:
-                public_key = cert_json['recipient']['publicKey']
-
-            certificate_metadata = ExtendedCertificateMetadata(uid=uid,
-                                                               unsigned_certs_dir=unsigned_certs_dir,
-                                                               signed_certs_dir=signed_certs_dir,
-                                                               base_work_dir=work_dir,
-                                                               public_key=public_key,
-                                                               revocation_key=revocation_key)
-            cert_info[uid] = certificate_metadata
+        certificate_metadata = CertificateMetadata(uid=uid,
+                                                   unsigned_certs_dir=unsigned_certs_work_dir,
+                                                   signed_certs_dir=signed_certs_work_dir,
+                                                   blockcerts_dir=blockchain_certs_work_dir,
+                                                   final_blockcerts_dir=blockchain_certs_dir,
+                                                   file_extension=file_extension)
+        cert_info[uid] = certificate_metadata
 
     logging.info('Processing %d certificates', len(cert_info))
-    batch_id = get_batch_id(list(cert_info.keys()))
-    batch_metadata = BatchMetadata(work_dir, batch_id)
-    return cert_info, batch_metadata
+    return cert_info
 
 
-def get_batch_id(uids):
-    """
-    Constructs a deterministic batch id from file names. The input uids are assumed to be sorted.
-    Throughout this app we store certificates in OrderedDicts
-    :param uids:
-    :return:
-    """
-    return hashlib.md5(''.join(uids).encode('utf-8')).hexdigest()
+def copy_output(certificates_metadata):
+    for _, metadata in certificates_metadata.items():
+        from_file = metadata.blockchain_cert_file_name
+        to_file = metadata.final_blockchain_cert_file_name
+        shutil.copy2(from_file, to_file)
