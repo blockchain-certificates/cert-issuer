@@ -3,7 +3,6 @@ import unittest
 import mock
 
 from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateHandler
-from cert_issuer.helpers import hexlify
 
 
 class TestCertificateHandler(unittest.TestCase):

@@ -2,7 +2,6 @@ import io
 import unittest
 
 import bitcoin
-
 from pycoin.serialize import h2b
 from pycoin.tx import Spendable
 from pycoin.tx import Tx

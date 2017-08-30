@@ -1,6 +1,5 @@
 import binascii
 import collections
-import hashlib
 import logging
 import os
 import shutil
@@ -86,6 +85,7 @@ def prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, blockchain_cert
                                                    unsigned_certs_dir=unsigned_certs_work_dir,
                                                    signed_certs_dir=signed_certs_work_dir,
                                                    blockcerts_dir=blockchain_certs_work_dir,
+                                                   final_blockcerts_dir=blockchain_certs_dir,
                                                    file_extension=file_extension)
         cert_info[uid] = certificate_metadata
 

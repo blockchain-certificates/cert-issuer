@@ -1,6 +1,5 @@
 import unittest
 
-from cert_issuer.helpers import hexlify
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 
 

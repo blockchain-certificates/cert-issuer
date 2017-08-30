@@ -82,7 +82,7 @@ class CertificateBatchHandler(object):
     def prepare_batch(self):
         """
         Propagates exception on failure
-        :return:
+        :return: hex string to put on the blockchain
         """
 
         # validate batch

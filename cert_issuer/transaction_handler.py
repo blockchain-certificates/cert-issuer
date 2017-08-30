@@ -25,10 +25,37 @@ class TransactionHandler(object):
         pass
 
 
+class TransactionCreator(object):
+    @abstractmethod
+    def estimate_cost_for_certificate_batch(self, tx_cost_constants, num_inputs=ESTIMATE_NUM_INPUTS):
+        pass
+
+    @abstractmethod
+    def create_transaction(self, tx_cost_constants, issuing_address, inputs, op_return_value):
+        pass
+
+
+class TransactionV2Creator(TransactionCreator):
+    def estimate_cost_for_certificate_batch(self, tx_cost_constants, num_inputs=ESTIMATE_NUM_INPUTS):
+        total = tx_utils.calculate_tx_fee(tx_cost_constants, num_inputs, V2_NUM_OUTPUTS)
+        return total
+
+    def create_transaction(self, tx_cost_constants, issuing_address, inputs, op_return_value):
+        fee = tx_utils.calculate_tx_fee(tx_cost_constants, len(inputs), V2_NUM_OUTPUTS)
+        transaction = tx_utils.create_trx(
+            op_return_value,
+            fee,
+            issuing_address,
+            [],
+            inputs)
+
+        return transaction
+
+
 class BitcoinTransactionHandler(TransactionHandler):
-    def __init__(self, connectors, tx_cost_constants, secret_manager, issuing_address, prepared_inputs=None,
+    def __init__(self, connector, tx_cost_constants, secret_manager, issuing_address, prepared_inputs=None,
                  transaction_creator=TransactionV2Creator()):
-        self.connectors = connectors
+        self.connector = connector
         self.tx_cost_constants = tx_cost_constants
         self.secret_manager = secret_manager
         self.issuing_address = issuing_address
@@ -37,9 +64,9 @@ class BitcoinTransactionHandler(TransactionHandler):
 
     def ensure_balance(self):
         # ensure the issuing address has sufficient balance
-        balance = self.connectors.get_balance(self.issuing_address)
+        balance = self.connector.get_balance(self.issuing_address)
 
-        transaction_cost = self.transaction_creator.estimate_cost_for_certificate_batch()
+        transaction_cost = self.transaction_creator.estimate_cost_for_certificate_batch(self.tx_cost_constants)
         logging.info('Total cost will be %d satoshis', transaction_cost)
 
         if transaction_cost > balance:
@@ -58,7 +85,6 @@ class BitcoinTransactionHandler(TransactionHandler):
         logging.info('Broadcast transaction with txid %s', txid)
         return txid
 
-
     def create_transaction(self, op_return_bytes):
         if self.prepared_inputs:
             inputs = self.prepared_inputs
@@ -69,7 +95,7 @@ class BitcoinTransactionHandler(TransactionHandler):
                 logging.error(error_message)
                 raise InsufficientFundsError(error_message)
 
-            cost = self.transaction_creator.estimate_cost_for_certificate_batch()
+            cost = self.transaction_creator.estimate_cost_for_certificate_batch(self.tx_cost_constants)
             current_total = 0
             inputs = []
             random.shuffle(spendables)
@@ -79,7 +105,8 @@ class BitcoinTransactionHandler(TransactionHandler):
                 if current_total > cost:
                     break
 
-        tx = self.transaction_creator.create_transaction(inputs, op_return_bytes)
+        tx = self.transaction_creator.create_transaction(self.tx_cost_constants, self.issuing_address, inputs,
+                                                         op_return_bytes)
         hex_tx = hexlify(tx.serialize())
         logging.info('Unsigned hextx=%s', hex_tx)
         prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, inputs)
@@ -95,7 +122,7 @@ class BitcoinTransactionHandler(TransactionHandler):
 
         signed_hextx = signed_tx.as_hex()
         logging.info('Signed hextx=%s', signed_hextx)
-        return signed_hextx
+        return signed_tx
 
     def verify_transaction(self, signed_tx, op_return_value):
         signed_hextx = signed_tx.as_hex()
@@ -105,33 +132,3 @@ class BitcoinTransactionHandler(TransactionHandler):
     def broadcast_transaction(self, signed_tx):
         tx_id = self.connector.broadcast_tx(signed_tx)
         return tx_id
-
-
-class TransactionCreator(object):
-    @abstractmethod
-    def estimate_cost_for_certificate_batch(self, num_inputs=ESTIMATE_NUM_INPUTS):
-        pass
-
-    @abstractmethod()
-    def create_transaction(self, inputs, op_return_value):
-        pass
-
-
-class TransactionV2Creator(TransactionCreator):
-    def __init__(self, tx_cost_constants, issuing_address):
-        super().__init__(tx_cost_constants, issuing_address)
-
-    def estimate_cost_for_certificate_batch(self, num_inputs=ESTIMATE_NUM_INPUTS):
-        total = tx_utils.calculate_tx_fee(self.tx_cost_constants, num_inputs, V2_NUM_OUTPUTS)
-        return total
-
-    def create_transaction(self, inputs, op_return_value):
-        fee = tx_utils.calculate_tx_fee(self.tx_cost_constants, len(inputs), V2_NUM_OUTPUTS)
-        transaction = tx_utils.create_trx(
-            op_return_value,
-            fee,
-            self.issuing_address,
-            [],
-            inputs)
-
-        return transaction

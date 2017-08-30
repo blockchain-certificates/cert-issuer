@@ -2,8 +2,9 @@
 Base class for building blockchain transactions to issue Blockchain Certificates.
 """
 import logging
-from cert_issuer.helpers import unhexlify
+
 from cert_issuer.errors import BroadcastError
+from cert_issuer.helpers import unhexlify
 
 MAX_TX_RETRIES = 5
 

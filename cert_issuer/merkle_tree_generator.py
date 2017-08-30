@@ -20,13 +20,13 @@ class MerkleTreeGenerator(object):
 
     def populate(self, node_generator):
         """
-        Populate Merkle Tree with data from node_generator. This requires that node_generator yield elements that
-        are hex strings. Adds it to the Merkle Tree (which hashes via the second True parameter)
+        Populate Merkle Tree with data from node_generator. This requires that node_generator yield string elements.
+        Adds it to the Merkle Tree (which hashes and hex encodes via the second True parameter)
         :param node_generator:
         :return:
         """
-        for binary_data in node_generator:
-            self.tree.add_leaf(binary_data, True)
+        for data in node_generator:
+            self.tree.add_leaf(data, True)
 
     def get_blockchain_data(self):
         """

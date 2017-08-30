@@ -36,7 +36,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
         certificate_batch_handler=certificate_batch_handler,
         transaction_handler=transaction_handler,
         max_retry=app_config.max_retry)
-    tx_id = issuer.issue_certificates()
+    tx_id = issuer.issue()
 
     helpers.copy_output(certificates_metadata)
 

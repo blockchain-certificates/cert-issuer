@@ -101,7 +101,8 @@ class BitcoinSigner(Signer):
 
 
 class SecretManager(object):
-    def __init__(self):
+    def __init__(self, signer):
+        self.signer = signer
         self.wif = None
 
     @abstractmethod
@@ -113,16 +114,15 @@ class SecretManager(object):
         pass
 
     def sign_message(self, message_to_sign):
-        return self.sign_message(self.wif, message_to_sign)
+        return self.signer.sign_message(self.wif, message_to_sign)
 
     def sign_transaction(self, transaction_to_sign):
-        return self.sign_transaction(self.wif, transaction_to_sign)
+        return self.signer.sign_transaction(self.wif, transaction_to_sign)
 
 
 class FileSecretManager(SecretManager):
     def __init__(self, signer, path_to_secret, safe_mode=True, issuing_address=None):
-        super().__init__()
-        self.signer = signer
+        super().__init__(signer)
         self.path_to_secret = path_to_secret
         self.safe_mode = safe_mode
         self.issuing_address = issuing_address
