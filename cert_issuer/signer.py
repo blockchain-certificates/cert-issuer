@@ -55,8 +55,7 @@ def check_internet_on(secrets_file_path):
 def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
     signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain)
-    secret_manager = FileSecretManager(signer=signer, path_to_secret=path_to_secret,
-                                       safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
+    secret_manager = FileSecretManager(signer=signer, path_to_secret=path_to_secret, safe_mode=app_config.safe_mode)
     return secret_manager
 
 
@@ -121,11 +120,10 @@ class SecretManager(object):
 
 
 class FileSecretManager(SecretManager):
-    def __init__(self, signer, path_to_secret, safe_mode=True, issuing_address=None):
+    def __init__(self, signer, path_to_secret, safe_mode=True):
         super().__init__(signer)
         self.path_to_secret = path_to_secret
         self.safe_mode = safe_mode
-        self.issuing_address = issuing_address
 
     def start(self):
         if self.safe_mode:
