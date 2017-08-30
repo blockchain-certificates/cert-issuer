@@ -42,8 +42,7 @@ class CertificateV2Handler(CertificateHandler):
     def get_data_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
-        binary_data = bytes(normalized, 'utf-8')
-        return binary_data
+        return normalized
 
     def add_proof(self, certificate_metadata, merkle_proof):
         """
@@ -104,8 +103,8 @@ class CertificateBatchHandler(object):
         :return:
         """
         for uid, metadata in self.certificates_to_issue.items():
-            binary_data = self.certificate_handler.get_data_to_issue(metadata)
-            yield binary_data
+            data_to_issue = self.certificate_handler.get_data_to_issue(metadata)
+            yield data_to_issue
 
     def finish_batch(self, tx_id):
         proof_generator = self.merkle_tree.get_proof_generator(tx_id)

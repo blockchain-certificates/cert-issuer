@@ -2,12 +2,16 @@ import hashlib
 
 from chainpoint.chainpoint import MerkleTools
 
-from cert_issuer.helpers import unhexlify
-
 
 def hash_binary_data(data):
     hashed = hashlib.sha256(data).hexdigest()
     return hashed
+
+
+def ensure_string(str_value):
+    if isinstance(str_value, str):
+        return str_value
+    return str_value.decode('utf-8')
 
 
 class MerkleTreeGenerator(object):
@@ -17,21 +21,21 @@ class MerkleTreeGenerator(object):
     def populate(self, node_generator):
         """
         Populate Merkle Tree with data from node_generator. This requires that node_generator yield elements that
-        are binary data. Hashes each and adds it to the Merkle Tree
+        are hex strings. Adds it to the Merkle Tree (which hashes via the second True parameter)
         :param node_generator:
         :return:
         """
         for binary_data in node_generator:
-            hashed = hash_binary_data(binary_data)
-            self.tree.add_leaf(hashed, False)
+            self.tree.add_leaf(binary_data, True)
 
     def get_blockchain_data(self):
         """
-        Finalize tree and return binary data to issue on blockchain
+        Finalize tree and return hex string to issue on blockchain
         :return:
         """
         self.tree.make_tree()
-        return unhexlify(self.tree.get_merkle_root())
+        merkle_root = self.tree.get_merkle_root()
+        return ensure_string(merkle_root)
 
     def get_proof_generator(self, tx_id):
         """
@@ -40,11 +44,18 @@ class MerkleTreeGenerator(object):
         :param tx_id: blockchain transaction id
         :return:
         """
-        root = self.tree.get_merkle_root()
+        root = ensure_string(self.tree.get_merkle_root())
         node_count = len(self.tree.leaves)
         for index in range(0, node_count):
             proof = self.tree.get_proof(index)
-            target_hash = self.tree.get_leaf(index)
+            proof2 = []
+
+            for p in proof:
+                dict2 = dict()
+                for key, value in p.items():
+                    dict2[key] = ensure_string(value)
+                proof2.append(dict2)
+            target_hash = ensure_string(self.tree.get_leaf(index))
             # chainpoint context is causing intermittent SSL errors. This isn't part of the JSON-normalized payload,
             # so we can omit it here
             merkle_proof = {
@@ -52,7 +63,7 @@ class MerkleTreeGenerator(object):
                 "type": "ChainpointSHA256v2",
                 "merkleRoot": root,
                 "targetHash": target_hash,
-                "proof": proof,
+                "proof": proof2,
                 "anchors": [{
                     "sourceId": tx_id,
                     "type": "BTCOpReturn"

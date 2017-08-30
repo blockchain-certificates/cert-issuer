@@ -2,7 +2,7 @@
 Base class for building blockchain transactions to issue Blockchain Certificates.
 """
 import logging
-
+from cert_issuer.helpers import unhexlify
 from cert_issuer.errors import BroadcastError
 
 MAX_TX_RETRIES = 5
@@ -20,7 +20,8 @@ class Issuer:
         :return:
         """
 
-        op_return_bytes = self.certificate_batch_handler.prepare_batch()
+        op_return = self.certificate_batch_handler.prepare_batch()
+        op_return_bytes = unhexlify(op_return)
 
         for attempt_number in range(0, self.max_retry):
             try:

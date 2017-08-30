@@ -18,7 +18,7 @@ class TestCertificateHandler(unittest.TestCase):
                                                             certificate_handler=DummyCertificateHandler())
         certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
         result = certificate_batch_handler.prepare_batch()
-        self.assertEqual(hexlify(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
+        self.assertEqual(result, '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
 
 
 class DummyCertificateHandler(CertificateHandler):
@@ -33,7 +33,7 @@ class DummyCertificateHandler(CertificateHandler):
 
     def get_data_to_issue(self, certificate_metadata):
         self.counter += 1
-        return str(self.counter).encode()
+        return str(self.counter)
 
     def add_proof(self, certificate_metadata, merkle_proof):
         pass

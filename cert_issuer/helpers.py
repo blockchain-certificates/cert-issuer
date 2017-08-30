@@ -13,9 +13,11 @@ from cert_issuer.errors import NoCertificatesFoundError
 unhexlify = binascii.unhexlify
 hexlify = binascii.hexlify
 if sys.version > '3':
+    # returns bytes
     def unhexlify(hex_string): return binascii.unhexlify(hex_string.encode('utf8'))
 
 
+    # returns string
     def hexlify(hex_bytes): return binascii.hexlify(hex_bytes).decode('utf8')
 
 UNSIGNED_CERTIFICATES_DIR = 'unsigned_certificates'
