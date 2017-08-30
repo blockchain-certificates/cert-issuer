@@ -10,7 +10,7 @@ def get_test_data_generator():
     :return:
     """
     for num in range(1, 4):
-        yield str(num).encode()
+        yield bytes(str(num), 'utf-8')
 
 
 class TestCertificateHandler(unittest.TestCase):

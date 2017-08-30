@@ -11,6 +11,8 @@ The `Issuer` api is quite simple; it relies on Certificate Handlers and Transact
 `CertificateBatchHandler` is responsible for iterating through the certificates in a predicable order. This is critical 
 because the Merkle Proofs must be associated with the correct certificate. 
 
+Python generators are used here to help keep the memory footprint low.
+
 - `prepare_batch` 
     - performs the preparatory steps on certificates in the batch, including validation of the schema and forming the 
     data that will go on the blockchain. Certificate-level details are handled by CertificateHandlers
