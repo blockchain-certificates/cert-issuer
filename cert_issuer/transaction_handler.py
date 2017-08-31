@@ -2,9 +2,10 @@ import logging
 import random
 from abc import abstractmethod
 
+from pycoin.serialize import b2h
+
 from cert_issuer import tx_utils
 from cert_issuer.errors import InsufficientFundsError
-from cert_issuer.helpers import hexlify
 from cert_issuer.signer import FinalizableSigner
 
 # Estimate fees assuming worst case 3 inputs
@@ -76,7 +77,7 @@ class BitcoinTransactionHandler(TransactionHandler):
             raise InsufficientFundsError(error_message)
 
     def issue_transaction(self, op_return_bytes):
-        op_return_value = hexlify(op_return_bytes)
+        op_return_value = b2h(op_return_bytes)
         prepared_tx = self.create_transaction(op_return_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
         self.verify_transaction(signed_tx, op_return_value)
@@ -107,7 +108,7 @@ class BitcoinTransactionHandler(TransactionHandler):
 
         tx = self.transaction_creator.create_transaction(self.tx_cost_constants, self.issuing_address, inputs,
                                                          op_return_bytes)
-        hex_tx = hexlify(tx.serialize())
+        hex_tx = b2h(tx.serialize())
         logging.info('Unsigned hextx=%s', hex_tx)
         prepared_tx = tx_utils.prepare_tx_for_signing(hex_tx, inputs)
         return prepared_tx

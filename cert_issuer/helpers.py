@@ -1,23 +1,15 @@
-import binascii
 import collections
 import logging
 import os
 import shutil
-import sys
 
 import glob2
+from pycoin.serialize import b2h, h2b
 
 from cert_issuer.errors import NoCertificatesFoundError
 
-unhexlify = binascii.unhexlify
-hexlify = binascii.hexlify
-if sys.version > '3':
-    # returns bytes
-    def unhexlify(hex_string): return binascii.unhexlify(hex_string.encode('utf8'))
-
-
-    # returns string
-    def hexlify(hex_bytes): return binascii.hexlify(hex_bytes).decode('utf8')
+unhexlify = h2b
+hexlify = b2h
 
 UNSIGNED_CERTIFICATES_DIR = 'unsigned_certificates'
 SIGNED_CERTIFICATES_DIR = 'signed_certificates'

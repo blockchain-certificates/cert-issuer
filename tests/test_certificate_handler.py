@@ -1,6 +1,7 @@
 import unittest
 
 import mock
+from pycoin.serialize import b2h
 
 from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateHandler
 
@@ -17,7 +18,7 @@ class TestCertificateHandler(unittest.TestCase):
                                                             certificate_handler=DummyCertificateHandler())
         certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
         result = certificate_batch_handler.prepare_batch()
-        self.assertEqual(result, '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
+        self.assertEqual(b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
 
 
 class DummyCertificateHandler(CertificateHandler):
@@ -30,9 +31,9 @@ class DummyCertificateHandler(CertificateHandler):
     def sign_certificate(self, signer, certificate_metadata):
         pass
 
-    def get_data_to_issue(self, certificate_metadata):
+    def get_byte_array_to_issue(self, certificate_metadata):
         self.counter += 1
-        return str(self.counter)
+        return str(self.counter).encode('utf-8')
 
     def add_proof(self, certificate_metadata, merkle_proof):
         pass

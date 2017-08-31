@@ -18,7 +18,7 @@ class CertificateHandler(object):
         pass
 
     @abstractmethod
-    def get_data_to_issue(self, certificate_metadata):
+    def get_byte_array_to_issue(self, certificate_metadata):
         pass
 
     @abstractmethod
@@ -39,10 +39,10 @@ class CertificateV2Handler(CertificateHandler):
     def sign_certificate(self, signer, certificate_metadata):
         pass
 
-    def get_data_to_issue(self, certificate_metadata):
+    def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
-        return normalized
+        return normalized.encode('utf-8')
 
     def add_proof(self, certificate_metadata, merkle_proof):
         """
@@ -82,7 +82,7 @@ class CertificateBatchHandler(object):
     def prepare_batch(self):
         """
         Propagates exception on failure
-        :return: hex string to put on the blockchain
+        :return: byte array to put on the blockchain
         """
 
         # validate batch
@@ -103,7 +103,7 @@ class CertificateBatchHandler(object):
         :return:
         """
         for uid, metadata in self.certificates_to_issue.items():
-            data_to_issue = self.certificate_handler.get_data_to_issue(metadata)
+            data_to_issue = self.certificate_handler.get_byte_array_to_issue(metadata)
             yield data_to_issue
 
     def finish_batch(self, tx_id):

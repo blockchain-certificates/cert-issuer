@@ -9,7 +9,7 @@ import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
 from cert_schema import Chain
-from pycoin.serialize import b2h
+from pycoin.serialize import b2h, b2h_rev, h2b
 from pycoin.services import providers
 from pycoin.services.blockr_io import BlockrioProvider
 from pycoin.services.insight import InsightProvider
@@ -17,8 +17,6 @@ from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
 from cert_issuer.errors import ConnectorError, BroadcastError
-from cert_issuer.helpers import hexlify
-from cert_issuer.helpers import unhexlify
 
 BROADCAST_RETRY_INTERVAL = 30
 
@@ -106,10 +104,10 @@ class BitcoindConnector(object):
 
     def broadcast_tx(self, transaction):
         as_hex = transaction.as_hex()
-        transaction = CTransaction.deserialize(unhexlify(as_hex))
+        transaction = CTransaction.deserialize(h2b(as_hex))
         tx_id = bitcoin.rpc.Proxy().sendrawtransaction(transaction)
         # reverse endianness for bitcoind
-        return hexlify(bytearray(tx_id)[::-1])
+        return b2h_rev(tx_id)
 
     def spendables_for_address(self, address):
         """
