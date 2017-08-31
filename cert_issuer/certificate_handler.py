@@ -51,8 +51,6 @@ class CertificateV2Handler(CertificateHandler):
         :return:
         """
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-
-        merkle_proof['type'] = ['MerkleProof2017', 'Extension']
         certificate_json['signature'] = merkle_proof
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
