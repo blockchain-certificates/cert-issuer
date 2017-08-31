@@ -58,11 +58,8 @@ class MerkleTreeGenerator(object):
                     dict2[key] = ensure_string(value)
                 proof2.append(dict2)
             target_hash = ensure_string(self.tree.get_leaf(index))
-            # chainpoint context is causing intermittent SSL errors. This isn't part of the JSON-normalized payload,
-            # so we can omit it here
             merkle_proof = {
-                # "@context": "https://w3id.org/chainpoint/v2",
-                "type": "ChainpointSHA256v2",
+                "type": ['MerkleProof2017', 'Extension'],
                 "merkleRoot": root,
                 "targetHash": target_hash,
                 "proof": proof2,
