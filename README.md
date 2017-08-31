@@ -196,14 +196,14 @@ extracting the data to issue on the blockchain, and handling the blockchain tran
 - `prepare_batch` 
     - performs the preparatory steps on certificates in the batch, including validation of the schema and forming the 
     data that will go on the blockchain. Certificate-level details are handled by `CertificateHandler`s
-    - returns the hex string that will go on the blockchain
+    - returns the hex byte array that will go on the blockchain
 - `finish_batch` ensures each certificate is updated with the blockchain transaction information (and proof in general)
 
 `CertificateHandler` is responsible for reading from and updating a specific certificate (identified by certificate_metadata). 
 It is used exclusively by `CertificateBatchHandler` to handle certificate-level details:
 - `validate`: ensure the certificate is well-formed
 - `sign`: (currently unused)
-- `get_data_to_issue`: return string that will be hashed and added to the Merkle Tree
+- `get_byte_array_to_issue`: return byte array that will be hashed, hex-digested and added to the Merkle Tree
 - `add_proof`: associate a a proof with a certificate (in the current implementation, the proof is embedded in the file)
 
 `TransactionHandler` deals with putting the data on the blockchain. Currently only a Bitcoin implementation exists

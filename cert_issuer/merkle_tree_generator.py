@@ -1,17 +1,18 @@
 import hashlib
 
 from chainpoint.chainpoint import MerkleTools
+from pycoin.serialize import h2b
 
 
-def hash_binary_data(data):
+def hash_byte_array(data):
     hashed = hashlib.sha256(data).hexdigest()
     return hashed
 
 
-def ensure_string(str_value):
-    if isinstance(str_value, str):
-        return str_value
-    return str_value.decode('utf-8')
+def ensure_string(value):
+    if isinstance(value, str):
+        return value
+    return value.decode('utf-8')
 
 
 class MerkleTreeGenerator(object):
@@ -20,22 +21,23 @@ class MerkleTreeGenerator(object):
 
     def populate(self, node_generator):
         """
-        Populate Merkle Tree with data from node_generator. This requires that node_generator yield string elements.
-        Adds it to the Merkle Tree (which hashes and hex encodes via the second True parameter)
+        Populate Merkle Tree with data from node_generator. This requires that node_generator yield byte[] elements.
+        Hashes, computes hex digest, and adds it to the Merkle Tree
         :param node_generator:
         :return:
         """
         for data in node_generator:
-            self.tree.add_leaf(data, True)
+            hashed = hash_byte_array(data)
+            self.tree.add_leaf(hashed)
 
     def get_blockchain_data(self):
         """
-        Finalize tree and return hex string to issue on blockchain
+        Finalize tree and return byte array to issue on blockchain
         :return:
         """
         self.tree.make_tree()
         merkle_root = self.tree.get_merkle_root()
-        return ensure_string(merkle_root)
+        return h2b(ensure_string(merkle_root))
 
     def get_proof_generator(self, tx_id):
         """

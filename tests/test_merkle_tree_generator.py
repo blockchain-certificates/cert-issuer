@@ -1,5 +1,7 @@
 import unittest
 
+from pycoin.serialize import b2h
+
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 
 
@@ -9,15 +11,15 @@ def get_test_data_generator():
     :return:
     """
     for num in range(1, 4):
-        yield str(num)
+        yield str(num).encode('utf-8')
 
 
 class TestMerkleTreeGenerator(unittest.TestCase):
     def test_generate(self):
         merkle_tree_generator = MerkleTreeGenerator()
         merkle_tree_generator.populate(get_test_data_generator())
-        binary_data = merkle_tree_generator.get_blockchain_data()
-        self.assertEqual(binary_data, '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
+        byte_array = merkle_tree_generator.get_blockchain_data()
+        self.assertEqual(b2h(byte_array), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
 
     def test_proofs(self):
         merkle_tree_generator = MerkleTreeGenerator()
