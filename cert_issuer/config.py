@@ -52,6 +52,10 @@ def add_arguments(p):
     p.add_argument('--work_dir', default=WORK_PATH,
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure')
+    p.add_argument('--bitcoind', dest='bitcoind', default=False, action='store_true',
+                   help='Use bitcoind connectors.')
+    p.add_argument('--no_bitcoind', dest='bitcoind', default=True, action='store_false',
+                   help='Default; do not use bitcoind connectors; use APIs instead')
 
 
 def get_config():
