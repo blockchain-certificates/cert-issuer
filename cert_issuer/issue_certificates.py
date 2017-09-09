@@ -46,7 +46,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 
 def main(app_config):
     issuing_address = app_config.issuing_address
-    connector = ServiceProviderConnector(app_config.bitcoin_chain)
+    connector = ServiceProviderConnector(app_config.bitcoin_chain, app_config.bitcoind)
     cost_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
 
     secret_manager = signer_helper.initialize_signer(app_config)

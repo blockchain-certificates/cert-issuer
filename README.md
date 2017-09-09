@@ -233,11 +233,10 @@ proofs.
 
 This class structure is intended to be general-purpose to allow other implementations. (Do this carefully if at all.)
 
-## Advanced Docs
-
-- [Issuing options](docs/bitcoin_options.md)
-- [Creating addresses](docs/make_addresses.md)
+## Additional Details
 - [Issuing certificates](docs/issuing.md)
+- [Installing and using a local bitcoin node](docs/bitcoind.md)
+
 
 ## Examples
 

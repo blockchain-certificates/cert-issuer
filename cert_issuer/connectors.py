@@ -130,11 +130,12 @@ class BitcoindConnector(object):
 
 
 class ServiceProviderConnector(object):
-    def __init__(self, bitcoin_chain):
+    def __init__(self, bitcoin_chain, bitcoind=False):
         self.bitcoin_chain = bitcoin_chain
+        self.bitcoind = bitcoind
 
     def spendables_for_address(self, bitcoin_address):
-        for m in service_provider_methods('spendables_for_address', get_providers_for_chain(self.bitcoin_chain)):
+        for m in service_provider_methods('spendables_for_address', get_providers_for_chain(self.bitcoin_chain, self.bitcoind)):
             try:
                 logging.debug('m=%s', m)
                 spendables = m(bitcoin_address)
@@ -177,11 +178,10 @@ class ServiceProviderConnector(object):
         :param tx:
         :return:
         """
-
-        return ServiceProviderConnector.broadcast_tx_with_chain(tx, self.bitcoin_chain)
+        return ServiceProviderConnector.broadcast_tx_with_chain(tx, self.bitcoin_chain, self.bitcoind)
 
     @staticmethod
-    def broadcast_tx_with_chain(tx, bitcoin_chain):
+    def broadcast_tx_with_chain(tx, bitcoin_chain, bitcoind=False):
         """
         Broadcast the transaction through the configured set of providers
 
@@ -195,7 +195,7 @@ class ServiceProviderConnector(object):
         # Unlike other providers, we want to broadcast to all available apis
         for attempt_number in range(0, MAX_BROADCAST_ATTEMPTS):
             for method_provider in service_provider_methods('broadcast_tx',
-                                                            get_providers_for_chain(bitcoin_chain)):
+                                                            get_providers_for_chain(bitcoin_chain, bitcoind)):
                 try:
                     tx_id = method_provider(tx)
                     if tx_id:
@@ -245,11 +245,11 @@ xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer
 xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
 connectors[Chain.testnet.netcode] = xtn_provider_list
 
-# workaround for regtest
-connectors['REG'] = [BitcoindConnector(Chain.testnet.netcode)]
 
-
-def get_providers_for_chain(bitcoin_chain):
+def get_providers_for_chain(bitcoin_chain, bitcoind=False):
     if bitcoin_chain == Chain.regtest:
-        return connectors['REG']
-    return connectors[bitcoin_chain.netcode]
+        return [BitcoindConnector(Chain.testnet.netcode)]
+    elif bitcoind:
+        return [BitcoindConnector(bitcoin_chain.netcode)]
+    else:
+        return connectors[bitcoin_chain.netcode]
