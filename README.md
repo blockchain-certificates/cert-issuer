@@ -66,7 +66,7 @@ Ensure your docker image is running and bitcoind process is started
 
     ```
     # To use a sample unsigned certificate as follows:
-    cp /cert-issuer/examples/data-testnet/unsigned_certificates/13a58c4a-f49f-4b63-9c82-125b944f5dfb.json /etc/cert-issuer/data/unsigned_certificates/ 
+    cp /cert-issuer/examples/data-testnet/unsigned_certificates/3bc1a96a-3501-46ed-8f75-49612bbac257.json /etc/cert-issuer/data/unsigned_certificates/ 
     
     # If you created your own unsigned certificate using cert-tools (assuming you placed it under data/unsigned_certificates):
     cp <cert-issuer-home>/data/unsigned_certificates/<your-cert-guid>.json /etc/cert-issuer/data/unsigned_certificates/

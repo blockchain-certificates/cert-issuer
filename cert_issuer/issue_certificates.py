@@ -3,9 +3,10 @@ import sys
 
 from cert_issuer import helpers
 from cert_issuer import signer as signer_helper
-from cert_issuer.certificate_handler import CertificateBatchHandler
+from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateV2Handler
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.issuer import Issuer
+from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.transaction_handler import BitcoinTransactionHandler
 from cert_issuer.tx_utils import TransactionCostConstants
 
@@ -52,7 +53,9 @@ def main(app_config):
     secret_manager = signer_helper.initialize_signer(app_config)
     transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
                                                     issuing_address=issuing_address)
-    certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager)
+    certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
+                                                        certificate_handler=CertificateV2Handler(),
+                                                        merkle_tree=MerkleTreeGenerator())
     return issue(app_config, certificate_batch_handler, transaction_handler)
 
 

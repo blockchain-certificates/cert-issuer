@@ -69,7 +69,7 @@ class CertificateBatchHandler(object):
     In this case, certificates are initialized as an Ordered Dictionary, and we iterate in insertion order.
     """
 
-    def __init__(self, secret_manager, certificate_handler=CertificateV2Handler(), merkle_tree=MerkleTreeGenerator()):
+    def __init__(self, secret_manager, certificate_handler, merkle_tree):
         self.certificate_handler = certificate_handler
         self.secret_manager = secret_manager
         self.merkle_tree = merkle_tree
