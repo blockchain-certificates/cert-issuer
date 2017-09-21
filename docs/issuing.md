@@ -12,8 +12,8 @@ First, ensure you've created an issuing address appropriate for the Bitcoin chai
 
 1. Go to [bitaddress.org](http://bitaddress.org)
 2. Create an 'issuing address', i.e. the address from which your certificates are issued.
-    a. save the unencrypted private key to your USB drive, in a file called pk_issuing.txt
-    b. save the public address as the `issuing_address` value in conf.ini
+    - save the unencrypted private key to your USB drive, in a file called pk_issuing.txt
+    - save the public address as the `issuing_address` value in conf.ini
 
 If you plan to run a local bitcoin node, you can create addresses by command line. See [bitcoind.md](bitcoind.md)
     
