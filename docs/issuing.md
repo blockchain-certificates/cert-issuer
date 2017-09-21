@@ -10,7 +10,9 @@ First, ensure you've created an issuing address appropriate for the Bitcoin chai
   
  __These steps involve storing secure information on a USB. Do not plug in this USB when your computer's wifi is on.__
 
-1. Go to [bitaddress.org](http://bitaddress.org)
+1. Use bitaddress.org
+    - for testnet addresses go to [bitaddress.org](http://bitaddress.org?testnet=true)
+    - for mainnet addresses go to [bitaddress.org](http://bitaddress.org)
 2. Create an 'issuing address', i.e. the address from which your certificates are issued.
     - save the unencrypted private key to your USB drive, in a file called pk_issuing.txt
     - save the public address as the `issuing_address` value in conf.ini
