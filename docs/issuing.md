@@ -1,4 +1,14 @@
-# Issuing Certificates
+# Configuring and running cert-issuer for other chains
+
+The Quick Start assumed you are issuing certificates in regtest mode, which doesn't actually write to a public blockchain. To actually write your transaction, you need to run in testnet (with test coins -- not real money) or mainnet (real money).
+
+We recommend starting in testnet before mainnet.
+
+By default, cert-issuer does not assume you have a bitcoin node running locally, and it uses APIs to look up and broadcast transactions. There is API support for both testnet and mainnet chains. 
+
+If you do want to use a local bitcoin node, [see details about installing and configuring a bitcoin node for use with cert-issuer](bitcoind.md) before continuing.
+
+These steps walk you through issuing in testnet and mainnet mode.
 
 ## Prerequisites
 
@@ -14,10 +24,10 @@ First, ensure you've created an issuing address appropriate for the Bitcoin chai
     - for testnet addresses go to [bitaddress.org?testnet=true](http://bitaddress.org?testnet=true)
     - for mainnet addresses go to [bitaddress.org](http://bitaddress.org)
 2. Create an 'issuing address', i.e. the address from which your certificates are issued.
-    - save the unencrypted private key to your USB drive, in a file called pk_issuing.txt
+    - save the unencrypted private key to a file (we recommend that store it on a removable drive for security).
     - save the public address as the `issuing_address` value in conf.ini
 
-If you plan to run a local bitcoin node, you can create addresses by command line. See [bitcoind.md](bitcoind.md)
+If you are using a local bitcoin node, you can create addresses by command line. See [bitcoind.md](bitcoind.md)
     
 ### Get coins
 
@@ -36,8 +46,6 @@ Note ensure you've transferred sufficient funds to your issuing address to cover
 - Transfer a small amount of money to the issuer address created in step 1.
 
 ## Configuring cert-issuer
-
-By default, this tool does not assume you have a bitcoin node running locally, and it uses APIs are used to look up and broadcast transactions. There is API support for both testnet and mainnet chains. [See details about installing and configuring a bitcoin node for use with cert-issuer](bitcoind.md).
 
 Edit your conf.ini file (the config file for this application). 
 
