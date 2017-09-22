@@ -234,7 +234,7 @@ proofs.
 This class structure is intended to be general-purpose to allow other implementations. (Do this carefully if at all.)
 
 ## Additional Details
-- [Issuing certificates](docs/issuing.md)
+- [General cert-issuer configuration and issuing instructions](docs/issuing.md)
 - [Installing and using a local bitcoin node](docs/bitcoind.md)
 
 
