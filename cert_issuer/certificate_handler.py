@@ -4,7 +4,6 @@ from abc import abstractmethod
 from cert_schema import normalize_jsonld
 from cert_schema import validate_v2
 
-from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.signer import FinalizableSigner
 
 
@@ -104,8 +103,8 @@ class CertificateBatchHandler(object):
             data_to_issue = self.certificate_handler.get_byte_array_to_issue(metadata)
             yield data_to_issue
 
-    def finish_batch(self, tx_id):
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id)
+    def finish_batch(self, tx_id, chain):
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
         for uid, metadata in self.certificates_to_issue.items():
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)

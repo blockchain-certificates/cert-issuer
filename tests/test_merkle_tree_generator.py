@@ -2,6 +2,7 @@ import unittest
 
 from pycoin.serialize import b2h
 
+from cert_schema import Chain
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 
 
@@ -26,7 +27,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         merkle_tree_generator.populate(get_test_data_generator())
         _ = merkle_tree_generator.get_blockchain_data()
         gen = merkle_tree_generator.get_proof_generator(
-            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582')
+            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', Chain.mainnet)
 
         p1 = next(gen)
         _ = next(gen)

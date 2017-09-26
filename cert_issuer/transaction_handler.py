@@ -133,3 +133,11 @@ class BitcoinTransactionHandler(TransactionHandler):
     def broadcast_transaction(self, signed_tx):
         tx_id = self.connector.broadcast_tx(signed_tx)
         return tx_id
+
+
+class MockTransactionHandler(TransactionHandler):
+    def ensure_balance(self):
+        pass
+
+    def issue_transaction(self, op_return_bytes):
+        return 'This has not been issued on a blockchain and is for testing only'

@@ -1,13 +1,14 @@
 import logging
 import sys
 
+from cert_schema import Chain
 from cert_issuer import helpers
 from cert_issuer import signer as signer_helper
 from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateV2Handler
 from cert_issuer.connectors import ServiceProviderConnector
 from cert_issuer.issuer import Issuer
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
-from cert_issuer.transaction_handler import BitcoinTransactionHandler
+from cert_issuer.transaction_handler import BitcoinTransactionHandler, MockTransactionHandler
 from cert_issuer.tx_utils import TransactionCostConstants
 
 if sys.version_info.major < 3:
@@ -37,7 +38,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
         certificate_batch_handler=certificate_batch_handler,
         transaction_handler=transaction_handler,
         max_retry=app_config.max_retry)
-    tx_id = issuer.issue()
+    tx_id = issuer.issue(app_config.bitcoin_chain)
 
     helpers.copy_output(certificates_metadata)
 
@@ -47,15 +48,18 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 
 def main(app_config):
     issuing_address = app_config.issuing_address
-    connector = ServiceProviderConnector(app_config.bitcoin_chain, app_config.bitcoind)
-    cost_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
-
+    chain = app_config.bitcoin_chain
     secret_manager = signer_helper.initialize_signer(app_config)
-    transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
-                                                    issuing_address=issuing_address)
     certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
                                                         certificate_handler=CertificateV2Handler(),
                                                         merkle_tree=MerkleTreeGenerator())
+    if chain == Chain.mocknet:
+        transaction_handler = MockTransactionHandler()
+    else:
+        cost_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
+        connector = ServiceProviderConnector(chain, app_config.bitcoind)
+        transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
+                                                        issuing_address=issuing_address)
     return issue(app_config, certificate_batch_handler, transaction_handler)
 
 

@@ -3,6 +3,8 @@ import hashlib
 from chainpoint.chainpoint import MerkleTools
 from pycoin.serialize import h2b
 
+from cert_schema import Chain
+
 
 def hash_byte_array(data):
     hashed = hashlib.sha256(data).hexdigest()
@@ -39,7 +41,7 @@ class MerkleTreeGenerator(object):
         merkle_root = self.tree.get_merkle_root()
         return h2b(ensure_string(merkle_root))
 
-    def get_proof_generator(self, tx_id):
+    def get_proof_generator(self, tx_id, chain=Chain.mainnet):
         """
         Returns a generator (1-time iterator) of proofs in insertion order.
 
@@ -64,7 +66,31 @@ class MerkleTreeGenerator(object):
                 "targetHash": target_hash,
                 "proof": proof2,
                 "anchors": [{
-                    "sourceId": tx_id,
-                    "type": "BTCOpReturn"
+                    "sourceId": to_source_id(tx_id, chain),
+                    "type": to_anchor_type(chain)
                 }]}
             yield merkle_proof
+
+
+def to_source_id(txid, chain):
+    if chain == Chain.mainnet or Chain.testnet:
+        return txid
+    else:
+        return 'This has not been issued on a blockchain and is for testing only'
+
+
+def to_anchor_type(chain):
+    """
+    Return the anchor type to include in the Blockcert signature. In next version of Blockcerts schema we will be able
+    to write XTNOpReturn for testnet
+    :param chain:
+    :return:
+    """
+    if chain == Chain.mainnet or chain == Chain.testnet:
+        return 'BTCOpReturn'
+    # non-standard
+    elif chain == Chain.regtest:
+        return 'REGOpReturn'
+    # non-standard
+    elif chain == Chain.mocknet:
+        return 'MockOpReturn'
