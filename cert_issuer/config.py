@@ -70,8 +70,12 @@ def get_config():
 
     # overwrite with enum
     parsed_config.bitcoin_chain = Chain.parse_from_chain(parsed_config.bitcoin_chain)
-    bitcoin.SelectParams(parsed_config.bitcoin_chain.name)
+    if parsed_config.bitcoin_chain == Chain.mocknet or parsed_config.bitcoin_chain == Chain.regtest:
+        parsed_config.bitcoin_chain_for_pycoin = Chain.testnet
+    else:
+        parsed_config.bitcoin_chain_for_pycoin = parsed_config.bitcoin_chain
 
+    bitcoin.SelectParams(parsed_config.bitcoin_chain_for_pycoin.name)
     configure_logger()
 
     return parsed_config
