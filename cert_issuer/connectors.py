@@ -4,10 +4,10 @@ Connectors wrap the details of communicating with different Bitcoin clients and 
 import io
 import logging
 import time
+from abc import abstractmethod
 
 import bitcoin.rpc
 import requests
-from abc import abstractmethod
 from bitcoin.core import CTransaction
 from cert_schema import Chain
 from pycoin.serialize import b2h, b2h_rev, h2b
@@ -16,6 +16,8 @@ from pycoin.services.blockr_io import BlockrioProvider
 from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
+
+from pyetherscan import Client
 
 from cert_issuer.errors import ConnectorError, BroadcastError
 
@@ -139,8 +141,18 @@ class ServiceProviderConnector(object):
         pass
 
 class EthereumServiceProviderConnector(ServiceProviderConnector):
+    #param local_node indicates if a local node is running or if the tx should be broadcast to external providers 
+    def __init__(self, ethereum_chain, local_node=False):
+        self.ethereum_chain = ethereum_chain
+        self.local_node = local_node
+    
     def get_balance(self, address):
-        pass
+        client = Client()
+        address = '0x8d12a197cb00d4747a1fe03395095ce2a5cc6819'
+        address_balance = client.get_single_balance(address)
+        logging.warning('address %s has a balance of 0', address_balance.response_status_code)
+        logging.warning('address %s has a balance of 0', address_balance.message)
+        logging.warning('address %s has a balance of 0', address_balance.balance)
     
     def broadcast_tx(self, tx):
         pass
@@ -194,7 +206,7 @@ class BitcoinServiceProviderConnector(ServiceProviderConnector):
         :param tx:
         :return:
         """
-        return ServiceProviderConnector.broadcast_tx_with_chain(tx, self.bitcoin_chain, self.bitcoind)
+        return BitcoinServiceProviderConnector.broadcast_tx_with_chain(tx, self.bitcoin_chain, self.bitcoind)
 
     @staticmethod
     def broadcast_tx_with_chain(tx, bitcoin_chain, bitcoind=False):

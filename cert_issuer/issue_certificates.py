@@ -58,7 +58,7 @@ def main(app_config):
     #added ethereum chains.
     elif chain == Chain.ethmain or chain == Chain.ethrop or chain == Chain.ethtest:
         cost_constants = EthereumTransactionCostConstants()
-        connector = EthereumServiceProviderConnector()
+        connector = EthereumServiceProviderConnector(chain)
         transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager, issuing_address=issuing_address)
     else:
         cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)

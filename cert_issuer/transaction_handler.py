@@ -137,10 +137,14 @@ class BitcoinTransactionHandler(TransactionHandler):
 class EthereumTransactionHandler(TransactionHandler):
     def __init__(self, connector, tx_cost_constants, secret_manager, issuing_address, prepared_inputs=None,
                  transaction_creator=TransactionV2Creator()):
-        pass
+        self.connector=connector
+        self.issuing_address=issuing_address
+        
 
     def ensure_balance(self):
-        pass
+        #testing etherscan api wrapper
+        balance = self.connector.get_balance(self.issuing_address)
+
 
     def issue_transaction(self, op_return_bytes):
         return 'This has not been issued on the ether chain as it is still in TODO.'
