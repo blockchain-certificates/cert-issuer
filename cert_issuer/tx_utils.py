@@ -24,7 +24,13 @@ OP_RETURN_BYTE_COUNT = 43  # our op_return output values always have the same le
 COIN = 100000000  # satoshis in 1 btc
 
 
-class TransactionCostConstants(object):
+class EthereumTransactionCostConstants(object):
+    def __init__(self):
+        pass  
+
+
+
+class BitcoinTransactionCostConstants(object):
     def __init__(self, recommended_tx_fee=0.0006, min_per_output=0.0000275, satoshi_per_byte=250):
         self.recommended_tx_fee = recommended_tx_fee
         self.min_per_output = min_per_output

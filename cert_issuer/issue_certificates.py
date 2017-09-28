@@ -5,11 +5,11 @@ from cert_schema import Chain
 from cert_issuer import helpers
 from cert_issuer import signer as signer_helper
 from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateV2Handler
-from cert_issuer.connectors import ServiceProviderConnector
+from cert_issuer.connectors import BitcoinServiceProviderConnector, EthereumServiceProviderConnector
 from cert_issuer.issuer import Issuer
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
-from cert_issuer.transaction_handler import BitcoinTransactionHandler, MockTransactionHandler
-from cert_issuer.tx_utils import TransactionCostConstants
+from cert_issuer.transaction_handler import BitcoinTransactionHandler, EthereumTransactionHandler, MockTransactionHandler
+from cert_issuer.tx_utils import BitcoinTransactionCostConstants, EthereumTransactionCostConstants
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
@@ -55,9 +55,14 @@ def main(app_config):
                                                         merkle_tree=MerkleTreeGenerator())
     if chain == Chain.mocknet:
         transaction_handler = MockTransactionHandler()
+    #added ethereum chains.
+    elif chain == Chain.ethmain or chain == Chain.ethrop or chain == Chain.ethtest:
+        cost_constants = EthereumTransactionCostConstants()
+        connector = EthereumServiceProviderConnector()
+        transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager, issuing_address=issuing_address)
     else:
-        cost_constants = TransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
-        connector = ServiceProviderConnector(chain, app_config.bitcoind)
+        cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
+        connector = BitcoinServiceProviderConnector(chain, app_config.bitcoind)
         transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
                                                         issuing_address=issuing_address)
     return issue(app_config, certificate_batch_handler, transaction_handler)

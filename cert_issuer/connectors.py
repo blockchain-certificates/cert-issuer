@@ -7,6 +7,7 @@ import time
 
 import bitcoin.rpc
 import requests
+from abc import abstractmethod
 from bitcoin.core import CTransaction
 from cert_schema import Chain
 from pycoin.serialize import b2h, b2h_rev, h2b
@@ -130,6 +131,21 @@ class BitcoindConnector(object):
 
 
 class ServiceProviderConnector(object):
+    @abstractmethod
+    def get_balance(self, address):
+        pass
+
+    def broadcast_tx(self, tx):
+        pass
+
+class EthereumServiceProviderConnector(ServiceProviderConnector):
+    def get_balance(self, address):
+        pass
+    
+    def broadcast_tx(self, tx):
+        pass
+
+class BitcoinServiceProviderConnector(ServiceProviderConnector):
     def __init__(self, bitcoin_chain, bitcoind=False):
         self.bitcoin_chain = bitcoin_chain
         self.bitcoind = bitcoind
@@ -229,7 +245,7 @@ PYCOIN_XTN_PROVIDERS = "blockexplorer.com"  # chain.so
 # initialize connectors
 connectors = {}
 
-# configure mainnet providers
+# configure Bitcoin mainnet providers
 provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, Chain.mainnet.netcode)
 provider_list.append(BlockrIOBroadcaster('https://btc.blockr.io/api/v1'))
 provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
@@ -237,7 +253,7 @@ provider_list.append(BlockrioProvider(Chain.mainnet.netcode))
 provider_list.append(InsightProvider(netcode=Chain.mainnet.netcode))
 connectors[Chain.mainnet.netcode] = provider_list
 
-# configure testnet providers
+# configure Bitcoin testnet providers
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, Chain.testnet.netcode)
 xtn_provider_list.append(InsightProvider(base_url='https://test-insight.bitpay.com', netcode=Chain.testnet.netcode))
 xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
@@ -245,7 +261,7 @@ xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer
 xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
 connectors[Chain.testnet.netcode] = xtn_provider_list
 
-
+#Edit to blockchain 
 def get_providers_for_chain(bitcoin_chain, bitcoind=False):
     if bitcoin_chain == Chain.regtest:
         return [BitcoindConnector(Chain.testnet.netcode)]

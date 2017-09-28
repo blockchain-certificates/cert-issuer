@@ -82,8 +82,8 @@ class BitcoinTransactionHandler(TransactionHandler):
         signed_tx = self.sign_transaction(prepared_tx)
         self.verify_transaction(signed_tx, op_return_value)
         txid = self.broadcast_transaction(signed_tx)
-
-        logging.info('Broadcast transaction with txid %s', txid)
+        #this logging is already done in issuer
+        #logging.info('Broadcast transaction with txid %s', txid)
         return txid
 
     def create_transaction(self, op_return_bytes):
@@ -134,6 +134,16 @@ class BitcoinTransactionHandler(TransactionHandler):
         tx_id = self.connector.broadcast_tx(signed_tx)
         return tx_id
 
+class EthereumTransactionHandler(TransactionHandler):
+    def __init__(self, connector, tx_cost_constants, secret_manager, issuing_address, prepared_inputs=None,
+                 transaction_creator=TransactionV2Creator()):
+        pass
+
+    def ensure_balance(self):
+        pass
+
+    def issue_transaction(self, op_return_bytes):
+        return 'This has not been issued on the ether chain as it is still in TODO.'
 
 class MockTransactionHandler(TransactionHandler):
     def ensure_balance(self):
