@@ -22,7 +22,7 @@ class TransactionHandler(object):
         pass
 
     @abstractmethod
-    def issue_transaction(self, op_return_bytes):
+    def issue_transaction(self, blockchain_bytes):
         pass
 
 
@@ -51,7 +51,16 @@ class TransactionV2Creator(TransactionCreator):
             inputs)
 
         return transaction
+##as the transaction format in Ethereum is different, the abstraction doesn't satisfy
+class EthereumTransactionCreator(object):
+    def estimate_cost_for_certificate_batch(self):
+        pass
+    
+    def create_transaction(self,tx_cost_constants, issuing_address, nonce, to_address, blockchain_bytes):
+        #TODO: add create the actual transaction. Probably going to do that inside tx_utils.
+        transaction = ''
 
+        return transaction
 
 class BitcoinTransactionHandler(TransactionHandler):
     def __init__(self, connector, tx_cost_constants, secret_manager, issuing_address, prepared_inputs=None,
@@ -76,9 +85,9 @@ class BitcoinTransactionHandler(TransactionHandler):
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-    def issue_transaction(self, op_return_bytes):
-        op_return_value = b2h(op_return_bytes)
-        prepared_tx = self.create_transaction(op_return_bytes)
+    def issue_transaction(self, blockchain_bytes):
+        op_return_value = b2h(blockchain_bytes)
+        prepared_tx = self.create_transaction(blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
         self.verify_transaction(signed_tx, op_return_value)
         txid = self.broadcast_transaction(signed_tx)
@@ -136,10 +145,13 @@ class BitcoinTransactionHandler(TransactionHandler):
 
 class EthereumTransactionHandler(TransactionHandler):
     def __init__(self, connector, tx_cost_constants, secret_manager, issuing_address, prepared_inputs=None,
-                 transaction_creator=TransactionV2Creator()):
+                 transaction_creator=EthereumTransactionCreator()):
         self.connector=connector
+        self.tx_cost_constants=tx_cost_constants
+        self.secret_manager=secret_manager
         self.issuing_address=issuing_address
-        
+        self.prepared_inputs=prepared_inputs
+        self.transaction_creator=transaction_creator
 
     def ensure_balance(self):
         #testing etherscan api wrapper
@@ -155,9 +167,24 @@ class EthereumTransactionHandler(TransactionHandler):
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-
-    def issue_transaction(self, op_return_bytes):
+    def issue_transaction(self, blockchain_bytes):
+        EtherDataField = b2h(blockchain_bytes)
+        prepared_tx = self.create_transaction(blockchain_bytes)
         return 'This has not been issued on the ether chain as it is still in TODO.'
+
+    def create_transaction(self, blockchain_bytes):
+        if self.prepared_inputs:
+            inputs = self.prepared_inputs
+        else:
+            ##it is assumed here that the address has sufficient funds, as the ensure_balance has just been checked
+            nonce = self.connector.get_address_nonce(self.issuing_address)
+            #Transactions in the first iteration will be send to burn address
+            toaddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddead'
+        tx = self.transaction_creator.create_transaction(self.tx_cost_constants, self.issuing_address, nonce, toaddress, blockchain_bytes)
+            
+        ##TODO: transform transaction into prepared transaction format.
+        prepared_tx = ''
+        return prepared_tx
 
 class MockTransactionHandler(TransactionHandler):
     def ensure_balance(self):
