@@ -17,8 +17,6 @@ from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx import Spendable
 
-from pyetherscan import Client
-
 from cert_issuer.errors import ConnectorError, BroadcastError
 
 BROADCAST_RETRY_INTERVAL = 30
@@ -50,7 +48,61 @@ def to_hex(transaction):
     tx_as_hex = b2h(s.getvalue())
     return tx_as_hex
 
-
+class EtherscanBroadcaster(object):
+    def __init__(self, base_url, api_token=None):
+        self.base_url = base_url
+        self.api_token = api_token
+    
+    def broadcast_tx(self, tx):
+        ##TODO: parse the transaction to workable format first
+        tx_hex = to_hex(tx)
+        broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
+        if self.api_token:
+            '&apikey=%s' % self.api_token
+        response = requests.post(broadcast_url, data={'hex': tx_hex})
+        if int(response.status_code) == 200:
+            tx_id = response.json().get('result', None)
+            ##testing:
+            logging.info("response_json: %s", response.json())
+            return tx_id
+        logging.error('Error broadcasting the transaction through the Etherscan API. Error msg: %s', response.text)
+        raise BroadcastError(response.text)
+    
+    def get_balance(self, address):
+        """
+        returns the balance in wei
+        with some inspiration from PyWallet
+        """
+        broadcast_url = self.base_url + '?module=account&action=balance' 
+        broadcast_url += '&address=%s' % address
+        broadcast_url += '&tag=latest'
+        if self.api_token:
+            '&apikey=%s' % self.api_token
+        response = requests.get(broadcast_url)
+        if int(response.status_code) ==  200:
+            balance = int(response.json().get('result', None))
+            logging.info('Balance check went correct: %s', response.json())
+            return balance
+        raise BroadcastError(response.text)
+    
+    def get_address_nonce(self, address):
+        """
+        Looks up the address nonce of this address
+        Neccesary for the transaction creation
+        """
+        broadcast_url = self.base_url + '?module=proxy&action=eth_getTransactionCount'
+        broadcast_url += '&address=%s' % address
+        broadcast_url += '&tag=latest'
+        if self.api_token:
+            '&apikey=%s' % self.api_token
+        response = requests.get(broadcast_url)
+        if int(response.status_code) == 200:
+            nonce = int(response.json().get('result', None))
+            logging.info('Nonce check went correct: %s', response.json())
+            return nonce
+        raise BroadcastError('Error checking the nonce through the Etherscan API. Error msg: %s', response.text)
+        
+        
 class BlockExplorerBroadcaster(object):
     def __init__(self, base_url):
         self.base_url = base_url
@@ -147,13 +199,30 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         self.local_node = local_node
     
     def get_balance(self, address):
-        client = Client()
-        address = '0x8d12a197cb00d4747a1fe03395095ce2a5cc6819'
-        address_balance = client.get_single_balance(address)
-        logging.warning('address %s has a balance of 0', address_balance.response_status_code)
-        logging.warning('address %s has a balance of 0', address_balance.message)
-        logging.warning('address %s has a balance of 0', address_balance.balance)
-    
+        for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
+            if isinstance(m, BitcoindConnector):
+                pass
+            else:    
+                try:
+                    logging.debug('m=%s', m)
+                    balance = m.get_balance(address)
+                    return balance
+                except Exception as e:
+                    logging.warning(e)
+                    pass
+        return []
+
+    def get_address_nonce(self, address):
+        for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
+            try:
+                logging.debug('m=%s', m)
+                nonce = m.get_address_nonce(address)
+                return nonce
+            except Exception as e:
+                logging.warning(e)
+                pass
+        return []
+
     def broadcast_tx(self, tx):
         pass
 
@@ -272,6 +341,19 @@ xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
 xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
 xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
 connectors[Chain.testnet.netcode] = xtn_provider_list
+
+#Configure Ethereum mainnet connectors 
+## API token is only for local testing!!
+eth_provider_list = []
+eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api', 'N8RZAYTXTRJ2PH1J3XM1U8ZFXZ1G9C8J8B'))
+connectors[Chain.ethmain.netcode] = eth_provider_list
+
+#Configure Ethereum Ropsten testnet connectors
+rop_provider_list = []
+rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
+connectors[Chain.ethrop.netcode] = rop_provider_list
+
+
 
 #Edit to blockchain 
 def get_providers_for_chain(bitcoin_chain, bitcoind=False):

@@ -92,6 +92,7 @@ class CertificateBatchHandler(object):
                 self.certificate_handler.sign_certificate(signer, metadata)
 
         self.merkle_tree.populate(self.get_certificate_generator())
+        print("here is the op_return_code data: %s", self.merkle_tree.get_blockchain_data())
         return self.merkle_tree.get_blockchain_data()
 
     def get_certificate_generator(self):

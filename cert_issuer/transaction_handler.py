@@ -145,6 +145,16 @@ class EthereumTransactionHandler(TransactionHandler):
         #testing etherscan api wrapper
         balance = self.connector.get_balance(self.issuing_address)
 
+        #for now transaction cost will be a constant: (25000 gas estimate times 20Gwei gasprice)
+        transaction_cost = (25000 * 20000000000)
+        logging.info('Total cost will be %d wei', transaction_cost)
+
+        if transaction_cost > balance:
+            error_message = 'Please add {} wei to the address {}'.format(
+                transaction_cost - balance, self.issuing_address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
+
 
     def issue_transaction(self, op_return_bytes):
         return 'This has not been issued on the ether chain as it is still in TODO.'
