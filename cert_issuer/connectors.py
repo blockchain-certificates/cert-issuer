@@ -54,8 +54,9 @@ class EtherscanBroadcaster(object):
         self.api_token = api_token
     
     def broadcast_tx(self, tx):
-        ##TODO: parse the transaction to workable format first
-        tx_hex = to_hex(tx)
+        ##TODO: check transaction encoding. Assumes hex currently.
+        tx_hex = tx
+
         broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
         if self.api_token:
             '&apikey=%s' % self.api_token
@@ -209,8 +210,8 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
                     return balance
                 except Exception as e:
                     logging.warning(e)
-                    pass
-        return []
+                    pass            
+        return 0
 
     def get_address_nonce(self, address):
         for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
@@ -221,10 +222,20 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
             except Exception as e:
                 logging.warning(e)
                 pass
-        return []
+        return 0
 
     def broadcast_tx(self, tx):
-        pass
+        for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
+            try:
+                logging.debug('m=%s', m)
+                txid = m.broadcast_tx(tx)
+                return txid
+            except Exception as e:
+                logging.warning(e)
+                pass
+        ##in case of failure:
+        return '0xfail'
+         
 
 class BitcoinServiceProviderConnector(ServiceProviderConnector):
     def __init__(self, bitcoin_chain, bitcoind=False):

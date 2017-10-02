@@ -51,14 +51,24 @@ class TransactionV2Creator(TransactionCreator):
             inputs)
 
         return transaction
-##as the transaction format in Ethereum is different, the abstraction doesn't satisfy
+##as the transaction format in Ethereum is different, the abstracted TransactionCreator doesn't satisfy
 class EthereumTransactionCreator(object):
     def estimate_cost_for_certificate_batch(self):
         pass
     
     def create_transaction(self,tx_cost_constants, issuing_address, nonce, to_address, blockchain_bytes):
-        #TODO: add create the actual transaction. Probably going to do that inside tx_utils.
-        transaction = ''
+        #TODO: For a future iteration a better gasprice & gas limit calculation from the tx_cost_constants be done.
+        #For now hardcoded constants are fine
+        gasprice = tx_cost_constants.get_gas_price()
+        gaslimit = tx_cost_constants.get_gas_limit()
+
+        transaction = tx_utils.create_Ethereum_trx(
+            issuing_address,
+            nonce,
+            to_address,
+            blockchain_bytes,
+            gasprice,
+            gaslimit)
 
         return transaction
 
@@ -150,6 +160,7 @@ class EthereumTransactionHandler(TransactionHandler):
         self.tx_cost_constants=tx_cost_constants
         self.secret_manager=secret_manager
         self.issuing_address=issuing_address
+        #input transactions are not needed for Ether
         self.prepared_inputs=prepared_inputs
         self.transaction_creator=transaction_creator
 
@@ -157,8 +168,9 @@ class EthereumTransactionHandler(TransactionHandler):
         #testing etherscan api wrapper
         balance = self.connector.get_balance(self.issuing_address)
 
-        #for now transaction cost will be a constant: (25000 gas estimate times 20Gwei gasprice)
-        transaction_cost = (25000 * 20000000000)
+        #for now transaction cost will be a constant: (25000 gas estimate times 20Gwei gasprice) from tx_utils
+        #can later be calculated inside EthereumTransaction_creator
+        transaction_cost = self.tx_cost_constants.get_recommended_max_cost()
         logging.info('Total cost will be %d wei', transaction_cost)
 
         if transaction_cost > balance:
@@ -170,21 +182,35 @@ class EthereumTransactionHandler(TransactionHandler):
     def issue_transaction(self, blockchain_bytes):
         EtherDataField = b2h(blockchain_bytes)
         prepared_tx = self.create_transaction(blockchain_bytes)
-        return 'This has not been issued on the ether chain as it is still in TODO.'
+        signed_tx = self.sign_transaction(prepared_tx)
+        ##TODO: verify step
+        txid = self.broadcast_transaction(signed_tx)
+        
+        ##'WIP'
+        return txid
 
     def create_transaction(self, blockchain_bytes):
-        if self.prepared_inputs:
-            inputs = self.prepared_inputs
-        else:
-            ##it is assumed here that the address has sufficient funds, as the ensure_balance has just been checked
-            nonce = self.connector.get_address_nonce(self.issuing_address)
-            #Transactions in the first iteration will be send to burn address
-            toaddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddead'
+        ##it is assumed here that the address has sufficient funds, as the ensure_balance has just been checked
+        nonce = self.connector.get_address_nonce(self.issuing_address)
+        #Transactions in the first iteration will be send to burn address
+        toaddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddead'
         tx = self.transaction_creator.create_transaction(self.tx_cost_constants, self.issuing_address, nonce, toaddress, blockchain_bytes)
             
         ##TODO: transform transaction into prepared transaction format.
-        prepared_tx = ''
+        prepared_tx = tx
         return prepared_tx
+
+    def sign_transaction(self, prepared_tx):
+        ##stubbed from BitcoinTransactionHandler
+        with FinalizableSigner(self.secret_manager) as signer:
+            signed_tx = signer.sign_transaction(prepared_tx)
+
+        logging.info('signed Ethereum trx = %s', signed_tx)
+        return signed_tx
+
+    def broadcast_transaction(self, signed_tx):
+        txid = self.connector.broadcast_tx(signed_tx)
+        return txid
 
 class MockTransactionHandler(TransactionHandler):
     def ensure_balance(self):

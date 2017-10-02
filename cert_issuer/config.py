@@ -83,6 +83,8 @@ def get_config():
         else:
             parsed_config.bitcoin_chain_for_pycoin = parsed_config.bitcoin_chain
             logging.warning('got in here else')
+
+        bitcoin.SelectParams(parsed_config.bitcoin_chain_for_pycoin.name)
     elif parsed_config.blockchain == 'ethereum':
         logging.warning('you will run into ethereum things')
         parsed_config.ether_chain = Chain.parse_from_chain(parsed_config.ethereum_chain)
@@ -93,7 +95,6 @@ def get_config():
     else:
         raise Chain.UnknownChainError(parsed_config.blockchain)
 
-    bitcoin.SelectParams(parsed_config.bitcoin_chain_for_pycoin.name)
     configure_logger()
 
     return parsed_config

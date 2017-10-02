@@ -16,6 +16,8 @@ from pycoin.tx import TxOut, Tx
 
 from cert_issuer.errors import UnverifiedTransactionError
 
+
+
 BYTES_PER_INPUT = 148  # assuming compressed public key
 BYTES_PER_OUTPUT = 34
 FIXED_EXTRA_BYTES = 10
@@ -25,9 +27,24 @@ COIN = 100000000  # satoshis in 1 btc
 
 
 class EthereumTransactionCostConstants(object):
-    def __init__(self):
-        pass  
+    def __init__(self, recommended_gas_price=20000000000, recommended_gas_limit=25000):
+        self.recommended_gas_price = recommended_gas_price
+        self.recommended_gas_limit = recommended_gas_limit
+        logging.info('Set cost constants to recommended_gas_price=%f, recommended_gas_limit=%f',
+                     self.recommended_gas_price, self.recommended_gas_limit)
+        
+    """
+    The below methods currently only use the supplied gasprice/limit.
+    These values can also be better estimated via a call to the Ethereum blockchain.
+    """
+    def get_recommended_max_cost(self):
+        return self.recommended_gas_price * self.recommended_gas_limit
+    
+    def get_gas_price(self):
+        return self.recommended_gas_price
 
+    def get_gas_limit(self):
+        return self.recommended_gas_limit
 
 
 class BitcoinTransactionCostConstants(object):
@@ -174,3 +191,13 @@ def calculate_tx_fee(tx_cost_constants, num_inputs, num_outputs):
     tx_size = calculate_raw_tx_size_with_op_return(num_inputs, num_outputs)
     tx_fee = tx_cost_constants.satoshi_per_byte * tx_size
     return max(tx_fee, tx_cost_constants.get_recommended_fee_coin())
+
+
+def create_Ethereum_trx(issuing_address, nonce, to_address, blockchain_bytes, gasprice, gaslimit):
+    #the actual value transfer is 0 in the Ethereum implementation
+    from ethereum import transactions
+    value = 0
+    transaction = transactions.Transaction(nonce,gasprice, gaslimit, to_address, value, blockchain_bytes)
+    
+    return transaction
+

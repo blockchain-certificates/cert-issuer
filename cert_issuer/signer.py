@@ -14,6 +14,8 @@ from pycoin.tx.pay_to import build_hash160_lookup
 
 from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
 
+import rlp
+
 
 def import_key(secrets_file_path):
     with open(secrets_file_path) as key_file:
@@ -54,7 +56,13 @@ def check_internet_on(secrets_file_path):
 
 def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
-    signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_pycoin)
+    if app_config.blockchain == 'bitcoin':
+        signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_pycoin)
+    elif app_config.blockchain == 'ethereum':
+        signer = EthereumSigner(ethereum_chain=app_config.ethereum_chain)
+    else:
+        logging.error('Trying to sign to unknown blockchain')
+    
     secret_manager = FileSecretManager(signer=signer, path_to_secret=path_to_secret,
                                        safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
     return secret_manager
@@ -98,6 +106,22 @@ class BitcoinSigner(Signer):
                 logging.error('Unable to sign transaction. hextx=%s', signed_transaction.as_hex())
                 raise UnableToSignTxError('Unable to sign transaction')
         return signed_transaction
+
+class EthereumSigner(Signer):
+    def __init__(self, ethereum_chain):
+        self.ethereum_chain = ethereum_chain
+
+    #wif = priv key in this example
+    def sign_message(self, wif, message_to_sign):
+        pass
+    
+    def sign_transaction(self, wif, transaction_to_sign):
+        ##try to sign the transaction.
+        try:
+            return { 'error':False, 'sign':rlp.encode(transaction_to_sign.sign(wif)).encode('hex') }
+        except Exception as msg:
+            return { 'error':True, 'message':msg }
+        
 
 
 class SecretManager(object):
