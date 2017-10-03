@@ -14,6 +14,8 @@ from pycoin.tx.pay_to import build_hash160_lookup
 
 from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
 
+from ethereum import transactions
+from ethereum.utils import encode_hex
 import rlp
 
 
@@ -117,10 +119,19 @@ class EthereumSigner(Signer):
     
     def sign_transaction(self, wif, transaction_to_sign):
         ##try to sign the transaction.
-        try:
-            return { 'error':False, 'sign':rlp.encode(transaction_to_sign.sign(wif)).encode('hex') }
-        except Exception as msg:
-            return { 'error':True, 'message':msg }
+        
+        if isinstance(transaction_to_sign, transactions.Transaction):
+            try:
+                #Hardcoded the network code 
+                raw_tx = rlp.encode(transaction_to_sign.sign(wif,3))
+                raw_tx_hex = encode_hex(raw_tx)
+                return raw_tx_hex 
+            except Exception as msg:
+                return { 'error':True, 'message':msg }
+        else:
+            raise UnableToSignTxError('You are trying to sign a non transaction type')
+       
+
         
 
 

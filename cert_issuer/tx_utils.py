@@ -195,9 +195,8 @@ def calculate_tx_fee(tx_cost_constants, num_inputs, num_outputs):
 
 def create_Ethereum_trx(issuing_address, nonce, to_address, blockchain_bytes, gasprice, gaslimit):
     #the actual value transfer is 0 in the Ethereum implementation
-    from ethereum import transactions
+    from ethereum.transactions import Transaction
     value = 0
-    transaction = transactions.Transaction(nonce,gasprice, gaslimit, to_address, value, blockchain_bytes)
-    
-    return transaction
+    tx = Transaction(nonce=nonce, gasprice=gasprice, startgas=gaslimit, to=to_address, value=value, data=blockchain_bytes)
+    return tx
 

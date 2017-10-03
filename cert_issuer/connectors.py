@@ -98,9 +98,12 @@ class EtherscanBroadcaster(object):
             '&apikey=%s' % self.api_token
         response = requests.get(broadcast_url)
         if int(response.status_code) == 200:
-            nonce = int(response.json().get('result', None))
+            #the int(res, 0) transforms the hex nonce to int
+            nonce = int(response.json().get('result', None), 0)
             logging.info('Nonce check went correct: %s', response.json())
             return nonce
+        else:
+            logging.info('response error checking nonce')
         raise BroadcastError('Error checking the nonce through the Etherscan API. Error msg: %s', response.text)
         
         
