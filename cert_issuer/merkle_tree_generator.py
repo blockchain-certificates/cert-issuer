@@ -73,7 +73,7 @@ class MerkleTreeGenerator(object):
 
 
 def to_source_id(txid, chain):
-    if chain == Chain.mainnet or Chain.testnet:
+    if chain == Chain.mainnet or Chain.testnet or Chain.ethmain or Chain.ethrop:
         return txid
     else:
         return 'This has not been issued on a blockchain and is for testing only'
@@ -94,3 +94,9 @@ def to_anchor_type(chain):
     # non-standard
     elif chain == Chain.mocknet:
         return 'MockOpReturn'
+    # non-standard
+    elif chain == Chain.ethmain:
+        return 'ETHdata'
+    # non-standard
+    elif chain == Chain.ethrop:
+        return 'ETHdataRopsten'
