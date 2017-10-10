@@ -112,8 +112,10 @@ class BitcoinSigner(Signer):
 class EthereumSigner(Signer):
     def __init__(self, ethereum_chain):
         self.ethereum_chain = ethereum_chain
+        #Ethereum netcodes are multiplied by 10 to avoid conflicts with bitcoin netcodes
+        self.netcode = int(ethereum_chain._value_/10)
 
-    #wif = priv key in this example
+    #wif = unencrypted private key as string in the first line of the supplied private key file
     def sign_message(self, wif, message_to_sign):
         pass
     
@@ -122,8 +124,7 @@ class EthereumSigner(Signer):
         
         if isinstance(transaction_to_sign, transactions.Transaction):
             try:
-                #Hardcoded the network code 
-                raw_tx = rlp.encode(transaction_to_sign.sign(wif,3))
+                raw_tx = rlp.encode(transaction_to_sign.sign(wif, self.netcode))
                 raw_tx_hex = encode_hex(raw_tx)
                 return raw_tx_hex 
             except Exception as msg:
@@ -131,10 +132,6 @@ class EthereumSigner(Signer):
         else:
             raise UnableToSignTxError('You are trying to sign a non transaction type')
        
-
-        
-
-
 class SecretManager(object):
     def __init__(self, signer):
         self.signer = signer

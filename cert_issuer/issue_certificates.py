@@ -57,8 +57,8 @@ def main(app_config):
         transaction_handler = MockTransactionHandler()
     #new ethereum chains.
     elif chain == Chain.ethmain or chain == Chain.ethrop or chain == Chain.ethtest:
-        cost_constants = EthereumTransactionCostConstants()
-        connector = EthereumServiceProviderConnector(chain)
+        cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
+        connector = EthereumServiceProviderConnector(chain, app_config.api_token)
         transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager, issuing_address=issuing_address)
     else:
         cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
