@@ -178,13 +178,11 @@ class EthereumTransactionHandler(TransactionHandler):
             raise InsufficientFundsError(error_message)
 
     def issue_transaction(self, blockchain_bytes):
-        EtherDataField = b2h(blockchain_bytes)
+        etherDataField = b2h(blockchain_bytes)
         prepared_tx = self.create_transaction(blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
-        ##TODO: verify step
+        self.verify_transaction(signed_tx, etherDataField)
         txid = self.broadcast_transaction(signed_tx)
-        
-        ##'WIP'
         return txid
 
     def create_transaction(self, blockchain_bytes):
@@ -211,6 +209,9 @@ class EthereumTransactionHandler(TransactionHandler):
     def broadcast_transaction(self, signed_tx):
         txid = self.connector.broadcast_tx(signed_tx)
         return txid
+
+    def verify_transaction(self, signed_tx, etherDataField):
+        tx_utils.verify_eth_transaction(signed_tx, etherDataField)
 
 class MockTransactionHandler(TransactionHandler):
     def ensure_balance(self):

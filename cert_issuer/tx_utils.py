@@ -200,3 +200,21 @@ def create_Ethereum_trx(issuing_address, nonce, to_address, blockchain_bytes, ga
     tx = Transaction(nonce=nonce, gasprice=gasprice, startgas=gaslimit, to=to_address, value=value, data=blockchain_bytes)
     return tx
 
+def verify_eth_transaction(signed_hextx, ethDataField):
+    """
+    Verify ethDataField field in transaction
+    :param signed_hextx:
+    :param ethDataField:
+    :return:
+    """
+    logging.info('verifying ethDataField value for transaction')
+    ethdata_hash = []
+    for s in signed_hextx.split('80a0'):
+        ethdata_hash.append(s)
+    ethdata_hash = ethdata_hash[1][:64]
+    result = (ethDataField == ethdata_hash)
+    if not result:
+        error_message = 'There was a problem verifying the transaction'
+        raise UnverifiedTransactionError(error_message)
+    logging.info('verified ethDataField')
+
