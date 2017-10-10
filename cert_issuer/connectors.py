@@ -54,7 +54,6 @@ class EtherscanBroadcaster(object):
         self.api_token = api_token
     
     def broadcast_tx(self, tx):
-        ##TODO: check transaction encoding. Assumes hex currently.
         tx_hex = tx
 
         broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
@@ -63,8 +62,7 @@ class EtherscanBroadcaster(object):
         response = requests.post(broadcast_url, data={'hex': tx_hex})
         if int(response.status_code) == 200:
             tx_id = response.json().get('result', None)
-            ##testing:
-            logging.info("response_json: %s", response.json())
+            logging.info("Transaction ID obtained from broadcast through Etherscan: %s", tx_id)
             return tx_id
         logging.error('Error broadcasting the transaction through the Etherscan API. Error msg: %s', response.text)
         raise BroadcastError(response.text)
@@ -370,10 +368,10 @@ connectors[Chain.ethrop.netcode] = rop_provider_list
 
 
 #Edit to blockchain 
-def get_providers_for_chain(bitcoin_chain, bitcoind=False):
-    if bitcoin_chain == Chain.regtest:
+def get_providers_for_chain(blockchain_network, bitcoind=False):
+    if blockchain_network == Chain.regtest:
         return [BitcoindConnector(Chain.testnet.netcode)]
     elif bitcoind:
-        return [BitcoindConnector(bitcoin_chain.netcode)]
+        return [BitcoindConnector(blockchain_network.netcode)]
     else:
-        return connectors[bitcoin_chain.netcode]
+        return connectors[blockchain_network.netcode]

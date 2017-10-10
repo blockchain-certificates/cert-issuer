@@ -65,6 +65,7 @@ def add_arguments(p):
     
 
 def get_config():
+    configure_logger()
     p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf.ini'),
                                                                '/etc/cert-issuer/conf.ini'])
     add_arguments(p)
@@ -74,27 +75,21 @@ def get_config():
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
-    # overwrite with enum
     if parsed_config.blockchain == 'bitcoin':
-        parsed_config.bitcoin_chain = Chain.parse_from_chain(parsed_config.bitcoin_chain)
-        if parsed_config.bitcoin_chain == Chain.mocknet or parsed_config.bitcoin_chain == Chain.regtest:
+        parsed_config.blockchain_network = Chain.parse_from_chain(parsed_config.bitcoin_chain)
+        if parsed_config.blockchain_network == Chain.mocknet or parsed_config.blockchain_network == Chain.regtest:
             parsed_config.bitcoin_chain_for_pycoin = Chain.testnet
-            logging.warning('got in here if')
         else:
-            parsed_config.bitcoin_chain_for_pycoin = parsed_config.bitcoin_chain
-            logging.warning('got in here else')
+            parsed_config.bitcoin_chain_for_pycoin = parsed_config.blockchain_network
 
         bitcoin.SelectParams(parsed_config.bitcoin_chain_for_pycoin.name)
+        logging.info('This run will try to issue on the: %s chain', parsed_config.bitcoin_chain)
     elif parsed_config.blockchain == 'ethereum':
-        logging.warning('you will run into ethereum things')
+        parsed_config.blockchain_network  = Chain.parse_from_chain(parsed_config.ethereum_chain)
         parsed_config.ether_chain = Chain.parse_from_chain(parsed_config.ethereum_chain)
+        logging.info('This run will try to issue on the: %s chain', parsed_config.ether_chain)
         
-        #added below just so it works:
-        parsed_config.bitcoin_chain = Chain.parse_from_chain(parsed_config.bitcoin_chain)
-        parsed_config.bitcoin_chain_for_pycoin = Chain.testnet
     else:
         raise Chain.UnknownChainError(parsed_config.blockchain)
-
-    configure_logger()
 
     return parsed_config

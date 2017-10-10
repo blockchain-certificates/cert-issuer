@@ -61,7 +61,7 @@ def initialize_signer(app_config):
     if app_config.blockchain == 'bitcoin':
         signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_pycoin)
     elif app_config.blockchain == 'ethereum':
-        signer = EthereumSigner(ethereum_chain=app_config.ethereum_chain)
+        signer = EthereumSigner(ethereum_chain=app_config.ether_chain)
     else:
         logging.error('Trying to sign to unknown blockchain')
     
