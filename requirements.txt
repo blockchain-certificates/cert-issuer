@@ -1,3 +1,4 @@
+cert-schema>=2.0.5
 chainpoint==0.0.2
 configargparse==0.12.0
 glob2==0.6
@@ -8,7 +9,4 @@ python-bitcoinlib==0.8.0
 requests>=2.18.4
 tox>=2.7.0
 rlp>=0.6.0
-
-#The following requirements do not have the latest version on pip and therefore need to be installed manually.
-#ethereum==2.0.5
-#cert-schema>=2.0.5
+ethereum==2.1.0
