@@ -39,8 +39,8 @@ def add_arguments(p):
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure')
     p.add_argument('--chain', default='bitcoin_regtest',
-                   help='Which chain to use. Default is bitcoin_regtest (which is how the docker container is '
-                        'configured). Other options are bitcoin_testnet and bitcoin_mainnet.')
+                   help='Which chain to use. Default is bitcoin_regtest (which is how the docker container is configured). Other options are bitcoin_testnet bitcoin_mainnet, mockchain, ethereum_mainnet, ethereum_ropsten, ethereum_testnet')
+
     p.add_argument('--safe_mode', dest='safe_mode', default=True, action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', default=False, action='store_false',
@@ -48,9 +48,6 @@ def add_arguments(p):
     p.add_argument('--blockchain', default='bitcoin',
                    help='decide the blockchain to anchor the certificates to. Bitcoin blockchain is default. Ethereum is experimental currently')
     #bitcoin arguments
-    p.add_argument('--bitcoin_chain', default='regtest',
-                   help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
-                        'configured). Other options are testnet and mainnet.')
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
     p.add_argument('--tx_fee', default=0.0006, type=float,
@@ -64,8 +61,6 @@ def add_arguments(p):
     p.add_argument('--no_bitcoind', dest='bitcoind', default=True, action='store_false',
                    help='Default; do not use bitcoind connectors; use APIs instead')
     #ethereum arguments
-    p.add_argument('--ethereum_chain', default='ethtest',
-                   help='Which ethereum chain to use. Default is a local testnet (ethtest). Other options are ethmain and ethrop' )
     p.add_argument('--gas_price', default=20000000000, type=int,
                    help='decide the price per gas spent (in wei (smallest ETH unit))')
     p.add_argument('--gas_limit', default=25000, type=int,

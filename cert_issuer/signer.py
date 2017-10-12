@@ -63,7 +63,7 @@ def initialize_signer(app_config):
     if app_config.chain.blockchain_type == BlockchainType.bitcoin:
         signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_pycoin)
     elif app_config.chain.blockchain_type == BlockchainType.ethereum:
-        signer = EthereumSigner(ethereum_chain=app_config.ether_chain)
+        signer = EthereumSigner(ethereum_chain=app_config.chain)
     elif app_config.chain == Chain.mockchain:
         signer = None
     else:
@@ -116,6 +116,7 @@ class EthereumSigner(Signer):
     def __init__(self, ethereum_chain):
         self.ethereum_chain = ethereum_chain
         #Ethereum netcodes are multiplied by 10 to avoid conflicts with bitcoin netcodes
+        # TODO: Does ethereum need this?
         self.netcode = int(ethereum_chain._value_/10)
 
     #wif = unencrypted private key as string in the first line of the supplied private key file
