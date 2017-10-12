@@ -1,6 +1,6 @@
 import unittest
 
-import bitcoin
+from bitcoin import SelectParams
 from bitcoin.core import COutPoint, lx, x, CScript
 from bitcoin.core.script import OP_EQUALVERIFY, OP_CHECKSIG, OP_DUP, OP_HASH160
 from bitcoin.wallet import P2PKHBitcoinAddress
@@ -57,8 +57,8 @@ def mock_broadcast(self, transaction):
 @patch('bitcoin.rpc.Proxy.listunspent', mock_listunspent)
 class TestConnectors(unittest.TestCase):
     def test_bitcoind_connector_spendables(self):
-        bitcoin.SelectParams('testnet')
-        bc = BitcoindConnector('XTN')
+        SelectParams('testnet')
+        bc = BitcoindConnector('testnet')
         spendables = bc.spendables_for_address('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
         self.assertEquals(len(spendables), 3)
         self.assertEquals(b2h(spendables[0].tx_hash),

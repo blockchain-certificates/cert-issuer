@@ -3,7 +3,8 @@ import os
 
 import bitcoin
 import configargparse
-from cert_schema import Chain
+from cert_schema import BlockchainType, Chain, chain_to_bitcoin_network, UnknownChainError
+from cert_issuer import helpers
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
@@ -28,9 +29,9 @@ def add_arguments(p):
     p.add_argument('--usb_name', required=True, help='usb path to key_file')
     p.add_argument('--key_file', required=True,
                    help='name of file on USB containing private key')
-    p.add_argument('--bitcoin_chain', default='regtest',
-                   help='Which bitcoin chain to use. Default is regtest (which is how the docker container is '
-                        'configured). Other options are testnet and mainnet.')
+    p.add_argument('--chain', default='bitcoin_regtest',
+                   help='Which chain to use. Default is bitcoin_regtest (which is how the docker container is '
+                        'configured). Other options are bitcoin_testnet and bitcoin_mainnet.')
     p.add_argument('--safe_mode', dest='safe_mode', default=True, action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', default=False, action='store_false',
@@ -69,13 +70,18 @@ def get_config():
                         'documentation to ensure this is what you want, since this is less secure')
 
     # overwrite with enum
-    parsed_config.bitcoin_chain = Chain.parse_from_chain(parsed_config.bitcoin_chain)
-    if parsed_config.bitcoin_chain == Chain.mocknet or parsed_config.bitcoin_chain == Chain.regtest:
-        parsed_config.bitcoin_chain_for_pycoin = Chain.testnet
+    parsed_config.chain = Chain.parse_from_chain(parsed_config.chain)
+    if parsed_config.chain == Chain.mockchain:
+        parsed_config.bitcoin_chain_for_python_bitcoinlib = Chain.bitcoin_regtest
+    elif parsed_config.chain.blockchain_type == BlockchainType.bitcoin:
+        parsed_config.bitcoin_chain_for_python_bitcoinlib = parsed_config.chain
     else:
-        parsed_config.bitcoin_chain_for_pycoin = parsed_config.bitcoin_chain
+        raise UnknownChainError(parsed_config.chain.name)
 
-    bitcoin.SelectParams(parsed_config.bitcoin_chain_for_pycoin.name)
+    if parsed_config.chain.blockchain_type == BlockchainType.bitcoin:
+        bitcoin.SelectParams(chain_to_bitcoin_network(parsed_config.bitcoin_chain_for_python_bitcoinlib))
+        parsed_config.bitcoin_chain_for_pycoin = helpers.to_pycoin_chain(parsed_config.chain)
+
     configure_logger()
 
     return parsed_config

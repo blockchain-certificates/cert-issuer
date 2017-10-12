@@ -51,7 +51,7 @@ Edit your conf.ini file (the config file for this application).
 
 ```
 issuing_address = <issuing-address>
-bitcoin_chain=<regtest|testnet|mainnet>
+chain=<bitcoin_regtest|bitcoin_testnet|bitcoin_mainnet>
     
 usb_name = </Volumes/path-to-usb/>
 key_file = <file-you-saved-pk-to>

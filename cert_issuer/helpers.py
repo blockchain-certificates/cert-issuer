@@ -6,6 +6,7 @@ import shutil
 import glob2
 from pycoin.serialize import b2h, h2b
 
+from cert_schema import Chain, UnknownChainError
 from cert_issuer.errors import NoCertificatesFoundError
 
 unhexlify = h2b
@@ -90,3 +91,12 @@ def copy_output(certificates_metadata):
         from_file = metadata.blockchain_cert_file_name
         to_file = metadata.final_blockchain_cert_file_name
         shutil.copy2(from_file, to_file)
+
+
+def to_pycoin_chain(chain):
+    if chain == Chain.bitcoin_regtest or chain == Chain.bitcoin_testnet:
+        return 'XTN'
+    elif chain == Chain.bitcoin_mainnet:
+        return'BTC'
+    else:
+        raise UnknownChainError(chain.name)

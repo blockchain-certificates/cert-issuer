@@ -12,6 +12,7 @@ from pycoin.encoding import wif_to_secret_exponent
 from pycoin.networks import wif_prefix_for_netcode
 from pycoin.tx.pay_to import build_hash160_lookup
 
+from cert_schema import chain_to_bitcoin_network
 from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
 
 
@@ -54,7 +55,7 @@ def check_internet_on(secrets_file_path):
 
 def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
-    signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_pycoin)
+    signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_python_bitcoinlib)
     secret_manager = FileSecretManager(signer=signer, path_to_secret=path_to_secret,
                                        safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
     return secret_manager
@@ -80,7 +81,7 @@ class Signer(object):
 class BitcoinSigner(Signer):
     def __init__(self, bitcoin_chain):
         self.bitcoin_chain = bitcoin_chain
-        self.allowable_wif_prefixes = wif_prefix_for_netcode(bitcoin_chain.netcode)
+        self.allowable_wif_prefixes = wif_prefix_for_netcode(chain_to_bitcoin_network(bitcoin_chain))
 
     def sign_message(self, wif, message_to_sign):
         secret_key = CBitcoinSecret(wif)
