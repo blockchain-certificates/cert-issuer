@@ -1,9 +1,9 @@
-cert-schema>=2.0.4
+cert-schema>=2.0.7
 chainpoint==0.0.2
 configargparse==0.12.0
 glob2==0.6
 mock==2.0.0
-pycoin==0.77
+pycoin==0.80
 pyld>=0.7.1
 python-bitcoinlib==0.8.0
 requests>=2.18.4

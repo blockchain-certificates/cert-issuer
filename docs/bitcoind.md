@@ -24,7 +24,7 @@ rpcport = 8332
 rpcconnect = 127.0.0.1
 ```
 
-### Configuring for testnet mode
+### Configuring for bitcoin_testnet mode
 
 ```
 rpcuser=<your-user>
@@ -36,7 +36,7 @@ rpcport=8332
 ```
 
 
-### Configuring for mainnet mode
+### Configuring for bitcoin_mainnet mode
 
 ```
 rpcuser=<your-user>
