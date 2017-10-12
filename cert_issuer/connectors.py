@@ -12,11 +12,12 @@ from bitcoin.core import CTransaction
 from cert_schema import Chain
 from pycoin.serialize import b2h, b2h_rev, h2b
 from pycoin.services import providers
-from pycoin.services.blockr_io import BlockrioProvider
+from pycoin.services.chain_so import ChainSoProvider
 from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
-from pycoin.tx import Spendable
+from pycoin.tx.Spendable import Spendable
 
+from cert_issuer import helpers
 from cert_issuer.errors import ConnectorError, BroadcastError
 
 BROADCAST_RETRY_INTERVAL = 30
@@ -338,39 +339,37 @@ PYCOIN_XTN_PROVIDERS = "blockexplorer.com"  # chain.so
 # initialize connectors
 connectors = {}
 
-# configure Bitcoin mainnet providers
-provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, Chain.mainnet.netcode)
+
+# configure mainnet providers
+provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS, helpers.to_pycoin_chain(Chain.bitcoin_mainnet))
 provider_list.append(BlockrIOBroadcaster('https://btc.blockr.io/api/v1'))
 provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
-provider_list.append(BlockrioProvider(Chain.mainnet.netcode))
-provider_list.append(InsightProvider(netcode=Chain.mainnet.netcode))
-connectors[Chain.mainnet.netcode] = provider_list
+provider_list.append(InsightProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
+provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
+connectors[Chain.bitcoin_mainnet] = provider_list
 
-# configure Bitcoin testnet providers
-xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, Chain.testnet.netcode)
-xtn_provider_list.append(InsightProvider(base_url='https://test-insight.bitpay.com', netcode=Chain.testnet.netcode))
+
+# configure testnet providers
+xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS, helpers.to_pycoin_chain(Chain.bitcoin_testnet))
+xtn_provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_testnet)))
 xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
 xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
-xtn_provider_list.append(BlockrioProvider(Chain.testnet.netcode))
-connectors[Chain.testnet.netcode] = xtn_provider_list
+connectors[Chain.bitcoin_testnet] = xtn_provider_list
 
 #Configure Ethereum mainnet connectors 
 eth_provider_list = []
 eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api'))
-connectors[Chain.ethmain.netcode] = eth_provider_list
+connectors[Chain.ethereum_mainnet] = eth_provider_list
 
 #Configure Ethereum Ropsten testnet connectors
 rop_provider_list = []
 rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
-connectors[Chain.ethrop.netcode] = rop_provider_list
+connectors[Chain.ethereum_ropsten] = rop_provider_list
 
 
-
-#Edit to blockchain 
-def get_providers_for_chain(blockchain_network, bitcoind=False):
-    if blockchain_network == Chain.regtest:
-        return [BitcoindConnector(Chain.testnet.netcode)]
-    elif bitcoind:
-        return [BitcoindConnector(blockchain_network.netcode)]
+def get_providers_for_chain(chain, bitcoind=False):
+    if bitcoind:
+        return [BitcoindConnector(helpers.to_pycoin_chain(chain))]
     else:
-        return connectors[blockchain_network.netcode]
+        return connectors[chain]
+

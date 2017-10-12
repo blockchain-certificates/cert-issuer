@@ -75,6 +75,7 @@ Edit your conf.ini file (the config file for this application).
 
 ```
 issuing_address = <issuing-address>
+<<<<<<< HEAD
 blockchain = <bicoin|ethereum>
 
 #if using bitcoin specify:
@@ -83,6 +84,10 @@ bitcoin_chain=<regtest|testnet|mainnet>
 #If using Ethereum specify:
 ethereum_chain=<ethmain|ethrop>
   
+=======
+chain=<bitcoin_regtest|bitcoin_testnet|bitcoin_mainnet>
+    
+>>>>>>> 0b989a49466ae4f31c0befaeb9c22e4d8f44ac93
 usb_name = </Volumes/path-to-usb/>
 key_file = <file-you-saved-pk-to>
 

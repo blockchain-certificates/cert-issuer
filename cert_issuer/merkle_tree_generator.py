@@ -41,7 +41,7 @@ class MerkleTreeGenerator(object):
         merkle_root = self.tree.get_merkle_root()
         return h2b(ensure_string(merkle_root))
 
-    def get_proof_generator(self, tx_id, chain=Chain.mainnet):
+    def get_proof_generator(self, tx_id, chain=Chain.bitcoin_mainnet):
         """
         Returns a generator (1-time iterator) of proofs in insertion order.
 
@@ -67,36 +67,15 @@ class MerkleTreeGenerator(object):
                 "proof": proof2,
                 "anchors": [{
                     "sourceId": to_source_id(tx_id, chain),
-                    "type": to_anchor_type(chain)
+                    "type": chain.blockchain_type.external_display_value,
+                    "chain": chain.external_display_value
                 }]}
             yield merkle_proof
 
 
 def to_source_id(txid, chain):
-    if chain == Chain.mainnet or Chain.testnet or Chain.ethmain or Chain.ethrop:
+
+    if chain == Chain.bitcoin_mainnet or Chain.bitcoin_testnet or Chain.ethereum_mainnet or Chain.ethereum_ropsten:
         return txid
     else:
         return 'This has not been issued on a blockchain and is for testing only'
-
-
-def to_anchor_type(chain):
-    """
-    Return the anchor type to include in the Blockcert signature. In next version of Blockcerts schema we will be able
-    to write XTNOpReturn for testnet
-    :param chain:
-    :return:
-    """
-    if chain == Chain.mainnet or chain == Chain.testnet:
-        return 'BTCOpReturn'
-    # non-standard
-    elif chain == Chain.regtest:
-        return 'REGOpReturn'
-    # non-standard
-    elif chain == Chain.mocknet:
-        return 'MockOpReturn'
-    # non-standard
-    elif chain == Chain.ethmain:
-        return 'ETHdata'
-    # non-standard
-    elif chain == Chain.ethrop:
-        return 'ETHdataRopsten'

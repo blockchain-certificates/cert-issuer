@@ -19,6 +19,7 @@ data/work/*
 
 data*/*
 dist/*
+build/*
 
 requirements.txt
 .idea/*

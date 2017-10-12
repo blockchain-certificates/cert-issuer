@@ -38,7 +38,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
         certificate_batch_handler=certificate_batch_handler,
         transaction_handler=transaction_handler,
         max_retry=app_config.max_retry)
-    tx_id = issuer.issue(app_config.blockchain_network)
+    tx_id = issuer.issue(app_config.chain)
 
     helpers.copy_output(certificates_metadata)
 
@@ -48,15 +48,15 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 
 def main(app_config):
     issuing_address = app_config.issuing_address
-    chain = app_config.blockchain_network
+    chain = app_config.chain
     secret_manager = signer_helper.initialize_signer(app_config)
     certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
                                                         certificate_handler=CertificateV2Handler(),
                                                         merkle_tree=MerkleTreeGenerator())
-    if chain == Chain.mocknet:
+    if chain == Chain.mockchain:
         transaction_handler = MockTransactionHandler()
-    #new ethereum chains.
-    elif chain == Chain.ethmain or chain == Chain.ethrop or chain == Chain.ethtest:
+    # ethereum chains
+    elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten or chain == Chain.ethereum_testnet:
         cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
         connector = EthereumServiceProviderConnector(chain, app_config.api_token)
         transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager, issuing_address=issuing_address)

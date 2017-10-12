@@ -3,7 +3,8 @@ import os
 
 import bitcoin
 import configargparse
-from cert_schema import Chain
+from cert_schema import BlockchainType, Chain, chain_to_bitcoin_network, UnknownChainError
+from cert_issuer import helpers
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
@@ -37,6 +38,9 @@ def add_arguments(p):
     p.add_argument('--work_dir', default=WORK_PATH,
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.')
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure')
+    p.add_argument('--chain', default='bitcoin_regtest',
+                   help='Which chain to use. Default is bitcoin_regtest (which is how the docker container is '
+                        'configured). Other options are bitcoin_testnet and bitcoin_mainnet.')
     p.add_argument('--safe_mode', dest='safe_mode', default=True, action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', default=False, action='store_false',
@@ -81,21 +85,22 @@ def get_config():
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
                         'documentation to ensure this is what you want, since this is less secure')
 
-    if parsed_config.blockchain == 'bitcoin':
-        parsed_config.blockchain_network = Chain.parse_from_chain(parsed_config.bitcoin_chain)
-        if parsed_config.blockchain_network == Chain.mocknet or parsed_config.blockchain_network == Chain.regtest:
-            parsed_config.bitcoin_chain_for_pycoin = Chain.testnet
-        else:
-            parsed_config.bitcoin_chain_for_pycoin = parsed_config.blockchain_network
-
-        bitcoin.SelectParams(parsed_config.bitcoin_chain_for_pycoin.name)
-        logging.info('This run will try to issue on the: %s chain', parsed_config.bitcoin_chain)
-    elif parsed_config.blockchain == 'ethereum':
-        parsed_config.blockchain_network  = Chain.parse_from_chain(parsed_config.ethereum_chain)
-        parsed_config.ether_chain = Chain.parse_from_chain(parsed_config.ethereum_chain)
+    # overwrite with enum
+    parsed_config.chain = Chain.parse_from_chain(parsed_config.chain)
+    if parsed_config.chain == Chain.mockchain:
+        parsed_config.bitcoin_chain_for_python_bitcoinlib = Chain.bitcoin_regtest
+    elif parsed_config.chain.blockchain_type == BlockchainType.bitcoin:
+        parsed_config.bitcoin_chain_for_python_bitcoinlib = parsed_config.chain
+    elif parsed_config.chain.blockchain_type == BlockchainType.ethereum:
+        parsed_config.ether_chain = parsed_config.chain
         logging.info('This run will try to issue on the: %s chain', parsed_config.ether_chain)
-        
     else:
-        raise Chain.UnknownChainError(parsed_config.blockchain)
+        raise UnknownChainError(parsed_config.chain.name)
+
+    if parsed_config.chain.blockchain_type == BlockchainType.bitcoin:
+        bitcoin.SelectParams(chain_to_bitcoin_network(parsed_config.bitcoin_chain_for_python_bitcoinlib))
+        parsed_config.bitcoin_chain_for_pycoin = helpers.to_pycoin_chain(parsed_config.chain)
+
+    configure_logger()
 
     return parsed_config
