@@ -45,8 +45,6 @@ def add_arguments(p):
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', default=False, action='store_false',
                    help='Turns off safe mode. Only change this option for testing or unit testing.')
-    p.add_argument('--blockchain', default='bitcoin',
-                   help='decide the blockchain to anchor the certificates to. Bitcoin blockchain is default. Ethereum is experimental currently')
     #bitcoin arguments
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')

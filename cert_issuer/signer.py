@@ -115,9 +115,13 @@ class BitcoinSigner(Signer):
 class EthereumSigner(Signer):
     def __init__(self, ethereum_chain):
         self.ethereum_chain = ethereum_chain
-        #Ethereum netcodes are multiplied by 10 to avoid conflicts with bitcoin netcodes
-        # TODO: Does ethereum need this?
-        self.netcode = int(ethereum_chain._value_/10)
+        #Netcode ensures replay protection (see EIP155)
+        if ethereum_chain.external_display_value == 'ethereumMainnet':
+            self.netcode = 1
+        elif ethereum_chain.external_display_value == 'ethereumRopsten':
+            self.netcode = 3
+        else:
+            self.netcode = None
 
     #wif = unencrypted private key as string in the first line of the supplied private key file
     def sign_message(self, wif, message_to_sign):
