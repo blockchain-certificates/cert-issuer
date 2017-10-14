@@ -7,7 +7,7 @@ from pycoin.tx.Spendable import Spendable
 from pycoin.tx.Tx import Tx
 
 from cert_issuer import tx_utils
-from cert_issuer.tx_utils import TransactionCostConstants
+from cert_issuer.tx_utils import BitcoinTransactionCostConstants
 
 MAINNET_TX = '0100000001ce379123234bc9662f3f00f2a9c59d5420fc9f9d5e1fd8881b8666e8c9def133000000006a473044022032d2d9c2a67d90eb5ea32d9a5e935b46080d4c62a1d53265555c78775e8f6f2102205c3469593995b9b76f8d24aa4285a50b72ca71661ca021cd219883f1a8f14abe012103704cf7aa5e4152639617d0b3f8bcd302e231bbda13b468cba1b12aa7be14f3b3ffffffff07be0a0000000000001976a91464799d48941b0fbfdb4a7ee6340840fb2eb5c2c388acbe0a0000000000001976a914c615ecb52f6e877df0621f4b36bdb25410ec22c388acbe0a0000000000001976a9144e9862ff1c4041b7d083fe30cf5f68f7bedb321b88acbe0a0000000000001976a914413df7bf4a41f2e8a1366fcf7352885e6c88964b88acbe0a0000000000001976a914fabc1ff527531581b4a4c58f13bd088e274122bc88acbb810000000000001976a914fcbe34aa288a91eab1f0fe93353997ec6aa3594088ac0000000000000000226a2068f3ede17fdb67ffd4a5164b5687a71f9fbb68da803b803935720f2aa38f772800000000'
 
@@ -72,27 +72,27 @@ class TestTrxUtils(unittest.TestCase):
         self.assertEquals(estimated_byte_count, tx_byte_count + 1)
 
     def test_calculate_tx_fee_1(self):
-        cost_constants = TransactionCostConstants(0.0001, 0.0000275, 41)
+        cost_constants = BitcoinTransactionCostConstants(0.0001, 0.0000275, 41)
         total = tx_utils.calculate_tx_total(cost_constants, 40, 16)
         self.assertEqual(total, 312837)
 
     def test_get_cost_1(self):
-        cost_constants = TransactionCostConstants(0.0001, 0.0000275, 41)
+        cost_constants = BitcoinTransactionCostConstants(0.0001, 0.0000275, 41)
         total = tx_utils.calculate_tx_total(cost_constants, 1, 1)
         self.assertEqual(total, 12750)
 
     def test_get_cost_2(self):
-        cost_constants = TransactionCostConstants(0.0001, 0.0000275, 41)
+        cost_constants = BitcoinTransactionCostConstants(0.0001, 0.0000275, 41)
         total = tx_utils.calculate_tx_total(cost_constants, 1, 4)
         self.assertEqual(total, 24858)
 
     def test_get_cost_3(self):
-        cost_constants = TransactionCostConstants(0.0001, 0.0000275, 41)
+        cost_constants = BitcoinTransactionCostConstants(0.0001, 0.0000275, 41)
         total = tx_utils.calculate_tx_total(cost_constants, 1, 1000)
         self.assertEqual(total, 4152282)
 
     def test_get_cost_4(self):
-        cost_constants = TransactionCostConstants(0.0001, 0.0000275, 41)
+        cost_constants = BitcoinTransactionCostConstants(0.0001, 0.0000275, 41)
         total = tx_utils.calculate_tx_total(cost_constants, 1, 2000)
         self.assertEqual(total, 8296282)
 

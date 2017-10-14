@@ -19,10 +19,14 @@ data/work/*
 
 data*/*
 dist/*
+build/*
 
+requirements.txt
 .idea/*
 *.ini*
-
+pk_issuer.txt
+blockcerts testnet bitcoin address.txt
+.vscode/*
 .cache/*
 .tox/*
 *.egg-info/*

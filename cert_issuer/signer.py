@@ -12,8 +12,13 @@ from pycoin.encoding import wif_to_secret_exponent
 from pycoin.networks import wif_prefix_for_netcode
 from pycoin.tx.pay_to import build_hash160_lookup
 
-from cert_schema import chain_to_bitcoin_network
+from cert_schema import BlockchainType, Chain, UnknownChainError
 from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
+from cert_issuer import helpers
+
+from ethereum import transactions
+from ethereum.utils import encode_hex
+import rlp
 
 
 def import_key(secrets_file_path):
@@ -55,7 +60,15 @@ def check_internet_on(secrets_file_path):
 
 def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
-    signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_python_bitcoinlib)
+
+    if app_config.chain.blockchain_type == BlockchainType.bitcoin:
+        signer = BitcoinSigner(bitcoin_chain=app_config.chain)
+    elif app_config.chain.blockchain_type == BlockchainType.ethereum:
+        signer = EthereumSigner(ethereum_chain=app_config.chain)
+    elif app_config.chain == Chain.mockchain:
+        signer = None
+    else:
+        raise UnknownChainError(app_config.chain)
     secret_manager = FileSecretManager(signer=signer, path_to_secret=path_to_secret,
                                        safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
     return secret_manager
@@ -81,7 +94,7 @@ class Signer(object):
 class BitcoinSigner(Signer):
     def __init__(self, bitcoin_chain):
         self.bitcoin_chain = bitcoin_chain
-        self.allowable_wif_prefixes = wif_prefix_for_netcode(chain_to_bitcoin_network(bitcoin_chain))
+        self.allowable_wif_prefixes = wif_prefix_for_netcode(helpers.to_pycoin_chain(bitcoin_chain))
 
     def sign_message(self, wif, message_to_sign):
         secret_key = CBitcoinSecret(wif)
@@ -100,7 +113,34 @@ class BitcoinSigner(Signer):
                 raise UnableToSignTxError('Unable to sign transaction')
         return signed_transaction
 
+class EthereumSigner(Signer):
+    def __init__(self, ethereum_chain):
+        self.ethereum_chain = ethereum_chain
+        #Netcode ensures replay protection (see EIP155)
+        if ethereum_chain.external_display_value == 'ethereumMainnet':
+            self.netcode = 1
+        elif ethereum_chain.external_display_value == 'ethereumRopsten':
+            self.netcode = 3
+        else:
+            self.netcode = None
 
+    #wif = unencrypted private key as string in the first line of the supplied private key file
+    def sign_message(self, wif, message_to_sign):
+        pass
+    
+    def sign_transaction(self, wif, transaction_to_sign):
+        ##try to sign the transaction.
+        
+        if isinstance(transaction_to_sign, transactions.Transaction):
+            try:
+                raw_tx = rlp.encode(transaction_to_sign.sign(wif, self.netcode))
+                raw_tx_hex = encode_hex(raw_tx)
+                return raw_tx_hex 
+            except Exception as msg:
+                return { 'error':True, 'message':msg }
+        else:
+            raise UnableToSignTxError('You are trying to sign a non transaction type')
+       
 class SecretManager(object):
     def __init__(self, signer):
         self.signer = signer

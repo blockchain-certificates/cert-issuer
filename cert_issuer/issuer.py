@@ -20,11 +20,11 @@ class Issuer:
         :return:
         """
 
-        op_return_bytes = self.certificate_batch_handler.prepare_batch()
+        blockchain_bytes = self.certificate_batch_handler.prepare_batch()
 
         for attempt_number in range(0, self.max_retry):
             try:
-                txid = self.transaction_handler.issue_transaction(op_return_bytes)
+                txid = self.transaction_handler.issue_transaction(blockchain_bytes)
                 self.certificate_batch_handler.finish_batch(txid, chain)
                 logging.info('Broadcast transaction with txid %s', txid)
                 return txid
