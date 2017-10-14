@@ -10,3 +10,4 @@ requests>=2.18.4
 tox>=2.7.0
 rlp>=0.6.0
 ethereum>=2.1.0
+pysha3>=1.0.1

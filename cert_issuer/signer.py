@@ -12,8 +12,9 @@ from pycoin.encoding import wif_to_secret_exponent
 from pycoin.networks import wif_prefix_for_netcode
 from pycoin.tx.pay_to import build_hash160_lookup
 
-from cert_schema import chain_to_bitcoin_network, BlockchainType, Chain, UnknownChainError
+from cert_schema import BlockchainType, Chain, UnknownChainError
 from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
+from cert_issuer import helpers
 
 from ethereum import transactions
 from ethereum.utils import encode_hex
@@ -61,7 +62,7 @@ def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
 
     if app_config.chain.blockchain_type == BlockchainType.bitcoin:
-        signer = BitcoinSigner(bitcoin_chain=app_config.bitcoin_chain_for_pycoin)
+        signer = BitcoinSigner(bitcoin_chain=app_config.chain)
     elif app_config.chain.blockchain_type == BlockchainType.ethereum:
         signer = EthereumSigner(ethereum_chain=app_config.chain)
     elif app_config.chain == Chain.mockchain:
@@ -93,7 +94,7 @@ class Signer(object):
 class BitcoinSigner(Signer):
     def __init__(self, bitcoin_chain):
         self.bitcoin_chain = bitcoin_chain
-        self.allowable_wif_prefixes = wif_prefix_for_netcode(chain_to_bitcoin_network(bitcoin_chain))
+        self.allowable_wif_prefixes = wif_prefix_for_netcode(helpers.to_pycoin_chain(bitcoin_chain))
 
     def sign_message(self, wif, message_to_sign):
         secret_key = CBitcoinSecret(wif)

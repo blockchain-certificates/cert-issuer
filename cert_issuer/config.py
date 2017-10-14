@@ -80,19 +80,20 @@ def get_config():
 
     # overwrite with enum
     parsed_config.chain = Chain.parse_from_chain(parsed_config.chain)
-    if parsed_config.chain == Chain.mockchain:
-        parsed_config.bitcoin_chain_for_python_bitcoinlib = Chain.bitcoin_regtest
-    elif parsed_config.chain.blockchain_type == BlockchainType.bitcoin:
-        parsed_config.bitcoin_chain_for_python_bitcoinlib = parsed_config.chain
-    elif parsed_config.chain.blockchain_type == BlockchainType.ethereum:
-        parsed_config.ether_chain = parsed_config.chain
-        logging.info('This run will try to issue on the: %s chain', parsed_config.ether_chain)
-    else:
+
+    # ensure it's a supported chain
+    if parsed_config.chain.blockchain_type != BlockchainType.bitcoin and \
+                    parsed_config.chain.blockchain_type != BlockchainType.ethereum and \
+                    parsed_config.chain.blockchain_type != BlockchainType.mock:
         raise UnknownChainError(parsed_config.chain.name)
 
+    logging.info('This run will try to issue on the %s chain', parsed_config.chain.name)
+
     if parsed_config.chain.blockchain_type == BlockchainType.bitcoin:
-        bitcoin.SelectParams(chain_to_bitcoin_network(parsed_config.bitcoin_chain_for_python_bitcoinlib))
-        parsed_config.bitcoin_chain_for_pycoin = helpers.to_pycoin_chain(parsed_config.chain)
+        bitcoin_chain_for_python_bitcoinlib = parsed_config.chain
+        if parsed_config.chain == Chain.bitcoin_regtest:
+            bitcoin_chain_for_python_bitcoinlib = Chain.bitcoin_regtest
+        bitcoin.SelectParams(chain_to_bitcoin_network(bitcoin_chain_for_python_bitcoinlib))
 
     configure_logger()
 

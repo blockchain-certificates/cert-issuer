@@ -1,5 +1,8 @@
 import json
 from abc import abstractmethod
+import logging
+
+from pycoin.serialize import b2h
 
 from cert_schema import normalize_jsonld
 from cert_schema import validate_v2
@@ -92,7 +95,7 @@ class CertificateBatchHandler(object):
                 self.certificate_handler.sign_certificate(signer, metadata)
 
         self.merkle_tree.populate(self.get_certificate_generator())
-        print("here is the op_return_code data: %s", self.merkle_tree.get_blockchain_data())
+        logging.info('here is the op_return_code data: %s', b2h(self.merkle_tree.get_blockchain_data()))
         return self.merkle_tree.get_blockchain_data()
 
     def get_certificate_generator(self):
