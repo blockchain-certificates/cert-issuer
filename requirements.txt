@@ -1,4 +1,5 @@
-cert-schema>=2.0.7
+cert-core>=2.1.4
+cert-schema>=2.1.2
 chainpoint==0.0.2
 configargparse==0.12.0
 glob2==0.6

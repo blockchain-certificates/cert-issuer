@@ -2,7 +2,7 @@ import unittest
 
 from pycoin.serialize import b2h
 
-from cert_schema import Chain
+from cert_core import Chain
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 
 

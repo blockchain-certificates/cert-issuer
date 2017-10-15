@@ -9,7 +9,7 @@ from abc import abstractmethod
 import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
-from cert_schema import Chain
+from cert_core import Chain
 from pycoin.serialize import b2h, b2h_rev, h2b
 from pycoin.services import providers
 from pycoin.services.chain_so import ChainSoProvider

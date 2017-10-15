@@ -6,7 +6,7 @@ import shutil
 import glob2
 from pycoin.serialize import b2h, h2b
 
-from cert_schema import Chain, UnknownChainError
+from cert_core import Chain, UnknownChainError
 from cert_issuer.errors import NoCertificatesFoundError
 
 unhexlify = h2b

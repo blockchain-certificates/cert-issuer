@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from cert_schema import Chain
+from cert_core import Chain
 from cert_issuer import helpers
 from cert_issuer import signer as signer_helper
 from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateV2Handler

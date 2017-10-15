@@ -12,7 +12,7 @@ from pycoin.encoding import wif_to_secret_exponent
 from pycoin.networks import wif_prefix_for_netcode
 from pycoin.tx.pay_to import build_hash160_lookup
 
-from cert_schema import BlockchainType, Chain, UnknownChainError
+from cert_core import BlockchainType, Chain, UnknownChainError
 from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
 from cert_issuer import helpers
 

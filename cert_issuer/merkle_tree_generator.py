@@ -3,7 +3,7 @@ import hashlib
 from chainpoint.chainpoint import MerkleTools
 from pycoin.serialize import h2b
 
-from cert_schema import Chain
+from cert_core import Chain
 
 
 def hash_byte_array(data):

@@ -3,8 +3,7 @@ import os
 
 import bitcoin
 import configargparse
-from cert_schema import BlockchainType, Chain, chain_to_bitcoin_network, UnknownChainError
-from cert_issuer import helpers
+from cert_core import BlockchainType, Chain, chain_to_bitcoin_network, UnknownChainError
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
