@@ -196,7 +196,7 @@ First, ensure you've created an issuing address appropriate for the Bitcoin chai
     - save the unencrypted private key to a file (we recommend to store it on a removable drive for security).
     - save the public address as the `issuing_address` value in conf.ini
 
-If you are using a local bitcoin node, you can create addresses by command line. See [docs/bitcoind.md](bitcoind.md)
+If you are using a local bitcoin node, you can create addresses by command line. See [bitcoind.md](docs/bitcoind.md)
 
 
 ### Create an Ethereum issuing address
