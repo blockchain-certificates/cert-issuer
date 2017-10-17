@@ -173,7 +173,7 @@ We recommend starting in testnet before mainnet.
 
 By default, cert-issuer does not assume you have a bitcoin/ethereum node running locally, and it uses APIs to look up and broadcast transactions. There is API support for both testnet and mainnet chains. 
 
-If you do want to use a local bitcoin node, [see details about installing and configuring a bitcoin node for use with cert-issuer](bitcoind.md) before continuing.
+If you do want to use a local bitcoin node, [see details about installing and configuring a bitcoin node for use with cert-issuer](docs/bitcoind.md) before continuing.
 
 These steps walk you through issuing in testnet and mainnet mode. Note that the prerequisites and the configuration for the Bitcoin issuing and the Ethereum issuing differ. 
 
@@ -196,7 +196,7 @@ First, ensure you've created an issuing address appropriate for the Bitcoin chai
     - save the unencrypted private key to a file (we recommend to store it on a removable drive for security).
     - save the public address as the `issuing_address` value in conf.ini
 
-If you are using a local bitcoin node, you can create addresses by command line. See [bitcoind.md](bitcoind.md)
+If you are using a local bitcoin node, you can create addresses by command line. See [docs/bitcoind.md](bitcoind.md)
 
 
 ### Create an Ethereum issuing address
