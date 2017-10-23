@@ -361,6 +361,6 @@ You can validate your transaction before sending by looking it up by rawtx at bl
 
 # Contact
 
-Contact [info@blockcerts.org](mailto:info@blockcerts.org) with questions
+Contact us at [the Blockcerts community forum](http://community.blockcerts.org/).
 
 
