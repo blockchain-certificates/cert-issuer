@@ -351,13 +351,25 @@ This class structure is intended to be general-purpose to allow other implementa
 
 The files in examples/data-testnet contain results of previous runs. 
 
-# Checking transaction status
+# FAQs
+
+## Checking transaction status
 
 You can validate your transaction before sending by looking it up by rawtx at blockchain.info. Example:
 
    ```
    curl 'https://blockchain.info/rawtx/45a9306dfe99820eb346bb17ae0b64173ac11cac2d0e4227c7a7cacbcc0bad31?cors=true'
    ```
+
+## Mac scrypt problems
+
+If your install on Mac is failing with a message like the following, try the [workaround described in this thread](https://github.com/ethereum/pyethereum/issues/292).
+
+```
+fatal error: 'openssl/aes.h'
+      file not found
+#include <openssl/aes.h>
+```
 
 # Contact
 
