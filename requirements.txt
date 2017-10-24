@@ -6,7 +6,7 @@ ethereum>=2.1.0
 glob2==0.6
 mock==2.0.0
 pycoin>=0.80
-requests>=2.18.4
+requests[security]>=2.18.4
 pyld>=0.8.1
 pysha3>=1.0.1
 python-bitcoinlib>=0.8.0

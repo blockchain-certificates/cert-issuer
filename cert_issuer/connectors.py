@@ -78,9 +78,9 @@ class EtherscanBroadcaster(object):
         if api_token:
             '&apikey=%s' % api_token
         response = requests.get(broadcast_url)
-        if int(response.status_code) ==  200:
+        if int(response.status_code) == 200:
             balance = int(response.json().get('result', None))
-            logging.info('Balance check went correct: %s', response.json())
+            logging.info('Balance check succeeded: %s', response.json())
             return balance
         raise BroadcastError(response.text)
     
@@ -94,7 +94,7 @@ class EtherscanBroadcaster(object):
         broadcast_url += '&tag=latest'
         if api_token:
             '&apikey=%s' % api_token
-        response = requests.get(broadcast_url)
+        response = requests.get(broadcast_url, )
         if int(response.status_code) == 200:
             #the int(res, 0) transforms the hex nonce to int
             nonce = int(response.json().get('result', None), 0)
