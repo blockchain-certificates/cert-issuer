@@ -181,6 +181,20 @@ These steps walk you through issuing in testnet and mainnet mode. Note that the 
 
 Decide which chain (Bitcoin or Ethereum) to issue to and follow the steps. The bitcoin chain is currently best supported by the Blockcerts libraries. Follow the steps for the chosen chain.
 
+### Install cert-issuer
+
+By default, cert-issuer issues to the Bitcoin blockchain. Run the default setup script if this is the mode you want:
+```
+python setup.py install
+
+```
+
+To issue to the ethereum blockchain, run the following:
+```
+python setup.py experimental --blockchain=ethereum
+
+```
+
 ### Create a Bitcoin issuing address
 
 First, ensure you've created an issuing address appropriate for the Bitcoin chain you are using. Please note:

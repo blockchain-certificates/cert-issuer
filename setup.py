@@ -1,6 +1,7 @@
 import os
 from distutils.core import Command
 
+import pip
 from pip.req import parse_requirements
 from setuptools import find_packages
 from setuptools import setup
@@ -33,11 +34,16 @@ class InstallCommand(Command):
             install_reqs = parse_requirements('ethereum_requirements.txt', session=False)
             eth_reqs = [str(ir.req) for ir in install_reqs]
             reqs.append(eth_reqs)
+            install(eth_reqs)
+
+def install(packages):
+    for package in packages:
+        pip.main(['install', package])
 
 
 setup(
     cmdclass={
-        'blockchain': InstallCommand
+        'experimental': InstallCommand
     },
     install_requires=reqs,
     name='cert-issuer',

@@ -7,4 +7,5 @@ mock==2.0.0
 requests[security]>=2.18.4
 pycoin>=0.80
 pyld>=0.8.1
+pysha3>=1.0.2
 tox>=2.7.0
