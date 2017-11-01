@@ -4,9 +4,9 @@ import os
 import shutil
 
 import glob2
+from cert_core import Chain, UnknownChainError
 from pycoin.serialize import b2h, h2b
 
-from cert_core import Chain, UnknownChainError
 from cert_issuer.errors import NoCertificatesFoundError
 
 unhexlify = h2b
@@ -97,6 +97,6 @@ def to_pycoin_chain(chain):
     if chain == Chain.bitcoin_regtest or chain == Chain.bitcoin_testnet:
         return 'XTN'
     elif chain == Chain.bitcoin_mainnet:
-        return'BTC'
+        return 'BTC'
     else:
         raise UnknownChainError(chain.name)

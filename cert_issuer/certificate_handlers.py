@@ -1,31 +1,12 @@
 import json
-from abc import abstractmethod
 import logging
-
-from pycoin.serialize import b2h
 
 from cert_schema import normalize_jsonld
 from cert_schema import validate_v2
+from pycoin.serialize import b2h
 
+from cert_issuer.models import CertificateHandler
 from cert_issuer.signer import FinalizableSigner
-
-
-class CertificateHandler(object):
-    @abstractmethod
-    def validate_certificate(self, certificate_metadata):
-        pass
-
-    @abstractmethod
-    def sign_certificate(self, signer, certificate_metadata):
-        pass
-
-    @abstractmethod
-    def get_byte_array_to_issue(self, certificate_metadata):
-        pass
-
-    @abstractmethod
-    def add_proof(self, certificate_metadata, merkle_proof):
-        pass
 
 
 class CertificateV2Handler(CertificateHandler):

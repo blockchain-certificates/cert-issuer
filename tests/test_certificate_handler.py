@@ -3,7 +3,7 @@ import unittest
 import mock
 from pycoin.serialize import b2h
 
-from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateHandler
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 
 

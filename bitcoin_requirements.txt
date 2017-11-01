@@ -1,0 +1,2 @@
+-r requirements.txt
+python-bitcoinlib>=0.8.0

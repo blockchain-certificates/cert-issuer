@@ -2,14 +2,9 @@ import logging
 import sys
 
 from cert_core import Chain
+
 from cert_issuer import helpers
-from cert_issuer import signer as signer_helper
-from cert_issuer.certificate_handler import CertificateBatchHandler, CertificateV2Handler
-from cert_issuer.connectors import BitcoinServiceProviderConnector, EthereumServiceProviderConnector
 from cert_issuer.issuer import Issuer
-from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
-from cert_issuer.transaction_handler import BitcoinTransactionHandler, EthereumTransactionHandler, MockTransactionHandler
-from cert_issuer.tx_utils import BitcoinTransactionCostConstants, EthereumTransactionCostConstants
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
@@ -47,24 +42,13 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 
 
 def main(app_config):
-    issuing_address = app_config.issuing_address
     chain = app_config.chain
-    secret_manager = signer_helper.initialize_signer(app_config)
-    certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
-                                                        certificate_handler=CertificateV2Handler(),
-                                                        merkle_tree=MerkleTreeGenerator())
-    if chain == Chain.mockchain:
-        transaction_handler = MockTransactionHandler()
-    # ethereum chains
-    elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten or chain == Chain.ethereum_testnet:
-        cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
-        connector = EthereumServiceProviderConnector(chain, app_config.api_token)
-        transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager, issuing_address=issuing_address)
+    if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten or chain == Chain.ethereum_testnet:
+        from cert_issuer import ethereum
+        certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
     else:
-        cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold, app_config.satoshi_per_byte)
-        connector = BitcoinServiceProviderConnector(chain, app_config.bitcoind)
-        transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
-                                                        issuing_address=issuing_address)
+        from cert_issuer import bitcoin
+        certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)
     return issue(app_config, certificate_batch_handler, transaction_handler)
 
 
