@@ -1,11 +1,24 @@
-FROM seegno/bitcoind:0.13.2-alpine
+FROM seegno/bitcoind:0.13-alpine
 MAINTAINER Kim Duffy "kimhd@mit.edu"
 
 COPY . /cert-issuer
 COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
-# The last line is a workaround for merkletools requiring an old version of pysha3
-RUN apk add --update bash python3 python3-dev ca-certificates linux-headers gcc musl-dev \
+RUN apk add --update \
+        bash \
+        ca-certificates \
+        curl \
+        gcc \
+        gmp-dev \
+        libffi-dev \
+        libressl-dev \
+        linux-headers \
+        make \
+        musl-dev \
+        python \
+        python3 \
+        python3-dev \
+        tar \
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
     && mkdir -p /etc/cert-issuer/data/unsigned_certificates \
