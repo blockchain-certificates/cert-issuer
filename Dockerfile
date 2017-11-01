@@ -4,10 +4,8 @@ MAINTAINER Kim Duffy "kimhd@mit.edu"
 COPY . /cert-issuer
 COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
-# 2nd line of apk adds are for ethereum
 # The last line is a workaround for merkletools requiring an old version of pysha3
 RUN apk add --update bash python3 python3-dev ca-certificates linux-headers gcc musl-dev \
-  libtool libffi-dev openssl openssl-dev gmp-dev build-base \
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
     && mkdir -p /etc/cert-issuer/data/unsigned_certificates \

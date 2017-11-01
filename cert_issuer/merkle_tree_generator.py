@@ -1,9 +1,8 @@
 import hashlib
 
+from cert_core import Chain
 from chainpoint.chainpoint import MerkleTools
 from pycoin.serialize import h2b
-
-from cert_core import Chain
 
 
 def hash_byte_array(data):
@@ -74,7 +73,6 @@ class MerkleTreeGenerator(object):
 
 
 def to_source_id(txid, chain):
-
     if chain == Chain.bitcoin_mainnet or Chain.bitcoin_testnet or Chain.ethereum_mainnet or Chain.ethereum_ropsten:
         return txid
     else:

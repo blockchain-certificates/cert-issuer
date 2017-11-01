@@ -9,6 +9,13 @@ PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(PATH, 'data')
 WORK_PATH = os.path.join(PATH, 'work')
 
+# Estimate fees assuming worst case 3 inputs
+ESTIMATE_NUM_INPUTS = 3
+
+# Estimate fees assuming 1 output for change.
+# Note that tx_utils calculations add on cost due to OP_RETURN size, so it doesn't need to be added here.
+V2_NUM_OUTPUTS = 1
+
 
 def configure_logger():
     # Configure logging settings; create console handler and set level to info
@@ -19,6 +26,7 @@ def configure_logger():
     formatter = logging.Formatter("%(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
 
 # restructured arguments to put the chain specific arguments together.
 def add_arguments(p):
@@ -44,7 +52,7 @@ def add_arguments(p):
                    help='Used to make sure your private key is not plugged in with the wifi.')
     p.add_argument('--no_safe_mode', dest='safe_mode', default=False, action='store_false',
                    help='Turns off safe mode. Only change this option for testing or unit testing.')
-    #bitcoin arguments
+    # bitcoin arguments
     p.add_argument('--dust_threshold', default=0.0000275, type=float,
                    help='blockchain dust threshold (in BTC) -- below this 1/3 is fees.')
     p.add_argument('--tx_fee', default=0.0006, type=float,
@@ -57,14 +65,14 @@ def add_arguments(p):
                    help='Use bitcoind connectors.')
     p.add_argument('--no_bitcoind', dest='bitcoind', default=True, action='store_false',
                    help='Default; do not use bitcoind connectors; use APIs instead')
-    #ethereum arguments
+    # ethereum arguments
     p.add_argument('--gas_price', default=20000000000, type=int,
                    help='decide the price per gas spent (in wei (smallest ETH unit))')
     p.add_argument('--gas_limit', default=25000, type=int,
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient')
     p.add_argument('--api_token', default=None, type=str,
                    help='the API token of the blockchain broadcaster you are using. Currently Etherscan only supported.')
-    
+
 
 def get_config():
     configure_logger()
