@@ -129,5 +129,5 @@ rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'
 connectors[Chain.ethereum_ropsten] = rop_provider_list
 
 
-def get_providers_for_chain(chain):
+def get_providers_for_chain(chain, local_node=False):
     return connectors[chain]
