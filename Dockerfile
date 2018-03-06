@@ -19,6 +19,8 @@ RUN apk add --update \
         python3 \
         python3-dev \
         tar \
+        tmux \
+        vim \
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
     && mkdir -p /etc/cert-issuer/data/unsigned_certificates \
@@ -31,6 +33,5 @@ RUN apk add --update \
     && rm -rf /root/.cache \
     && sed -i.bak s/==1\.0b1/\>=1\.0\.2/g /usr/lib/python3.*/site-packages/merkletools-1.0.2-py3.*.egg-info/requires.txt
 
-
+EXPOSE 5000
 ENTRYPOINT bitcoind -daemon && bash
-
