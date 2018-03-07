@@ -2,9 +2,12 @@
 __requires__ = 'cert-issuer==2.0.11'
 import re
 import sys
+import json
+import uuid
 from pkg_resources import load_entry_point
-from flask import Flask, jsonify 
+from flask import Flask, jsonify, request
 from flask_httpauth import HTTPBasicAuth
+from subprocess import call
 
 auth = HTTPBasicAuth()
 app = Flask(__name__)
@@ -17,8 +20,13 @@ info_json = {
 
 @app.route('/request_receiver/api/v1.0/issue_cert', methods=['POST'])
 def create_cert():
-    # load_entry_point('cert-issuer==2.0.11', 'console_scripts', 'cert-issuer')()
-    return "Hello, World!"
+    if not request.json:
+        abort(400)
+    file_name = '/etc/cert-issuer/data/unsigned_certificates/' + str(uuid.uuid4()) + '.json'
+    with open(file_name, 'w') as outfile:
+        json.dump(request.json, outfile)
+    call('cert-issuer')
+    return jsonify({'info': info_json}), 201
 
 @app.route('/request_receiver/api/v1.0/info', methods=['GET'])
 def info():
