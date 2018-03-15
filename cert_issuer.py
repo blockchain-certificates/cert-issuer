@@ -7,6 +7,8 @@ from flask import Flask, jsonify, request, abort
 from subprocess import call
 
 import cert_issuer.config
+from cert_issuer import bitcoin
+import cert_issuer.issue_certificates
 
 app = Flask(__name__)
 
@@ -29,6 +31,13 @@ def create_cert():
     with open('/etc/cert-issuer/data/blockchain_certificates/' + file_name) as data_file:
         blockchain_cert = json.load(data_file)
     return jsonify(blockchain_cert), 201
+
+@app.route('/cert_issuer/api/v1.0/issue', methods=['POST'])
+def issue():
+    config = cert_issuer.config.get_config()
+    certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(config)
+    cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
+    return "hi"
 
 @app.route('/cert_issuer/api/v1.0/certs/<string:cert_id>', methods=['GET'])
 def get_blockchain_cert(cert_id):
