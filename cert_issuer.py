@@ -11,6 +11,7 @@ from cert_issuer import bitcoin
 import cert_issuer.issue_certificates
 
 app = Flask(__name__)
+config = None
 
 info_json = {
     'Author': u'Yancy Ribbens',
@@ -34,8 +35,11 @@ def create_cert():
 
 @app.route('/cert_issuer/api/v1.0/issue', methods=['POST'])
 def issue():
-    config = cert_issuer.config.get_config()
-    certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(config)
+    global config
+    if config == None:
+        config = cert_issuer.config.get_config()
+    certificate_batch_handler, transaction_handler, connector = \
+            bitcoin.instantiate_blockchain_handlers(config)
     cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
     return "hi"
 
