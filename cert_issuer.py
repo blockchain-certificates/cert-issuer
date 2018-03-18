@@ -19,6 +19,12 @@ info_json = {
     'version': u'Pilot'
     }
 
+def get_config():
+    global config
+    if config == None:
+        config = cert_issuer.config.get_config()
+    return config
+
 @app.route('/cert_issuer/api/v1.0/issue_cert', methods=['POST'])
 def create_cert():
     if not request.json or not 'id' in request.json:
@@ -35,9 +41,7 @@ def create_cert():
 
 @app.route('/cert_issuer/api/v1.0/issue', methods=['POST'])
 def issue():
-    global config
-    if config == None:
-        config = cert_issuer.config.get_config()
+    config = get_config()
     certificate_batch_handler, transaction_handler, connector = \
             bitcoin.instantiate_blockchain_handlers(config)
     cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
@@ -51,11 +55,12 @@ def get_blockchain_cert(cert_id):
 
 @app.route('/cert_issuer/api/v1.0/info', methods=['GET'])
 def info():
-    config = cert_issuer.config.get_config()
+    config = get_config()
     config_dict = vars(config)
     #TODO TypeError: Object of type 'Chain' is not JSON serializable
-    del config_dict['chain']
-    return jsonify({**info_json, 'config': config_dict })
+    # del config_dict['chain']
+    #return jsonify({**info_json, 'config': config_dict })
+    return "todo"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
