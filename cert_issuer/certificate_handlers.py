@@ -44,7 +44,6 @@ class CertificateV2Handler(CertificateHandler):
             certificate_json = json.load(unsigned_cert_file)
         return certificate_json
 
-
 class CertificateBatchHandler(object):
     """
     Manages a batch of certificates. Responsible for iterating certificates in a consistent order.
@@ -60,6 +59,9 @@ class CertificateBatchHandler(object):
     def set_certificates_in_batch(self, certificates_to_issue):
         self.certificates_to_issue = certificates_to_issue
 
+    def set_certficates_in_batch_json(self, certificates_json):
+        self.certificates_to_issue = certificates_to_issue
+
     def prepare_batch(self):
         """
         Propagates exception on failure
@@ -67,6 +69,8 @@ class CertificateBatchHandler(object):
         """
 
         # validate batch
+        # TODO if this is issued via json then validate
+        # json directly
         for _, metadata in self.certificates_to_issue.items():
             self.certificate_handler.validate_certificate(metadata)
 
@@ -75,7 +79,10 @@ class CertificateBatchHandler(object):
             for _, metadata in self.certificates_to_issue.items():
                 self.certificate_handler.sign_certificate(signer, metadata)
 
+        #TODO this will need to change also to use JSON payload directly
+        # instead of filesystem
         self.merkle_tree.populate(self.get_certificate_generator())
+
         logging.info('here is the op_return_code data: %s', b2h(self.merkle_tree.get_blockchain_data()))
         return self.merkle_tree.get_blockchain_data()
 
