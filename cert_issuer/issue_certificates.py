@@ -14,8 +14,7 @@ if sys.version_info.major < 3:
 # and set certificate_batch_handler with json payload instead of setting
 # directories
 def issue_json(app_config, certificate_batch_handler, transaction_handler, json_payload):
-    certificate_batch_handler.set_certificates_in_batch(json_payload)
-
+    certificate_batch_handler.set_json_certficates_in_batch(json_payload)
     transaction_handler.ensure_balance()
 
     issuer = Issuer(
@@ -24,9 +23,9 @@ def issue_json(app_config, certificate_batch_handler, transaction_handler, json_
         max_retry=app_config.max_retry)
     tx_id = issuer.issue(app_config.chain)
 
-    helpers.copy_output(certificates_metadata)
+    # helpers.copy_output(certificates_metadata)
 
-    logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
+    # logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
     return tx_id
 
 def issue(app_config, certificate_batch_handler, transaction_handler):
@@ -58,6 +57,15 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
     logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
     return tx_id
 
+def test_file():
+    import json
+    path = '/home/yancy/git/cert-issuer/examples/data-testnet/unsigned_certificates/'
+    file_name = '3bc1a96a-3501-46ed-8f75-49612bbac257.json'
+    full_name = path + file_name
+    with open(full_name) as data_file:
+        data = json.load(data_file)
+    return data
+
 def main(app_config):
     chain = app_config.chain
     if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten or chain == Chain.ethereum_testnet:
@@ -66,7 +74,9 @@ def main(app_config):
     else:
         from cert_issuer import bitcoin
         certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)
-    return issue(app_config, certificate_batch_handler, transaction_handler)
+    json = test_file()
+    results = issue_json(app_config, certificate_batch_handler, transaction_handler, json)
+    return results
 
 if __name__ == '__main__':
     from cert_issuer import config
