@@ -57,15 +57,6 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
     logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
     return tx_id
 
-def test_file():
-    import json
-    path = '/home/yancy/git/cert-issuer/examples/data-testnet/unsigned_certificates/'
-    file_name = '3bc1a96a-3501-46ed-8f75-49612bbac257.json'
-    full_name = path + file_name
-    with open(full_name) as data_file:
-        data = json.load(data_file)
-    return data
-
 def main(app_config):
     chain = app_config.chain
     if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten or chain == Chain.ethereum_testnet:
@@ -74,9 +65,7 @@ def main(app_config):
     else:
         from cert_issuer import bitcoin
         certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)
-    json = test_file()
-    results = issue_json(app_config, certificate_batch_handler, transaction_handler, json)
-    return results
+    return issue(app_config, certificate_batch_handler, transaction_handler)
 
 if __name__ == '__main__':
     from cert_issuer import config
