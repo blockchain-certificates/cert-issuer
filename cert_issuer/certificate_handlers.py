@@ -144,6 +144,10 @@ class CertificateBatchHandler(object):
         logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
         self.certificates_to_issue = certificates_metadata
 
+    def post_batch_actions(self, config):
+        helpers.copy_output(self.certificates_to_issue)
+        logging.info('Your Blockchain Certificates are in %s', config.blockchain_certificates_dir)
+
     def prepare_batch(self):
         """
         Propagates exception on failure
