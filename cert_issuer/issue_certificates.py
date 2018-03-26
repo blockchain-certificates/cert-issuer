@@ -10,23 +10,6 @@ if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
     sys.exit(1)
 
-# TODO pass json object here from web request
-# and set certificate_batch_handler with json payload instead of setting
-# directories
-def issue_json(app_config, certificate_batch_handler, transaction_handler, json_payload):
-    certificate_batch_handler.set_json_certficates_in_batch(json_payload)
-    transaction_handler.ensure_balance()
-
-    issuer = Issuer(
-        certificate_batch_handler=certificate_batch_handler,
-        transaction_handler=transaction_handler,
-        max_retry=app_config.max_retry)
-    tx_id = issuer.issue(app_config.chain)
-
-    # helpers.copy_output(certificates_metadata)
-
-    # logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
-    return tx_id
 
 def issue(app_config, certificate_batch_handler, transaction_handler):
     unsigned_certs_dir = app_config.unsigned_certificates_dir
@@ -42,7 +25,8 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
         return None
 
     logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
-    certificate_batch_handler.set_certificates_in_batch(certificates_metadata)
+
+    certificate_batch_handler.process_directories(app_config)
 
     transaction_handler.ensure_balance()
 
@@ -57,6 +41,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
     logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
     return tx_id
 
+
 def main(app_config):
     chain = app_config.chain
     if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten or chain == Chain.ethereum_testnet:
@@ -66,6 +51,7 @@ def main(app_config):
         from cert_issuer import bitcoin
         certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)
     return issue(app_config, certificate_batch_handler, transaction_handler)
+
 
 if __name__ == '__main__':
     from cert_issuer import config
