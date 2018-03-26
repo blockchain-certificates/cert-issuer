@@ -7,7 +7,7 @@ from cert_core import Chain, UnknownChainError
 from cert_issuer.bitcoin.connectors import BitcoinServiceProviderConnector
 from cert_issuer.bitcoin.signer import BitcoinSigner
 from cert_issuer.bitcoin.transaction_handlers import BitcoinTransactionHandler
-from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler, CertificateBatchWebHandler, CertificateWebV2Handler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
 from cert_issuer.signer import FileSecretManager
@@ -43,6 +43,23 @@ def initialize_signer(app_config):
                                        safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
     return secret_manager
 
+def instantiate_web_blockchain_handlers(app_config):
+    issuing_address = app_config.issuing_address
+    chain = app_config.chain
+    secret_manager = initialize_signer(app_config)
+    certificate_batch_handler = CertificateBatchWebHandler(secret_manager=secret_manager,
+                                                        certificate_handler=CertificateWebV2Handler(),
+                                                        merkle_tree=MerkleTreeGenerator())
+    if chain == Chain.mockchain:
+        transaction_handler = MockTransactionHandler()
+    else:
+        cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold,
+                                                         app_config.satoshi_per_byte)
+        connector = BitcoinServiceProviderConnector(chain, app_config.bitcoind)
+        transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
+                                                        issuing_address=issuing_address)
+
+    return certificate_batch_handler, transaction_handler, connector
 
 def instantiate_blockchain_handlers(app_config):
     issuing_address = app_config.issuing_address

@@ -43,8 +43,9 @@ def create_cert():
 def issue():
     config = get_config()
     certificate_batch_handler, transaction_handler, connector = \
-            bitcoin.instantiate_blockchain_handlers(config)
-    cert_issuer.issue_certificates.issue_json(config, certificate_batch_handler, transaction_handler, request.json)
+            bitcoin.instantiate_web_blockchain_handlers(config)
+    certificate_batch_handler.set_json_certficates_in_batch(request.json)
+    cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
     return json.dumps(certificate_batch_handler.proof)
 
 @app.route('/cert_issuer/api/v1.0/certs/<string:cert_id>', methods=['GET'])

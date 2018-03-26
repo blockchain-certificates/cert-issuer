@@ -12,7 +12,7 @@ if sys.version_info.major < 3:
 
 
 def issue(app_config, certificate_batch_handler, transaction_handler):
-    certificate_batch_handler.process_directories(app_config)
+    certificate_batch_handler.pre_batch_actions(app_config)
 
     transaction_handler.ensure_balance()
 
