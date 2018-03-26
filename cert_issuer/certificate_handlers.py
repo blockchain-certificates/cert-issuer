@@ -130,7 +130,7 @@ class CertificateBatchHandler(object):
         self.merkle_tree = merkle_tree
 
     def pre_batch_actions(self, config):
-        self._process_directories(self, config)
+        self._process_directories(config)
         
     def post_batch_actions(self, config):
         helpers.copy_output(self.certificates_to_issue)
