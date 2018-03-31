@@ -15,9 +15,11 @@ class TestCertificateHandler(unittest.TestCase):
         certificates_to_issue['2'] = mock.Mock()
         certificates_to_issue['3'] = mock.Mock()
 
-        certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
-                                                            certificate_handler=DummyCertificateHandler(),
-                                                            merkle_tree=MerkleTreeGenerator())
+        certificate_batch_handler = CertificateBatchHandler(
+                secret_manager=secret_manager,
+                certificate_handler=DummyCertificateHandler(),
+                merkle_tree=MerkleTreeGenerator())
+
         certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
         result = certificate_batch_handler.prepare_batch()
         self.assertEqual(b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')

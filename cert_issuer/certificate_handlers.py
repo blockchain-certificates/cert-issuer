@@ -129,6 +129,9 @@ class CertificateBatchHandler(object):
         self.secret_manager = secret_manager
         self.merkle_tree = merkle_tree
 
+    def set_certificates_in_batch(self, certificates_to_issue):
+        self.certificates_to_issue = certificates_to_issue
+
     def pre_batch_actions(self, config):
         self._process_directories(config)
         
@@ -183,5 +186,5 @@ class CertificateBatchHandler(object):
             return None
 
         logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
-        self.certificates_to_issue = certificates_metadata
+        set_certificates_in_batch(certificates_metadata)
 
