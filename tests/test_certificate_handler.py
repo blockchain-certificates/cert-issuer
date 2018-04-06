@@ -2,12 +2,27 @@ import unittest
 
 import mock
 from pycoin.serialize import b2h
+from unittest.mock import patch
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
-
+from cert_issuer import helpers
 
 class TestCertificateHandler(unittest.TestCase):
+    def _get_certificate_batch_handler(self):
+        secret_manager = mock.Mock()
+        certificates_to_issue = dict()
+        certificates_to_issue['1'] = mock.Mock()
+        certificates_to_issue['2'] = mock.Mock()
+        certificates_to_issue['3'] = mock.Mock()
+
+        handler = CertificateBatchHandler(
+                secret_manager=secret_manager,
+                certificate_handler=DummyCertificateHandler(),
+                merkle_tree=MerkleTreeGenerator())
+
+        return handler, certificates_to_issue
+
     def test_prepare_batch(self):
         secret_manager = mock.Mock()
         certificates_to_issue = dict()
@@ -15,14 +30,29 @@ class TestCertificateHandler(unittest.TestCase):
         certificates_to_issue['2'] = mock.Mock()
         certificates_to_issue['3'] = mock.Mock()
 
-        certificate_batch_handler = CertificateBatchHandler(
-                secret_manager=secret_manager,
-                certificate_handler=DummyCertificateHandler(),
-                merkle_tree=MerkleTreeGenerator())
+        certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_handler()
 
-        certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
+        certificate_batch_handler._set_certificates_in_batch(certificates_to_issue)
         result = certificate_batch_handler.prepare_batch()
         self.assertEqual(b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
+
+    def test_pre_batch_actions(self):
+        config = mock.Mock()
+        config.unsigned_certificates_dir = '/unsigned_certificates_dir'
+        config.signed_certificates_dir = '/signed_certificates_dir'
+        config.blockchain_certificates_dir = '/blockchain_certificates_dir'
+        config.work_dir = '/work_dir'
+
+        helpers.prepare_issuance_batch = mock.MagicMock()
+        with patch.object(CertificateBatchHandler, '_set_certificates_in_batch') as mock_method:
+            certificate_batch_handler, _ = self._get_certificate_batch_handler()
+            certificate_batch_handler.pre_batch_actions(config)
+
+        mock_method.assert_called_once()
+
+        helpers.prepare_issuance_batch.assert_called_with(
+                '/unsigned_certificates_dir', '/signed_certificates_dir', '/blockchain_certificates_dir', '/work_dir')
+
 
 
 class DummyCertificateHandler(CertificateHandler):
@@ -41,7 +71,6 @@ class DummyCertificateHandler(CertificateHandler):
 
     def add_proof(self, certificate_metadata, merkle_proof):
         pass
-
 
 if __name__ == '__main__':
     unittest.main()

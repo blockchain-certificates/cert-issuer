@@ -129,9 +129,6 @@ class CertificateBatchHandler(object):
         self.secret_manager = secret_manager
         self.merkle_tree = merkle_tree
 
-    def set_certificates_in_batch(self, certificates_to_issue):
-        self.certificates_to_issue = certificates_to_issue
-
     def pre_batch_actions(self, config):
         self._process_directories(config)
         
@@ -173,18 +170,25 @@ class CertificateBatchHandler(object):
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)
 
+    def _set_certificates_in_batch(self, certificates_to_issue):
+        self.certificates_to_issue = certificates_to_issue
+
     def _process_directories(self, config):
         unsigned_certs_dir = config.unsigned_certificates_dir
         signed_certs_dir = config.signed_certificates_dir
         blockchain_certificates_dir = config.blockchain_certificates_dir
         work_dir = config.work_dir
+        
+        certificates_metadata = helpers.prepare_issuance_batch(
+                unsigned_certs_dir,
+                signed_certs_dir,
+                blockchain_certificates_dir,
+                work_dir)
 
-        certificates_metadata = helpers.prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir, blockchain_certificates_dir, work_dir)
-        num_certificates = len(certificates_metadata)
-        if num_certificates < 1:
-            logging.warning('No certificates to process')
-            return None
+        # num_certificates = len(certificates_metadata)
+        # if num_certificates < 1:
+            # return None
 
-        logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
-        set_certificates_in_batch(certificates_metadata)
+        # logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
+        self._set_certificates_in_batch(certificates_metadata)
 
