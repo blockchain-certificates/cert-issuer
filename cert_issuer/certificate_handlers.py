@@ -185,10 +185,11 @@ class CertificateBatchHandler(object):
                 blockchain_certificates_dir,
                 work_dir)
 
-        # num_certificates = len(certificates_metadata)
-        # if num_certificates < 1:
-            # return None
+        num_certificates = len(certificates_metadata)
 
-        # logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
+        if num_certificates < 1:
+            return None
+
+        logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
         self._set_certificates_in_batch(certificates_metadata)
 
