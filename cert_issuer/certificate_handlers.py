@@ -5,8 +5,9 @@ from cert_schema import normalize_jsonld
 from cert_schema import validate_v2
 from cert_issuer import helpers
 from pycoin.serialize import b2h
+from cert_issuer.models import CertificateHandler, BatchHandler
 
-from cert_issuer.models import CertificateHandler
+
 from cert_issuer.signer import FinalizableSigner
 
 class CertificateV2Handler(CertificateHandler):
@@ -57,7 +58,7 @@ class CertificateWebV2Handler(CertificateHandler):
             certificate_json = json.load(unsigned_cert_file)
         return certificate_json
 
-class CertificateBatchWebHandler(object):
+class CertificateBatchWebHandler(BatchHandler):
     """
     Manages a batch of certificates. Responsible for iterating certificates in a consistent order.
 
@@ -99,7 +100,7 @@ class CertificateBatchWebHandler(object):
     def finish_batch(self, tx_id, chain):
         self.proof = next(self.merkle_tree.get_proof_generator(tx_id, chain))
 
-class CertificateBatchHandler(object):
+class CertificateBatchHandler(BatchHandler):
     """
     Manages a batch of certificates. Responsible for iterating certificates in a consistent order.
 
@@ -151,9 +152,6 @@ class CertificateBatchHandler(object):
         for uid, metadata in self.certificates_to_issue.items():
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)
-
-    def _set_certificates_in_batch(self, certificates_to_issue):
-        self.certificates_to_issue = certificates_to_issue
 
     def _process_directories(self, config):
         unsigned_certs_dir = config.unsigned_certificates_dir
