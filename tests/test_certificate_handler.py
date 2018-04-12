@@ -4,7 +4,7 @@ import mock
 from pycoin.serialize import b2h
 from unittest.mock import patch
 
-from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateHandler
+from cert_issuer.certificate_handlers import CertificateBatchHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer import helpers
 
@@ -35,7 +35,21 @@ class TestCertificateHandler(unittest.TestCase):
 
         return handler, certificates_to_issue
 
-    def test_prepare_batch(self):
+    def test_batch_handler_prepare_batch(self):
+        secret_manager = mock.Mock()
+        certificates_to_issue = dict()
+        certificates_to_issue['1'] = mock.Mock()
+        certificates_to_issue['2'] = mock.Mock()
+        certificates_to_issue['3'] = mock.Mock()
+
+        certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_handler()
+
+        certificate_batch_handler._set_certificates_in_batch(certificates_to_issue)
+        result = certificate_batch_handler.prepare_batch()
+        self.assertEqual(
+                b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
+
+    def test_batch_web_handler_prepare_batch(self):
         secret_manager = mock.Mock()
         certificates_to_issue = dict()
         certificates_to_issue['1'] = mock.Mock()
@@ -88,7 +102,7 @@ class TestCertificateHandler(unittest.TestCase):
         assert not mock_method.called
 
 
-class DummyCertificateHandler(CertificateHandler):
+class DummyCertificateHandler(CertificateBatchHandler):
     def __init__(self):
         self.counter = 0
 

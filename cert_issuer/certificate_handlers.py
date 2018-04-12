@@ -10,15 +10,6 @@ from cert_issuer.models import CertificateHandler
 from cert_issuer.signer import FinalizableSigner
 
 class CertificateV2Handler(CertificateHandler):
-    def validate_certificate(self, certificate_metadata):
-        with open(certificate_metadata.unsigned_cert_file_name) as cert:
-            certificate_json = json.load(cert)
-            # Both tests raise exception on failure
-            # 1. json schema validation
-            validate_v2(certificate_json)
-            # 2. detect if there are any unmapped fields
-            normalize_jsonld(certificate_json, detect_unmapped_fields=True)
-
     def sign_certificate(self, signer, certificate_metadata):
         pass
 
@@ -45,15 +36,6 @@ class CertificateV2Handler(CertificateHandler):
         return certificate_json
 
 class CertificateWebV2Handler(CertificateHandler):
-    def validate_certificate(self, certificate_metadata):
-        with open(certificate_metadata.unsigned_cert_file_name) as cert:
-            certificate_json = json.load(cert)
-            # Both tests raise exception on failure
-            # 1. json schema validation
-            validate_v2(certificate_json)
-            # 2. detect if there are any unmapped fields
-            normalize_jsonld(certificate_json, detect_unmapped_fields=True)
-
     def sign_certificate(self, signer, certificate_metadata):
         pass
 
