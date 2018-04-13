@@ -44,7 +44,7 @@ def issue():
     config = get_config()
     certificate_batch_handler, transaction_handler, connector = \
             bitcoin.instantiate_web_blockchain_handlers(config)
-    certificate_batch_handler.set_json_certficates_in_batch(request.json)
+    certificate_batch_handler.set_certificates_in_batch(request.json)
     cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
     return json.dumps(certificate_batch_handler.proof)
 

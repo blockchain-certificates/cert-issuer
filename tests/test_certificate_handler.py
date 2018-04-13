@@ -61,8 +61,8 @@ class TestCertificateHandler(unittest.TestCase):
         web_handler, certificates_to_issue = self._get_certificate_batch_handler()
         certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
 
-        certificate_batch_handler._set_certificates_in_batch(certificates_to_issue)
-        web_handler._set_certificates_in_batch(certificates_to_issue)
+        certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
+        web_handler.set_certificates_in_batch(certificates_to_issue)
 
         result = certificate_batch_handler.prepare_batch()
         web_result = web_handler.prepare_batch()
@@ -87,7 +87,7 @@ class TestCertificateHandler(unittest.TestCase):
 
         helpers.prepare_issuance_batch.side_effect = self._helper_mock_call
 
-        with patch.object(CertificateBatchHandler, '_set_certificates_in_batch') as mock_method:
+        with patch.object(CertificateBatchHandler, 'set_certificates_in_batch') as mock_method:
             certificate_batch_handler, _ = self._get_certificate_batch_handler()
             certificate_batch_handler.pre_batch_actions(config)
 
@@ -106,7 +106,7 @@ class TestCertificateHandler(unittest.TestCase):
 
         helpers.prepare_issuance_batch.side_effect = self._helper_mock_call
 
-        with patch.object(CertificateBatchHandler, '_set_certificates_in_batch') as mock_method:
+        with patch.object(CertificateBatchHandler, 'set_certificates_in_batch') as mock_method:
             certificate_batch_handler, _ = self._get_certificate_batch_handler()
             certificate_batch_handler.pre_batch_actions(config)
 

@@ -168,5 +168,5 @@ class CertificateBatchHandler(BatchHandler):
             return None
 
         logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
-        self._set_certificates_in_batch(certificates_metadata)
+        self.set_certificates_in_batch(certificates_metadata)
 

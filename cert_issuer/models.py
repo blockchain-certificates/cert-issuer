@@ -3,7 +3,7 @@ from abc import abstractmethod
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
 class BatchHandler(object):
-    def _set_certificates_in_batch(self, certificates_to_issue):
+    def set_certificates_in_batch(self, certificates_to_issue):
         self.certificates_to_issue = certificates_to_issue
 
 
