@@ -70,9 +70,6 @@ class CertificateBatchWebHandler(BatchHandler):
         self.secret_manager = secret_manager
         self.merkle_tree = merkle_tree
 
-    def set_json_certficates_in_batch(self, json):
-        self.certificates_to_issue = json
-
     def pre_batch_actions(self, config):
         pass
 

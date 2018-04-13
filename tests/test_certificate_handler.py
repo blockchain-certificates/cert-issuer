@@ -21,6 +21,21 @@ class TestCertificateHandler(unittest.TestCase):
         
         return helper_mock
 
+    def _get_certificate_batch_web_handler(self):
+        secret_manager = mock.Mock()
+        certificates_to_issue = dict()
+        certificates_to_issue['1'] = mock.Mock()
+        certificates_to_issue['2'] = mock.Mock()
+        certificates_to_issue['3'] = mock.Mock()
+
+        handler = CertificateBatchHandler(
+                secret_manager=secret_manager,
+                certificate_handler=DummyCertificateHandler(),
+                merkle_tree=MerkleTreeGenerator())
+
+        return handler, certificates_to_issue
+
+
     def _get_certificate_batch_handler(self):
         secret_manager = mock.Mock()
         certificates_to_issue = dict()
@@ -35,6 +50,7 @@ class TestCertificateHandler(unittest.TestCase):
 
         return handler, certificates_to_issue
 
+
     def test_batch_handler_prepare_batch(self):
         secret_manager = mock.Mock()
         certificates_to_issue = dict()
@@ -42,26 +58,21 @@ class TestCertificateHandler(unittest.TestCase):
         certificates_to_issue['2'] = mock.Mock()
         certificates_to_issue['3'] = mock.Mock()
 
-        certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_handler()
+        web_handler, certificates_to_issue = self._get_certificate_batch_handler()
+        certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
 
         certificate_batch_handler._set_certificates_in_batch(certificates_to_issue)
+        web_handler._set_certificates_in_batch(certificates_to_issue)
+
         result = certificate_batch_handler.prepare_batch()
+        web_result = web_handler.prepare_batch()
+
         self.assertEqual(
                 b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
 
-    def test_batch_web_handler_prepare_batch(self):
-        secret_manager = mock.Mock()
-        certificates_to_issue = dict()
-        certificates_to_issue['1'] = mock.Mock()
-        certificates_to_issue['2'] = mock.Mock()
-        certificates_to_issue['3'] = mock.Mock()
-
-        certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_handler()
-
-        certificate_batch_handler._set_certificates_in_batch(certificates_to_issue)
-        result = certificate_batch_handler.prepare_batch()
         self.assertEqual(
-                b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
+                b2h(web_result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
+
 
     def test_pre_batch_actions(self):
         self.directory_count = 1
