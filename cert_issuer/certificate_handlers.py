@@ -7,13 +7,9 @@ from cert_issuer import helpers
 from pycoin.serialize import b2h
 from cert_issuer.models import CertificateHandler, BatchHandler
 
-
 from cert_issuer.signer import FinalizableSigner
 
 class CertificateV2Handler(CertificateHandler):
-    def sign_certificate(self, signer, certificate_metadata):
-        pass
-
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
@@ -37,9 +33,6 @@ class CertificateV2Handler(CertificateHandler):
         return certificate_json
 
 class CertificateWebV2Handler(CertificateHandler):
-    def sign_certificate(self, signer, certificate_metadata):
-        pass
-
     def get_byte_array_to_issue(self, certificate_json):
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
         return normalized.encode('utf-8')
@@ -52,11 +45,6 @@ class CertificateWebV2Handler(CertificateHandler):
         """
         certificate_json['signature'] = merkle_proof
         return merkle_proof
-
-    def _get_certificate_to_issue(self, certificate_metadata):
-        with open(certificate_metadata.unsigned_cert_file_name, 'r') as unsigned_cert_file:
-            certificate_json = json.load(unsigned_cert_file)
-        return certificate_json
 
 class CertificateBatchWebHandler(BatchHandler):
     def finish_batch(self, tx_id, chain):
@@ -74,6 +62,10 @@ class CertificateBatchWebHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
+        
+        # TODO
+        # for _, metadata in self.certificates_to_issue.items():
+            # self.certificate_handler.validate_certificate(metadata)
 
         self.merkle_tree.populate(self.get_certificate_generator())
 
@@ -103,7 +95,6 @@ class CertificateBatchHandler(BatchHandler):
         for _, metadata in self.certificates_to_issue.items():
             self.certificate_handler.validate_certificate(metadata)
 
-        # sign batch
         with FinalizableSigner(self.secret_manager) as signer:
             for _, metadata in self.certificates_to_issue.items():
                 self.certificate_handler.sign_certificate(signer, metadata)
