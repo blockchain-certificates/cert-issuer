@@ -43,7 +43,7 @@ def create_cert():
 def issue():
     config = get_config()
     certificate_batch_handler, transaction_handler, connector = \
-            bitcoin.instantiate_web_blockchain_handlers(config)
+            bitcoin.instantiate_blockchain_handlers(config, False)
     certificate_batch_handler.set_certificates_in_batch(request.json)
     cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
     return json.dumps(certificate_batch_handler.proof)

@@ -2,9 +2,50 @@ from abc import abstractmethod
 
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
+import logging
+from pycoin.serialize import b2h
+
 class BatchHandler(object):
+    """
+    Manages a batch of certificates. Responsible for iterating certificates in a consistent order.
+
+    In this case, certificates are initialized as an Ordered Dictionary, and we iterate in insertion order.
+    """
+
+    def __init__(self, secret_manager, certificate_handler, merkle_tree):
+        self.certificate_handler = certificate_handler
+        self.secret_manager = secret_manager
+        self.merkle_tree = merkle_tree
+
+    def pre_batch_actions(self, config):
+        pass
+
+    def post_batch_actions(self, config):
+        pass
+
+    def prepare_batch(self):
+        """
+        Propagates exception on failure
+        :return: byte array to put on the blockchain
+        """
+
+        self.merkle_tree.populate(self.get_certificate_generator())
+
+        logging.info('here is the op_return_code data: %s', b2h(self.merkle_tree.get_blockchain_data()))
+        return self.merkle_tree.get_blockchain_data()
+
     def set_certificates_in_batch(self, certificates_to_issue):
         self.certificates_to_issue = certificates_to_issue
+
+    def get_certificate_generator(self):
+        """
+        Returns a generator (1-time iterator) of certificates in the batch
+        :return:
+        """
+        yield self.certificate_handler.get_byte_array_to_issue(self.certificates_to_issue)
+
+    def finish_batch(self, tx_id, chain):
+        self.proof = next(self.merkle_tree.get_proof_generator(tx_id, chain))
 
 
 class CertificateHandler(object):

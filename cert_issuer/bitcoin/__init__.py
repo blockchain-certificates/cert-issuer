@@ -43,30 +43,18 @@ def initialize_signer(app_config):
                                        safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
     return secret_manager
 
-def instantiate_web_blockchain_handlers(app_config):
+def instantiate_blockchain_handlers(app_config, file_mode=True):
     issuing_address = app_config.issuing_address
     chain = app_config.chain
     secret_manager = initialize_signer(app_config)
-    certificate_batch_handler = CertificateBatchWebHandler(secret_manager=secret_manager,
-                                                        certificate_handler=CertificateWebV2Handler(),
-                                                        merkle_tree=MerkleTreeGenerator())
-    if chain == Chain.mockchain:
-        transaction_handler = MockTransactionHandler()
+
+    if file_mode:
+        certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
+                                                            certificate_handler=CertificateV2Handler(),
+                                                            merkle_tree=MerkleTreeGenerator())
     else:
-        cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold,
-                                                         app_config.satoshi_per_byte)
-        connector = BitcoinServiceProviderConnector(chain, app_config.bitcoind)
-        transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
-                                                        issuing_address=issuing_address)
-
-    return certificate_batch_handler, transaction_handler, connector
-
-def instantiate_blockchain_handlers(app_config):
-    issuing_address = app_config.issuing_address
-    chain = app_config.chain
-    secret_manager = initialize_signer(app_config)
-    certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
-                                                        certificate_handler=CertificateV2Handler(),
+        certificate_batch_handler = CertificateBatchWebHandler(secret_manager=secret_manager,
+                                                        certificate_handler=CertificateWebV2Handler(),
                                                         merkle_tree=MerkleTreeGenerator())
     if chain == Chain.mockchain:
         transaction_handler = MockTransactionHandler()
