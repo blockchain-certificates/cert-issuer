@@ -1,10 +1,11 @@
 import unittest
 
 import mock
+import json
 from pycoin.serialize import b2h
 from unittest.mock import patch
 
-from cert_issuer.certificate_handlers import CertificateBatchHandler
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateBatchWebHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer import helpers
 
@@ -28,7 +29,7 @@ class TestCertificateHandler(unittest.TestCase):
         certificates_to_issue['2'] = mock.Mock()
         certificates_to_issue['3'] = mock.Mock()
 
-        handler = CertificateBatchHandler(
+        handler = CertificateBatchWebHandler(
                 secret_manager=secret_manager,
                 certificate_handler=DummyCertificateHandler(),
                 merkle_tree=MerkleTreeGenerator())
@@ -50,6 +51,15 @@ class TestCertificateHandler(unittest.TestCase):
 
         return handler, certificates_to_issue
 
+    def test_batch_handler_web_prepare(self):
+        r = json.dumps({'allyourbasearebelongtous': 'True'})
+        web_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
+        web_handler.set_certificates_in_batch(r)
+        web_result = web_handler.prepare_batch()
+
+        self.assertEqual(
+                b2h(web_result), '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b')
+
 
     def test_batch_handler_prepare_batch(self):
         secret_manager = mock.Mock()
@@ -58,20 +68,12 @@ class TestCertificateHandler(unittest.TestCase):
         certificates_to_issue['2'] = mock.Mock()
         certificates_to_issue['3'] = mock.Mock()
 
-        web_handler, certificates_to_issue = self._get_certificate_batch_handler()
-        certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
-
+        certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_handler()
         certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
-        web_handler.set_certificates_in_batch(certificates_to_issue)
-
         result = certificate_batch_handler.prepare_batch()
-        web_result = web_handler.prepare_batch()
 
         self.assertEqual(
                 b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
-
-        self.assertEqual(
-                b2h(web_result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
 
 
     def test_pre_batch_actions(self):
