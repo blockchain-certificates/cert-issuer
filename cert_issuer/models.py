@@ -3,12 +3,6 @@ from abc import abstractmethod
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
 class BatchHandler(object):
-    """
-    Manages a batch of certificates. Responsible for iterating certificates in a consistent order.
-
-    In this case, certificates are initialized as an Ordered Dictionary, and we iterate in insertion order.
-    """
-
     def __init__(self, secret_manager, certificate_handler, merkle_tree):
         self.certificate_handler = certificate_handler
         self.secret_manager = secret_manager
