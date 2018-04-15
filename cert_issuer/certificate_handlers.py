@@ -55,7 +55,10 @@ class CertificateBatchWebHandler(BatchHandler):
         Returns a generator (1-time iterator) of certificates in the batch
         :return:
         """
-        yield self.certificate_handler.get_byte_array_to_issue(self.certificates_to_issue)
+
+        for cert in self.certificates_to_issue:
+            data_to_issue = self.certificate_handler.get_byte_array_to_issue(cert)
+            yield data_to_issue
 
     def prepare_batch(self):
         """

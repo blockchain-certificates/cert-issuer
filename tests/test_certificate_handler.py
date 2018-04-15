@@ -52,13 +52,20 @@ class TestCertificateHandler(unittest.TestCase):
         return handler, certificates_to_issue
 
     def test_batch_handler_web_prepare(self):
-        web_request = json.dumps({'allyourbasearebelongtous': True})
+        web_request = json.dumps([{'allyourbasearebelongtous': True}])
         web_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
         web_handler.set_certificates_in_batch(web_request)
-        web_result = web_handler.prepare_batch()
+        single_item_batch = web_handler.prepare_batch()
 
         self.assertEqual(
-                b2h(web_result), '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b')
+                b2h(single_item_batch),
+                '38451f557bc2b5ad74012d3389798281b993fc7375c024615ed73fb147670ba7')
+
+        web_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
+        web_handler.set_certificates_in_batch(
+                [{'allyourbasearebelongtous': True}, {'allyourbasearebelongtous': False}])
+        multi_batch = web_handler.prepare_batch()
+        self.assertNotEqual(b2h(single_item_batch), b2h(multi_batch))
 
 
     def test_batch_handler_prepare_batch(self):
