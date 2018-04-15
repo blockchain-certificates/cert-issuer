@@ -8,9 +8,11 @@ class BatchHandler(object):
         self.secret_manager = secret_manager
         self.merkle_tree = merkle_tree
 
+    @abstractmethod
     def pre_batch_actions(self, config):
         pass
 
+    @abstractmethod
     def post_batch_actions(self, config):
         pass
 
