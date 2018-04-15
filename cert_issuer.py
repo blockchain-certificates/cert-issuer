@@ -1,8 +1,5 @@
 #!/usr/bin/python3
-import re
-import sys
 import json
-import os
 from flask import Flask, jsonify, request, abort
 from subprocess import call
 
