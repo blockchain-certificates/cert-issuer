@@ -5,7 +5,7 @@ import json
 from pycoin.serialize import b2h
 from unittest.mock import patch
 
-from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateBatchWebHandler
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateHandler, CertificateBatchWebHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer import helpers
 
@@ -122,7 +122,7 @@ class TestCertificateHandler(unittest.TestCase):
         assert not mock_method.called
 
 
-class DummyCertificateHandler(CertificateBatchHandler):
+class DummyCertificateHandler(CertificateHandler):
     def __init__(self):
         self.counter = 0
 
