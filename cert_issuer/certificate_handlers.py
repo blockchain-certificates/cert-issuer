@@ -66,9 +66,8 @@ class CertificateBatchWebHandler(BatchHandler):
         :return: byte array to put on the blockchain
         """
         
-        # TODO
-        # for _, metadata in self.certificates_to_issue.items():
-            # self.certificate_handler.validate_certificate(metadata)
+        for cert in self.certificates_to_issue:
+            self.certificate_handler.validate_certificate(cert)
 
         self.merkle_tree.populate(self.get_certificate_generator())
 
