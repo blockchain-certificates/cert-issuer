@@ -1,3 +1,2 @@
--r requirements.txt
-ethereum>=2.1.0
+ethereum>=2.3.1
 rlp>=0.6.0
