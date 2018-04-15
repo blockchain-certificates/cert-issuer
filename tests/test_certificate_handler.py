@@ -52,7 +52,7 @@ class TestCertificateHandler(unittest.TestCase):
         return handler, certificates_to_issue
 
     def test_batch_handler_web_prepare(self):
-        web_request = json.dumps({'allyourbasearebelongtous': 'True'})
+        web_request = json.dumps({'allyourbasearebelongtous': True})
         web_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
         web_handler.set_certificates_in_batch(web_request)
         web_result = web_handler.prepare_batch()
