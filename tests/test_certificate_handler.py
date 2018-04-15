@@ -139,5 +139,6 @@ class DummyCertificateHandler(CertificateBatchHandler):
     def add_proof(self, certificate_metadata, merkle_proof):
         pass
 
+
 if __name__ == '__main__':
     unittest.main()
