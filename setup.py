@@ -2,7 +2,6 @@ import os
 from distutils.core import Command
 
 import pip
-from pip.req import parse_requirements
 from setuptools import find_packages
 from setuptools import setup
 
@@ -13,8 +12,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md')) as fp:
     long_description = fp.read()
 
-install_reqs = parse_requirements('bitcoin_requirements.txt', session=False)
-reqs = [str(ir.req) for ir in install_reqs]
+with open('requirements.txt') as f:
+    install_reqs = f.readlines()
+    reqs = [str(ir) for ir in install_reqs]
 
 
 class InstallCommand(Command):
@@ -31,10 +31,16 @@ class InstallCommand(Command):
 
     def run(self):
         if self.blockchain == 'ethereum':
-            install_reqs = parse_requirements('ethereum_requirements.txt', session=False)
-            eth_reqs = [str(ir.req) for ir in install_reqs]
-            reqs.append(eth_reqs)
-            install(eth_reqs)
+            with open('ethereum_requirements.txt') as f:
+                install_reqs = f.readlines()
+                eth_reqs = [str(ir) for ir in install_reqs]
+                reqs.append(eth_reqs)
+        else:
+            with open('bitcoin_requirements.txt') as f:
+                install_reqs = f.readlines()
+                btc_reqs = [str(ir) for ir in install_reqs]
+                reqs.append(btc_reqs)
+        install(reqs)
 
 def install(packages):
     for package in packages:
