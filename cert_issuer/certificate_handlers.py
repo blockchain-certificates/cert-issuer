@@ -44,7 +44,6 @@ class CertificateWebV2Handler(CertificateHandler):
         :param merkle_proof:
         :return:
         """
-        certificate_json['signature'] = merkle_proof
         return merkle_proof
 
 class CertificateBatchWebHandler(BatchHandler):
