@@ -12,20 +12,7 @@ if sys.version_info.major < 3:
 
 
 def issue(app_config, certificate_batch_handler, transaction_handler):
-    unsigned_certs_dir = app_config.unsigned_certificates_dir
-    signed_certs_dir = app_config.signed_certificates_dir
-    blockchain_certificates_dir = app_config.blockchain_certificates_dir
-    work_dir = app_config.work_dir
-
-    certificates_metadata = helpers.prepare_issuance_batch(unsigned_certs_dir, signed_certs_dir,
-                                                           blockchain_certificates_dir, work_dir)
-    num_certificates = len(certificates_metadata)
-    if num_certificates < 1:
-        logging.warning('No certificates to process')
-        return None
-
-    logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
-    certificate_batch_handler.set_certificates_in_batch(certificates_metadata)
+    certificate_batch_handler.pre_batch_actions(app_config)
 
     transaction_handler.ensure_balance()
 
@@ -35,9 +22,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
         max_retry=app_config.max_retry)
     tx_id = issuer.issue(app_config.chain)
 
-    helpers.copy_output(certificates_metadata)
-
-    logging.info('Your Blockchain Certificates are in %s', blockchain_certificates_dir)
+    certificate_batch_handler.post_batch_actions(app_config)
     return tx_id
 
 

@@ -2,6 +2,23 @@ from abc import abstractmethod
 
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
+class BatchHandler(object):
+    def __init__(self, secret_manager, certificate_handler, merkle_tree):
+        self.certificate_handler = certificate_handler
+        self.secret_manager = secret_manager
+        self.merkle_tree = merkle_tree
+
+    @abstractmethod
+    def pre_batch_actions(self, config):
+        pass
+
+    @abstractmethod
+    def post_batch_actions(self, config):
+        pass
+
+    def set_certificates_in_batch(self, certificates_to_issue):
+        self.certificates_to_issue = certificates_to_issue
+
 
 class CertificateHandler(object):
     @abstractmethod
