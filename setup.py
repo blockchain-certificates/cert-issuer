@@ -1,7 +1,8 @@
 import os
 from distutils.core import Command
 
-import pip
+import subprocess
+import sys
 from setuptools import find_packages
 from setuptools import setup
 
@@ -34,17 +35,17 @@ class InstallCommand(Command):
             with open('ethereum_requirements.txt') as f:
                 install_reqs = f.readlines()
                 eth_reqs = [str(ir) for ir in install_reqs]
-                reqs.append(eth_reqs)
+                reqs.extend(eth_reqs)
         else:
             with open('bitcoin_requirements.txt') as f:
                 install_reqs = f.readlines()
                 btc_reqs = [str(ir) for ir in install_reqs]
-                reqs.append(btc_reqs)
+                reqs.extend(btc_reqs)
         install(reqs)
 
 def install(packages):
     for package in packages:
-        pip.main(['install', package])
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
 
 
 setup(
