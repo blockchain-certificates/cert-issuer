@@ -5,6 +5,7 @@ We recommend using virtualenv [details](http://docs.python-guide.org/en/latest/d
 1. Ensure virtualenv is installed
    ```bash
    pip install virtualenv
+   pip -p python3 virtualenv // for python 3
    ```
 2. Create a virtualenv for your project
    ```bash
