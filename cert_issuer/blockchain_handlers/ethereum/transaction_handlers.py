@@ -3,7 +3,7 @@ import logging
 from pycoin.serialize import b2h
 
 from cert_issuer.errors import InsufficientFundsError
-from cert_issuer.ethereum import tx_utils
+from cert_issuer.blockchain_handlers.ethereum import tx_utils
 from cert_issuer.models import TransactionHandler
 from cert_issuer.signer import FinalizableSigner
 

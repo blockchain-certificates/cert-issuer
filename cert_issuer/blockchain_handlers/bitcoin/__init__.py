@@ -4,9 +4,9 @@ import os
 from cert_core import BlockchainType
 from cert_core import Chain, UnknownChainError
 
-from cert_issuer.bitcoin.connectors import BitcoinServiceProviderConnector
-from cert_issuer.bitcoin.signer import BitcoinSigner
-from cert_issuer.bitcoin.transaction_handlers import BitcoinTransactionHandler
+from cert_issuer.blockchain_handlers.bitcoin.connectors import BitcoinServiceProviderConnector
+from cert_issuer.blockchain_handlers.bitcoin.signer import BitcoinSigner
+from cert_issuer.blockchain_handlers.bitcoin.transaction_handlers import BitcoinTransactionHandler
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler, CertificateBatchWebHandler, CertificateWebV2Handler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
