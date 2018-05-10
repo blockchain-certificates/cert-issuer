@@ -375,6 +375,12 @@ You can validate your transaction before sending by looking it up by rawtx at bl
    curl 'https://blockchain.info/rawtx/45a9306dfe99820eb346bb17ae0b64173ac11cac2d0e4227c7a7cacbcc0bad31?cors=true'
    ```
 
+For an Ethereum transaction, you'll need to use a different explorer, which might require an API key for raw JSON
+output.  To view a transaction in a web browser, you might try something like this:
+
+- Ethereum Mainnet: https://etherscan.io/tx/0xf537d81667c8011e34e1f450e18fd1c5a8a10c770cd0acdc91a79746696f36a3
+- Ethereum Ropsten (testnet): https://ropsten.etherscan.io/tx/0xf537d81667c8011e34e1f450e18fd1c5a8a10c770cd0acdc91a79746696f36a3
+
 ## Mac scrypt problems
 
 If your install on Mac is failing with a message like the following, try the [workaround described in this thread](https://github.com/ethereum/pyethereum/issues/292).
