@@ -257,7 +257,7 @@ Edit your conf.ini file (the config file for this application).
 ```
 issuing_address = <issuing-address>
 
-chain=<bitcoin_regtest|bitcoin_testnet|bitcoin_mainnet|ethereum_testnet|ethereum_ropsten|ethereum_mainnet|mockchain>
+chain=<bitcoin_regtest|bitcoin_testnet|bitcoin_mainnet|ethereum_ropsten|ethereum_mainnet|mockchain>
     
 usb_name = </Volumes/path-to-usb/>
 key_file = <file-you-saved-pk-to>
