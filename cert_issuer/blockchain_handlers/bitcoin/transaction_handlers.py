@@ -3,7 +3,7 @@ import random
 
 from pycoin.serialize import b2h
 
-from cert_issuer.bitcoin import tx_utils
+from cert_issuer.blockchain_handlers.bitcoin import tx_utils
 from cert_issuer.config import ESTIMATE_NUM_INPUTS, V2_NUM_OUTPUTS
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.models import TransactionCreator, TransactionHandler

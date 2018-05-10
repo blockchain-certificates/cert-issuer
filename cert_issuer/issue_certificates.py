@@ -32,7 +32,7 @@ def main(app_config):
         from cert_issuer import ethereum
         certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
     else:
-        from cert_issuer import bitcoin
+        from cert_issuer.blockchain_handlers import bitcoin
         certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)
     return issue(app_config, certificate_batch_handler, transaction_handler)
 
