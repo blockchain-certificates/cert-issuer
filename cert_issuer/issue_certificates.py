@@ -29,10 +29,10 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 def main(app_config):
     chain = app_config.chain
     if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
-        from cert_issuer import ethereum
+        from cert_issuer.blockchain_handlers import ethereum
         certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
     else:
-        from cert_issuer import bitcoin
+        from cert_issuer.blockchain_handlers import bitcoin
         certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)
     return issue(app_config, certificate_batch_handler, transaction_handler)
 
