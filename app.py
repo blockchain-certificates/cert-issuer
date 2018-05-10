@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request, abort
 from subprocess import call
 
 import cert_issuer.config
-from cert_issuer import bitcoin
+from cert_issuer.blockchain_handlers import bitcoin
 import cert_issuer.issue_certificates
 
 app = Flask(__name__)
