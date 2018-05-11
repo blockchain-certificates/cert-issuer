@@ -3,7 +3,6 @@ import sys
 
 from cert_core import Chain
 
-from cert_issuer import helpers
 from cert_issuer.issuer import Issuer
 
 if sys.version_info.major < 3:

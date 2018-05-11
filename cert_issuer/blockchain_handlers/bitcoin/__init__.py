@@ -4,7 +4,7 @@ import os
 from cert_core import BlockchainType
 from cert_core import Chain, UnknownChainError
 
-from cert_issuer.blockchain_handlers.bitcoin.connectors import BitcoinServiceProviderConnector
+from cert_issuer.blockchain_handlers.bitcoin.connectors import BitcoinServiceProviderConnector, MockServiceProviderConnector
 from cert_issuer.blockchain_handlers.bitcoin.signer import BitcoinSigner
 from cert_issuer.blockchain_handlers.bitcoin.transaction_handlers import BitcoinTransactionHandler
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler, CertificateBatchWebHandler, CertificateWebV2Handler
@@ -56,11 +56,12 @@ def instantiate_blockchain_handlers(app_config, file_mode=True):
         certificate_batch_handler = CertificateBatchWebHandler(secret_manager=secret_manager,
                                                         certificate_handler=CertificateWebV2Handler(),
                                                         merkle_tree=MerkleTreeGenerator())
-    if chain == Chain.mockchain:
-        transaction_handler = MockTransactionHandler()
-    else:
         cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold,
                                                          app_config.satoshi_per_byte)
+    if chain == Chain.mockchain:
+        transaction_handler = MockTransactionHandler()
+        connector = MockServiceProviderConnector()
+    else:
         connector = BitcoinServiceProviderConnector(chain, app_config.bitcoind)
         transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
                                                         issuing_address=issuing_address)

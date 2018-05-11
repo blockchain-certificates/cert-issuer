@@ -1,4 +1,4 @@
-cert-core>=2.1.8
+cert-core>=2.1.9
 cert-schema>=2.1.5
 chainpoint>=0.0.2
 configargparse==0.12.0
