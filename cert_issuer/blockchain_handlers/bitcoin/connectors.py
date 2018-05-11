@@ -29,7 +29,6 @@ except ImportError:
 
 BROADCAST_RETRY_INTERVAL = 30
 MAX_BROADCAST_ATTEMPTS = 3
-LARGE_BALANCE = 1000000000
 
 
 def to_hex(transaction):
@@ -131,7 +130,7 @@ class ServiceProviderConnector(object):
 
 class MockServiceProviderConnector(ServiceProviderConnector):
     def get_balance(self, address):
-        return LARGE_BALANCE
+        pass
 
     def broadcast_tx(self, tx):
         pass
