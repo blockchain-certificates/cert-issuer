@@ -56,12 +56,12 @@ def instantiate_blockchain_handlers(app_config, file_mode=True):
         certificate_batch_handler = CertificateBatchWebHandler(secret_manager=secret_manager,
                                                         certificate_handler=CertificateWebV2Handler(),
                                                         merkle_tree=MerkleTreeGenerator())
-        cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold,
-                                                         app_config.satoshi_per_byte)
     if chain == Chain.mockchain:
         transaction_handler = MockTransactionHandler()
         connector = MockServiceProviderConnector()
     else:
+        cost_constants = BitcoinTransactionCostConstants(app_config.tx_fee, app_config.dust_threshold,
+                                                         app_config.satoshi_per_byte)
         connector = BitcoinServiceProviderConnector(chain, app_config.bitcoind)
         transaction_handler = BitcoinTransactionHandler(connector, cost_constants, secret_manager,
                                                         issuing_address=issuing_address)
