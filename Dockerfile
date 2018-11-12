@@ -1,36 +1,26 @@
-FROM seegno/bitcoind:0.13-alpine
-MAINTAINER Kim Duffy "kimhd@mit.edu"
+FROM ubuntu:18.04
+maintainer kim duffy "kimhd@mit.edu"
+maintainer yancy ribbens "yribbens@credly.com"
 
-COPY . /cert-issuer
-COPY conf_regtest.ini /etc/cert-issuer/conf.ini
+RUN apt-get update -qq && apt-get install -y git wget build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils python3 libboost-all-dev libminiupnpc-dev libzmq3-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
 
-RUN apk add --update \
-        bash \
-        ca-certificates \
-        curl \
-        gcc \
-        gmp-dev \
-        libffi-dev \
-        libressl-dev \
-        linux-headers \
-        make \
-        musl-dev \
-        python \
-        python3 \
-        python3-dev \
-        tar \
-    && python3 -m ensurepip \
-    && pip3 install --upgrade pip setuptools \
-    && mkdir -p /etc/cert-issuer/data/unsigned_certificates \
-    && mkdir /etc/cert-issuer/data/blockchain_certificates \
-    && mkdir ~/.bitcoin \
-    && echo $'rpcuser=foo\nrpcpassword=bar\nrpcport=8332\nregtest=1\nrelaypriority=0\nrpcallowip=127.0.0.1\nrpcconnect=127.0.0.1\n' > /root/.bitcoin/bitcoin.conf \
-    && pip3 install /cert-issuer/. \
-    && rm -r /usr/lib/python*/ensurepip \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /root/.cache \
-    && sed -i.bak s/==1\.0b1/\>=1\.0\.2/g /usr/lib/python3.*/site-packages/merkletools-1.0.2-py3.*.egg-info/requires.txt
+# Checkout bitcoin source
+RUN mkdir /bitcoin-source
+WORKDIR /bitcoin-source
+RUN git clone https://github.com/bitcoin/bitcoin.git
 
+# Install Berkley Database
+RUN wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
+RUN tar -xvf db-4.8.30.NC.tar.gz
+WORKDIR /bitcoin-source/db-4.8.30.NC/build_unix
+RUN mkdir -p build
+RUN BDB_PREFIX=$(pwd)/build
+RUN ../dist/configure --disable-shared --enable-cxx --with-pic --prefix=$BDB_PREFIX
+RUN make install
 
-ENTRYPOINT bitcoind -daemon && bash
-
+# install bitcoin 0.16.3
+WORKDIR /bitcoin-source/bitcoin
+RUN ./autogen.sh
+RUN ./configure CPPFLAGS="-I${BDB_PREFIX}/include/ -O2" LDFLAGS="-L${BDB_PREFIX}/lib/" --with-gui
+RUN make
+RUN make install
