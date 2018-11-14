@@ -28,6 +28,12 @@ experimenting only.
     docker build -t bc/cert-issuer:1.0 .
     ```
 
+    Optionally, the following image can built which is web enabled.  This will expose port 80 inside the container and receive web requests, passing each requests to cert_issuer.
+
+    ```
+    docker build -t bc/cert-issuer:1.0 -f Dockerfile.web .
+    ```
+
 4. Read before running!
 
     - Once you launch the docker container, you will make some changes using your personal issuing information. This flow mirrors what you would if you were issuing real certificates.
@@ -72,6 +78,14 @@ Ensure your docker image is running and bitcoind process is started
     # If you created your own unsigned certificate using cert-tools (assuming you placed it under data/unsigned_certificates):
     cp <cert-issuer-home>/data/unsigned_certificates/<your-cert-guid>.json /etc/cert-issuer/data/unsigned_certificates/
     ```
+
+    Alternatively, if the web image was build, a post request can be issued.  Please read the additonal instructions for configuring the web server.
+
+    ```
+    POST http://<server address>/cert_issuer/api/v1.0/issue
+    ```
+
+    The above post request will return a JSON signature that can be used as proof of issuance.
 
 2. Make sure you have enough BTC in your issuing address.
 
@@ -194,6 +208,15 @@ To issue to the ethereum blockchain, run the following:
 python setup.py experimental --blockchain=ethereum
 
 ```
+### Configure nginx
+
+If the Dockerfile.web was used, the following file must be configured to include the server URL:
+
+```
+vim /etc/nginx/sites-available/cert_issuer_site
+```
+
+at a minimum, you'll need to add your servername in place of <server-name>.  This file is also where you may wish to add other authentication options and enable SSL.
 
 ### Create a Bitcoin issuing address
 
