@@ -59,8 +59,11 @@ RUN virtualenv -p python3 venv
 RUN pip3 install uwsgi flask
 
 # configure nginx
+ARG SERVER=<server-name>
 EXPOSE 80
 WORKDIR /cert-issuer
 COPY cert_issuer_site /etc/nginx/sites-available
 RUN ln -s /etc/nginx/sites-available/cert_issuer_site /etc/nginx/sites-enabled
-ENTRYPOINT service nginx start && uwsgi --ini wsgi.ini && bitcoind -daemon && bash
+RUN sed -i.bak "s/<server-name>/$SERVER/g" /etc/nginx/sites-available/cert_issuer_site
+RUN sed -i.bak "s/# server_names_hash_bucket_size 64/server_names_hash_bucket_size 128/g" /etc/nginx/nginx.conf
+ENTRYPOINT bitcoind -daemon && service nginx start && uwsgi --ini wsgi.ini && bash
