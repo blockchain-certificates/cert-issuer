@@ -208,15 +208,6 @@ To issue to the ethereum blockchain, run the following:
 python setup.py experimental --blockchain=ethereum
 
 ```
-### Configure nginx
-
-If the Dockerfile.web was used, the following file must be configured to include the server URL:
-
-```
-vim /etc/nginx/sites-available/cert_issuer_site
-```
-
-at a minimum, you'll need to add your servername in place of <server-name>.  This file is also where you may wish to add other authentication options and enable SSL.
 
 ### Create a Bitcoin issuing address
 
