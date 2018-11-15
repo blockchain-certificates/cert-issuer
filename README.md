@@ -28,7 +28,7 @@ experimenting only.
     docker build -t bc/cert-issuer:1.0 .
     ```
 
-    Optionally, the following image can built which is web enabled.  This will expose port 80 inside the container and receive web requests, passing each requests to cert_issuer.
+    Optionally, the following image can built which is web-enabled.  This will expose port 80 inside the container and receive web requests, passing each requests to cert_issuer.
 
     ```
     docker build -t bc/cert-issuer:1.0 -f Dockerfile.web .
