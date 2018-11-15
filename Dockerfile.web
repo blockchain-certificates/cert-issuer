@@ -26,7 +26,7 @@ RUN make
 RUN make install
 
 # configure bitcoin network
-ARG NETWORK=testnet
+ARG NETWORK=regtest
 ARG RPC_USER=foo
 ARG RPC_PASSWORD=bar
 RUN mkdir -p ~/.bitcoin
