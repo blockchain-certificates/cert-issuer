@@ -34,6 +34,21 @@ experimenting only.
     docker build -t bc/cert-issuer:1.0 -f Dockerfile.web .
     ```
 
+    Additionally, build args can be passed to the container at build time, for example:
+    ```
+    docker build -t bc/cert-issuer:1.0 -f Dockerfile.web --build-arg NETWORK=testnet --build-arg SERVER=ec2-31-415-59-265.us-west-1.compute.amazonaws.com
+    ```
+
+    The list of build-args and the default values are as follows:
+    ```
+    NETWORK=regtest 
+    RPC_USER=foo
+    RPC_PASSWORD=ba
+    ISSUER=<issuing-address>
+    SERVER=<server-name>
+
+
+
 4. Read before running!
 
     - Once you launch the docker container, you will make some changes using your personal issuing information. This flow mirrors what you would if you were issuing real certificates.
