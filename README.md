@@ -46,8 +46,7 @@ experimenting only.
     RPC_PASSWORD=ba
     ISSUER=<issuing-address>
     SERVER=<server-name>
-
-
+    ```
 
 4. Read before running!
 
