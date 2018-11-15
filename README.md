@@ -43,7 +43,7 @@ experimenting only.
     ```
     NETWORK=regtest 
     RPC_USER=foo
-    RPC_PASSWORD=ba
+    RPC_PASSWORD=bar
     ISSUER=<issuing-address>
     SERVER=<server-name>
     ```
