@@ -64,6 +64,12 @@ experimenting only.
     docker run -it bc/cert-issuer:1.0 bash
     ```
 
+  If you built the web container, you'll need to expose the required ports at run time:
+
+    ```
+    sudo docker run -it -p 80:80 bc/cert-issuer:1.0
+    ```
+
 ## Create issuing address
 
 __Important__: this is a simplification to avoid using a USB, which needs to be inserted and removed during the
