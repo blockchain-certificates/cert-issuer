@@ -64,7 +64,8 @@ experimenting only.
     docker run -it bc/cert-issuer:1.0 bash
     ```
 
-  If you built the web container, you'll need to expose the required ports at run time:
+    If you built the web container, you'll need to expose the required ports at run time:
+
 
     ```
     sudo docker run -it -p 80:80 bc/cert-issuer:1.0
