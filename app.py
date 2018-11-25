@@ -26,4 +26,4 @@ def issue():
     return json.dumps(certificate_batch_handler.proof)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
