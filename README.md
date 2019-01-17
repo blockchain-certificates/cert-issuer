@@ -36,7 +36,7 @@ experimenting only.
 
     Additionally, build args can be passed to the container at build time, for example:
     ```
-    docker build -t bc/cert-issuer:1.0 -f Dockerfile.web --build-arg NETWORK=testnet --build-arg SERVER=ec2-31-415-59-265.us-west-1.compute.amazonaws.com
+    docker build -t bc/cert-issuer:1.0 -f Dockerfile.web . --build-arg NETWORK=testnet --build-arg SERVER=ec2-31-415-59-265.us-west-1.compute.amazonaws.com
     ```
 
     The list of build-args and the default values are as follows:
