@@ -1,0 +1,15 @@
+server {
+    listen 443 ssl http2 default_server;
+    server_name <server-name>;
+
+    ssl_certificate /etc/ssl/certs/<cert-crt-name>;
+    ssl_certificate_key /etc/ssl/private/<cert-key-name>;
+    ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
+
+    location / {
+        auth_basic           "closed site";
+        auth_basic_user_file /etc/nginx/htpasswd;
+        uwsgi_pass 127.0.0.1:5000;
+        include uwsgi_params;
+    }
+}
