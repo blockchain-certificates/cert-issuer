@@ -102,6 +102,4 @@ def get_config():
             bitcoin_chain_for_python_bitcoinlib = Chain.bitcoin_regtest
         bitcoin.SelectParams(chain_to_bitcoin_network(bitcoin_chain_for_python_bitcoinlib))
 
-    configure_logger()
-
     return parsed_config
