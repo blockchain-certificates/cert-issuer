@@ -71,6 +71,12 @@ experimenting only.
     sudo docker run -it -p 80:80 bc/cert-issuer:1.0
     ```
 
+    to create a named volume to persist the blockchain state across the container lifespan:
+
+    ```
+    sudo docker run -it -v cert-issuer:/root/.bitcoin -p 80:80 bc/cert-issuer:1.0
+    ```
+
 ## Create issuing address
 
 __Important__: this is a simplification to avoid using a USB, which needs to be inserted and removed during the
