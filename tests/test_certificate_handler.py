@@ -16,13 +16,13 @@ class TestCertificateHandler(unittest.TestCase):
         proof = {
                 'merkleRoot': '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044',
                 'type': ['MerkleProof2017', 'Extension'],
-		'targetHash': ANY,
+        'targetHash': ANY,
                 'anchors': [
-			{
-			    'sourceId': ANY,
-			    'type': chain.blockchain_type.external_display_value,
-			    'chain': chain.external_display_value
-			}
+            {
+                'sourceId': ANY,
+                'type': chain.blockchain_type.external_display_value,
+                'chain': chain.external_display_value
+            }
                     ],
                 'proof': [
                     {'right': 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35'},
@@ -130,10 +130,10 @@ class TestCertificateHandler(unittest.TestCase):
         proof, proof_1, proof_2 = self._proof_helper(chain)
 
         with patch.object(DummyCertificateHandler, 'add_proof', return_value= {"cert": "cert"} ) as mock_method:
-	    result = certificate_batch_handler.finish_batch(
-                    '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain
-                    )
-	self.assertEqual(certificate_batch_handler.proof, [{'cert': 'cert'}, {'cert': 'cert'}, {'cert': 'cert'}])
+            result = certificate_batch_handler.finish_batch(
+                        '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain
+                        )
+        self.assertEqual(certificate_batch_handler.proof, [{'cert': 'cert'}, {'cert': 'cert'}, {'cert': 'cert'}])
         mock_method.assert_any_call(ANY, proof)
         mock_method.assert_any_call(ANY, proof_1)
         mock_method.assert_any_call(ANY, proof_2)
@@ -194,35 +194,35 @@ class TestCertificateHandler(unittest.TestCase):
 
         assert not mock_method.called
 
-    @mock.patch("__builtin__.open", create=True)
+    @mock.patch("builtins.open", create=True)
     def test_add_proof(self,mock_open):
         handler = CertificateV2Handler()
 
-	cert_to_issue = {'kek':'kek'}
-	proof = {'a': 'merkel'}
-	file_call = 'call().__enter__().write(\'{"kek": "kek", "signature": {"a": "merkel"}}\')'
+        cert_to_issue = {'kek':'kek'}
+        proof = {'a': 'merkel'}
+        file_call = 'call().__enter__().write(\'{"kek": "kek", "signature": {"a": "merkel"}}\')'
 
         chain = mock.Mock()
         metadata = mock.Mock()
-	metadata.blockchain_cert_file_name = 'file_path.nfo'
+        metadata.blockchain_cert_file_name = 'file_path.nfo'
 
         with patch.object(
-		CertificateV2Handler, '_get_certificate_to_issue', return_value=cert_to_issue) as mock_method:
-            handler.add_proof(metadata, proof)
+        CertificateV2Handler, '_get_certificate_to_issue', return_value=cert_to_issue) as mock_method:
+                handler.add_proof(metadata, proof)
 
-	mock_open.assert_any_call('file_path.nfo','w')
-	calls = mock_open.mock_calls
-	call_strings = map(str, calls)
-	assert file_call in call_strings
+        mock_open.assert_any_call('file_path.nfo','w')
+        calls = mock_open.mock_calls
+        call_strings = map(str, calls)
+        assert file_call in call_strings
 
     def test_web_add_proof(self):
-	handler = CertificateWebV2Handler()
-	proof = {'a': 'merkel'}
-	chain = mock.Mock()
-	certificate_json = {'kek': 'kek'}
+        handler = CertificateWebV2Handler()
+        proof = {'a': 'merkel'}
+        chain = mock.Mock()
+        certificate_json = {'kek': 'kek'}
 
-	return_cert = handler.add_proof(certificate_json, proof)
-	self.assertEqual(return_cert, {'kek':'kek', 'signature': {'a': 'merkel'}})
+        return_cert = handler.add_proof(certificate_json, proof)
+        self.assertEqual(return_cert, {'kek':'kek', 'signature': {'a': 'merkel'}})
 
 class DummyCertificateHandler(CertificateHandler):
     def __init__(self):
