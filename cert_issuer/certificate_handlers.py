@@ -121,7 +121,7 @@ class CertificateBatchHandler(BatchHandler):
 
     def finish_batch(self, tx_id, chain):
         proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
-        for metadata in self.certificates_to_issue.items():
+        for _, metadata in self.certificates_to_issue.items():
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)
 
