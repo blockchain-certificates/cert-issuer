@@ -69,7 +69,7 @@ class EtherscanBroadcaster(object):
         response = requests.post(broadcast_url, data={'hex': tx_hex})
         if 'error' in response.json():
             logging.error("Etherscan returned an error: %s", response.json()['error'])
-            raise BroadcastError()
+            raise BroadcastError(response.json()['error'])
         if int(response.status_code) == 200:
             tx_id = response.json().get('result', None)
             logging.info("Transaction ID obtained from broadcast through Etherscan: %s", tx_id)
