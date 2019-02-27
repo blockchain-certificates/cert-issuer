@@ -60,7 +60,7 @@ class EtherscanBroadcaster(object):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def broadcast_tx(self, tx, api_token):        
+    def broadcast_tx(self, tx, api_token):
         tx_hex = tx
 
         broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
