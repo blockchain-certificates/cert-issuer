@@ -321,8 +321,7 @@ Notes:
 
 1. Add your certificates to data/unsigned_certs/
 
-2. Run the issue_certificates.py script to create your certificates. If you've installed the package
-you can run:
+2. If you've installed the package you can issue certificates by running:
 
 ```
 python cert-issuer -c conf.ini
