@@ -10,3 +10,4 @@ pyld>=1.0.3
 pysha3>=1.0.2
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
+jsonschema<3.0.0
