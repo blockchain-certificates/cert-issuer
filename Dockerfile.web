@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 maintainer yancy ribbens "yribbens@credly.com"
 
-RUN apt-get update -qq && apt-get install -y git wget build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils python3 libboost-all-dev libminiupnpc-dev libzmq3-dev python3-pip locales vim python3.6 python3.6-dev uwsgi uwsgi-src uuid-dev libcap-dev libpcre3-dev python-pip python-dev nginx
+RUN apt-get update -qq && apt-get install -y git wget build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils python3 libboost-all-dev libminiupnpc-dev libzmq3-dev python3-pip locales vim python3.6 python3.6-dev uwsgi uwsgi-src uuid-dev libcap-dev libpcre3-dev python-pip python-dev nginx netcat
 
 # Checkout bitcoin source
 RUN mkdir /bitcoin-source
@@ -66,4 +66,5 @@ COPY cert_issuer_site /etc/nginx/sites-available
 RUN ln -s /etc/nginx/sites-available/cert_issuer_site /etc/nginx/sites-enabled
 RUN sed -i.bak "s/<server-name>/$SERVER/g" /etc/nginx/sites-available/cert_issuer_site
 RUN sed -i.bak "s/# server_names_hash_bucket_size 64/server_names_hash_bucket_size 128/g" /etc/nginx/nginx.conf
+RUN chmod +x start-cert-issuer.sh
 ENTRYPOINT bitcoind -daemon && service nginx start && uwsgi --ini wsgi.ini
