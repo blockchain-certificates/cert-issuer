@@ -15,6 +15,7 @@ ESTIMATE_NUM_INPUTS = 3
 # Estimate fees assuming 1 output for change.
 # Note that tx_utils calculations add on cost due to OP_RETURN size, so it doesn't need to be added here.
 V2_NUM_OUTPUTS = 1
+CONFIG = None
 
 
 def configure_logger():
@@ -72,6 +73,8 @@ def add_arguments(p):
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient')
     p.add_argument('--api_token', default=None, type=str,
                    help='the API token of the blockchain broadcaster you are using. Currently Etherscan only supported.')
+    p.add_argument('--blockcypher_api_token', default=None, type=str,
+                   help='the API token of the blockcypher broadcaster')
 
 
 def get_config():
@@ -102,4 +105,6 @@ def get_config():
             bitcoin_chain_for_python_bitcoinlib = Chain.bitcoin_regtest
         bitcoin.SelectParams(chain_to_bitcoin_network(bitcoin_chain_for_python_bitcoinlib))
 
+    global CONFIG
+    CONFIG = parsed_config
     return parsed_config
