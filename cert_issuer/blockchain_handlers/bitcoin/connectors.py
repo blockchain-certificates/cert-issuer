@@ -17,6 +17,7 @@ from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
 from pycoin.tx.Spendable import Spendable
 
+import cert_issuer.config
 from cert_issuer import helpers
 from cert_issuer.errors import BroadcastError
 
@@ -58,35 +59,25 @@ class BlockcypherBroadcaster(object):
     Note that this needs an API token
     """
 
-    def __init__(self, base_url, api_token):
+    def __init__(self, base_url, api_token=None):
         self.base_url = base_url
         self.api_token = api_token
 
     def broadcast_tx(self, tx):
         hextx = to_hex(tx)
-        broadcast_url = self.base_url + '/txs/push?token=' + self.api_token
+        broadcast_url = self.base_url + '/txs/push'
+        if self.api_token:
+            broadcast_url += '?token=' + self.api_token
+        logging.info(broadcast_url)
         response = requests.post(broadcast_url, json={'tx': hextx})
-        if int(response.status_code) == 200:
-            tx_id = response.json().get('txid', None)
-            return tx_id
+        logging.info(response)
+        if int(response.status_code) == 201:
+            tx_id = response.json().get('tx', None)
+            tx_hash = tx_id.get('hash', None)
+            logging.info(tx_hash)
+            return tx_hash
         logging.error('Error broadcasting the transaction through the Blockcypher API. Error msg: %s', response.text)
         raise BroadcastError(response.text)
-
-
-class BlockrIOBroadcaster(object):
-    def __init__(self, base_url):
-        self.base_url = base_url
-
-    def broadcast_tx(self, tx):
-        hextx = to_hex(tx)
-        url = self.base_url + '/tx/push'
-        response = requests.post(url, json={'hex': hextx})
-        if int(response.status_code) == 200:
-            tx_id = response.json().get('data', None)
-            return tx_id
-        logging.error('Error broadcasting the transaction through the Blockr.IO API. Error msg: %s', response.text)
-        raise BroadcastError(response.text)
-
 
 class BitcoindConnector(object):
     def __init__(self, netcode):
@@ -231,7 +222,11 @@ class BitcoinServiceProviderConnector(ServiceProviderConnector):
         raise BroadcastError(last_exception)
 
 
-PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockcypher.com chain.so"
+# configure api tokens
+config = cert_issuer.config.CONFIG
+blockcypher_token = None if config is None else config.blockcypher_api_token
+
+PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com chain.so"
 PYCOIN_XTN_PROVIDERS = "blockexplorer.com"  # chain.so
 
 # initialize connectors
@@ -240,8 +235,8 @@ connectors = {}
 # configure mainnet providers
 provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS,
                                                       helpers.to_pycoin_chain(Chain.bitcoin_mainnet))
-provider_list.append(BlockrIOBroadcaster('https://btc.blockr.io/api/v1'))
 provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
+provider_list.append(BlockcypherBroadcaster('https://api.blockcypher.com/v1/btc/main', blockcypher_token))
 provider_list.append(InsightProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
 provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
 connectors[Chain.bitcoin_mainnet] = provider_list
@@ -250,7 +245,7 @@ connectors[Chain.bitcoin_mainnet] = provider_list
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS,
                                                           helpers.to_pycoin_chain(Chain.bitcoin_testnet))
 xtn_provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_testnet)))
-xtn_provider_list.append(BlockrIOBroadcaster('https://tbtc.blockr.io/api/v1'))
+xtn_provider_list.append(BlockcypherBroadcaster('https://api.blockcypher.com/v1/btc/test3', blockcypher_token))
 xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
 connectors[Chain.bitcoin_testnet] = xtn_provider_list
 
