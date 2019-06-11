@@ -363,6 +363,15 @@ This class structure is intended to be general-purpose to allow other implementa
 # Advanced setup
 - [Installing and using a local bitcoin node](docs/bitcoind.md)
 
+# Publishing To Pypi
+- Create an account for [pypi](https://pypi.org) & [pypi test](https://test.pypi.org)
+- Install [twine](github.com/pypa/twine) - `pip install twine`
+- Increment version in `__init__.py`
+- Build cert-issuer - `python setup.py install`
+- Run pypi test upload - `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
+- Upload to pypi - `twine upload --repository-url https://upload.pypi.org/legacy/ dist/*`
+
+
 # Examples
 
 The files in examples/data-testnet contain results of previous runs. 
