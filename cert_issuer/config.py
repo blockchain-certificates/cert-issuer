@@ -47,7 +47,7 @@ def add_arguments(p):
                    help='Default path to work directory, storing intermediate outputs. This gets deleted in between runs.', env_var='WORK_DIR')
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure', env_var='MAX_RETRY')
     p.add_argument('--chain', default='bitcoin_regtest',
-                   help=('Which chain to use. Default is bitcoin_regtest (which is how the docker container is configured). Other options are'
+                   help=('Which chain to use. Default is bitcoin_regtest (which is how the docker container is configured). Other options are '
                          'bitcoin_testnet bitcoin_mainnet, mockchain, ethereum_mainnet, ethereum_ropsten'), env_var='CHAIN')
 
     p.add_argument('--safe_mode', dest='safe_mode', default=True, action='store_true',
