@@ -1,4 +1,5 @@
 import logging
+import time
 
 import requests
 
@@ -12,6 +13,9 @@ except ImportError:
 from cert_core import Chain
 from cert_issuer.models import ServiceProviderConnector
 from cert_issuer.errors import BroadcastError
+
+BROADCAST_RETRY_INTERVAL = 30
+MAX_BROADCAST_ATTEMPTS = 3
 
 
 class EthereumServiceProviderConnector(ServiceProviderConnector):
@@ -44,16 +48,42 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         return 0
 
     def broadcast_tx(self, tx):
-        for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
-            try:
-                logging.debug('m=%s', m)
-                txid = m.broadcast_tx(tx, self.api_key)
-                return txid
-            except Exception as e:
-                logging.warning(e)
-                pass
+
+        last_exception = None
+        final_tx_id = None
+
+        # Broadcast to all available api's
+        for attempt_number in range(0, MAX_BROADCAST_ATTEMPTS):
+            for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
+                try:
+                    logging.debug('m=%s', m)
+                    txid = m.broadcast_tx(tx, self.api_key)
+                    if (txid):
+                        logging.info('Broadcasting succeeded with method_provider=%s, txid=%s', str(m), txid)
+                        if final_tx_id and final_tx_id != txid:
+                            logging.error(
+                                'This should never happen; fail and investigate if it does. Got conflicting tx_ids=%s and %s. Hextx=%s',
+                                final_tx_id, txid, tx.as_hex())
+                            raise Exception('Got conflicting tx_ids.')
+                        final_tx_id = txid
+                    return txid
+                except Exception as e:
+                    logging.warning('Caught exception trying provider %s. Trying another. Exception=%s',
+                                    str(m), e)
+                    last_exception = e
+
+            # At least 1 provider succeeded, so return
+            if final_tx_id:
+                return final_tx_id
+            else:
+                logging.warning('Broadcasting failed. Waiting before retrying. This is attempt number %d',
+                                attempt_number)
+                time.sleep(BROADCAST_RETRY_INTERVAL)
+
         ##in case of failure:
-        return '0xfail'
+        logging.error('Failed broadcasting through all providers')
+        logging.error(last_exception, exc_info=True)
+        raise BroadcastError(last_exception)
 
 
 class EtherscanBroadcaster(object):
@@ -114,9 +144,6 @@ class EtherscanBroadcaster(object):
             logging.info('response error checking nonce')
         raise BroadcastError('Error checking the nonce through the Etherscan API. Error msg: %s', response.text)
 
-
-PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com blockcypher.com chain.so"
-PYCOIN_XTN_PROVIDERS = "blockexplorer.com"  # chain.so
 
 # initialize connectors
 connectors = {}
