@@ -10,7 +10,7 @@ import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
 from cert_core import Chain
-from pycoin.serialize import b2h, b2h_rev, h2b
+from pycoin.serialize import b2h, b2h_rev, h2b, h2b_rev
 from pycoin.services import providers
 from pycoin.services.chain_so import ChainSoProvider
 from pycoin.services.insight import InsightProvider
@@ -54,7 +54,7 @@ class BlockExplorerBroadcaster(object):
         raise BroadcastError(response.text)
 
 
-class BlockcypherBroadcaster(object):
+class BlockcypherProvider(object):
     """
     Note that this needs an API token
     """
@@ -76,6 +76,26 @@ class BlockcypherBroadcaster(object):
         logging.error('Error broadcasting the transaction through the Blockcypher API. Error msg: %s', response.text)
         raise BroadcastError(response.text)
 
+    def spendables_for_address(self, address):
+        """
+        Return a list of Spendable objects for the
+        given bitcoin address.
+        """
+        logging.info('trying to get spendables from blockcypher')
+        spendables = []
+        url_append = '?unspentOnly=true&includeScript=true'
+        if self.api_token:
+            url_append += '&token=' + self.api_token
+        url = self.base_url + '/addrs/' + address + url_append
+        response = requests.get(url)
+        if int(response.status_code) == 200:
+            for txn in response.json().get('txrefs', []):
+                coin_value = txn.get('value')
+                script = h2b(txn.get('script'))
+                previous_hash = h2b_rev(txn.get('tx_hash'))
+                previous_index = txn.get('tx_output_n')
+                spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
+        return spendables
 
 class BlockstreamBroadcaster(object):
     def __init__(self, base_url):
@@ -264,7 +284,7 @@ connectors = {}
 provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS,
                                                       helpers.to_pycoin_chain(Chain.bitcoin_mainnet))
 provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
-provider_list.append(BlockcypherBroadcaster('https://api.blockcypher.com/v1/btc/main', blockcypher_token))
+provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/main', blockcypher_token))
 provider_list.append(InsightProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
 provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
 provider_list.append(BlockstreamBroadcaster('https://blockstream.info/api'))
@@ -275,7 +295,7 @@ connectors[Chain.bitcoin_mainnet] = provider_list
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS,
                                                           helpers.to_pycoin_chain(Chain.bitcoin_testnet))
 xtn_provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_testnet)))
-xtn_provider_list.append(BlockcypherBroadcaster('https://api.blockcypher.com/v1/btc/test3', blockcypher_token))
+xtn_provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/test3', blockcypher_token))
 xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
 xtn_provider_list.append(BlockstreamBroadcaster('https://blockstream.info/testnet/api'))
 xtn_provider_list.append(BitpayBroadcaster('https://test-insight.bitpay.com/api'))
