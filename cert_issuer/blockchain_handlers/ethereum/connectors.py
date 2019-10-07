@@ -145,17 +145,84 @@ class EtherscanBroadcaster(object):
         raise BroadcastError('Error checking the nonce through the Etherscan API. Error msg: %s', response.text)
 
 
+class MyEtherWalletBroadcaster(object):
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def broadcast_tx(self, tx, api_token):
+        data = {
+            "jsonrpc": "2.0",
+            "method": "eth_sendRawTransaction",
+            "params": ["0x" + tx],
+            "id": 1
+        }
+        response = requests.post(self.base_url, json=data)
+        if 'error' in response.json():
+            logging.error("MyEtherWallet returned an error: %s", response.json()['error'])
+            raise BroadcastError(response.json()['error'])
+        if int(response.status_code) == 200:
+            tx_id = response.json().get('result', None)
+            logging.info("Transaction ID obtained from broadcast through MyEtherWallet: %s", tx_id)
+            return tx_id
+        logging.error('Error broadcasting the transaction through MyEtherWallet. Error msg: %s', response.text)
+        raise BroadcastError(response.text)
+
+    def get_balance(self, address, api_token):
+        """
+        returns the balance in wei
+        """
+
+        data = {
+            "jsonrpc": "2.0",
+            "method": "eth_getBalance",
+            "params": [address, "latest"],
+            "id": 1
+        }
+        response = requests.post(self.base_url, json=data)
+        if int(response.status_code) == 200:
+            logging.info('Balance check response: %s', response.json())
+            balance = int(response.json().get('result', None), 0)
+            logging.info('Balance check succeeded: %s', response.json())
+            return balance
+        logging.error('Error getting balance through MyEtherWallet. Error msg: %s', response.text)
+        raise BroadcastError(response.text)
+
+    def get_address_nonce(self, address, api_token):
+        """
+        Looks up the address nonce of this address
+        Neccesary for the transaction creation
+        """
+
+        data = {
+            "jsonrpc": "2.0",
+            "method": "eth_getTransactionCount",
+            "params": [address, "latest"],
+            "id": 1
+        }
+        response = requests.post(self.base_url, json=data)
+        if int(response.status_code) == 200:
+            # the int(res, 0) transforms the hex nonce to int
+            nonce = int(response.json().get('result', None), 0)
+            logging.info('Nonce check went correct: %s', response.json())
+            return nonce
+        else:
+            logging.info('response error checking nonce')
+        raise BroadcastError('Error checking the nonce through the MyEtherWallet API. Error msg: %s', response.text)
+
+
 # initialize connectors
 connectors = {}
 
 # Configure Ethereum mainnet connectors
 eth_provider_list = []
 eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api'))
+eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth'))
 connectors[Chain.ethereum_mainnet] = eth_provider_list
 
 # Configure Ethereum Ropsten testnet connectors
 rop_provider_list = []
 rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
+rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop'))
 connectors[Chain.ethereum_ropsten] = rop_provider_list
 
 
