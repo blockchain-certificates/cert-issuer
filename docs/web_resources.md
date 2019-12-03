@@ -19,7 +19,7 @@ Once the build is complete, start the web service:
 sudo docker run -it --entrypoint "/cert-issuer/start-cert-issuer.sh" -p 80:80 bc/cert-issuer-http:1.0
 ```
 
-Web requests can now be sent with `POST`.
+Web requests can now be sent as a JSON array of unsigned certificates with the HTTP `POST` method.
 
 Example Request:
 ```
@@ -33,6 +33,11 @@ Example Payload:
     { "cert1": "more certs"},
     { "cert2": "certs for days"}
 ]
+```
+
+You can sign the example certs in this repo by calling:
+```
+curl -X POST -H "Content-Type: application/json" -d "[$(cat examples/data-testnet/unsigned_certificates/3bc1a96a-3501-46ed-8f75-49612bbac257.json), $(cat examples/data-testnet/unsigned_certificates/4e7d75c5-281c-45de-93cc-3212b1349ee9.json)]" http://example.com/cert_issuer/api/v1.0/issue
 ```
 
 ## Extended HTTP/HTTPS Docker setup
