@@ -194,7 +194,7 @@ python setup.py install
 
 To issue to the ethereum blockchain, run the following:
 ```
-python setup.py experimental --blockchain=ethereum
+python setup.py install experimental --blockchain=ethereum
 
 ```
 
