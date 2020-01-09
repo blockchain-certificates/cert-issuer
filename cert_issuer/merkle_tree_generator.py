@@ -1,7 +1,8 @@
 import hashlib
 
 from cert_core import Chain
-from chainpoint.chainpoint import MerkleTools
+# from chainpoint3.chainpoint import MerkleTools
+from merkletools import MerkleTools
 from pycoin.serialize import h2b
 
 
