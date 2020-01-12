@@ -1,0 +1,17 @@
+{
+	"language": "Solidity",
+	"sources": {
+		"BlockCertsOnchaining.sol": {
+			"content": ""
+		}
+	},
+	"settings": {
+		"outputSelection": {
+			"*": {
+				"*": [
+					"metadata", "evm.bytecode", "evm.bytecode.sourceMap"
+				]
+			}
+		}
+	}
+}
