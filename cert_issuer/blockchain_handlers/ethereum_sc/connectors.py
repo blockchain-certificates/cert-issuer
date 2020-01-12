@@ -5,7 +5,7 @@ from web3 import Web3, HTTPProvider
 import path_tools as tools
 
 
-class MakeW3(object):
+class MakeW3(app_config):
     '''
     Defines a private key of an ethereum wallet to be used for the transaction,
     node url to be used for communication with ethereum blockchain and instantiates the
@@ -16,9 +16,9 @@ class MakeW3(object):
         Defines public & private keys of a wallet, defines an ethereum node
         that will be used for communication with blockchain
         '''
-        current_chain = config.config["current_chain"]
-        self._privkey = config.config["wallets"][current_chain]["privkey"]
-        self._url = config.config["wallets"][current_chain]["url"]
+        current_chain = app_config.chain
+        #self._privkey = config.config["wallets"][current_chain]["privkey"] THAT SHOULD BE NEEDED AND USED BY SIGNER METHOD!!!
+        self._url = app_config.issuer_node
 
         self.w3 = self._create_w3_obj()
         self.account = self._get_w3_wallet()
@@ -34,11 +34,11 @@ class MakeW3(object):
         return self.w3.eth.account.from_key(self._privkey)
 
 
-class ContractConnection(object):
+class ContractConnection(app_config):
     '''Collects abi, address, contract data and instantiates a contract object'''
     def __init__(self, contract_name):
-        self.contract_name = contract_name
-        self._w3Factory = MakeW3()
+        #self.contract_name = contract_name
+        self._w3Factory = MakeW3(app_config)
         self.w3 = self._w3Factory.w3
         self._contract_info = self._get_contract_info()
         self.contract_obj = self._create_contract_object()
@@ -71,6 +71,8 @@ class ContractConnection(object):
             self._w3 = self._w3Factory.w3
             self._contract_obj = contract_obj
             current_chain = config.config["current_chain"]
+
+            #TO DO: priv key needed here, needs to be executed differently!
             self._privkey = config.config["wallets"][current_chain]["privkey"]
             self.acct = self._w3Factory.account
             self.acct_addr = self.acct.address
@@ -96,6 +98,9 @@ class ContractConnection(object):
             tx_hash = self._w3.eth.sendRawTransaction(signed.rawTransaction)
             tx_receipt = self._w3.eth.waitForTransactionReceipt(tx_hash)
             print("Gas used: " + str(method) + ": " + str(tx_receipt.gasUsed))
+
+            #TO DO: not sure if that is the right tx_id the blockcerts issuer wants to print. Need to confirm!
+            return tx_receipt.transactionHash
 
         def call(self, method, *argv):
             return self._contract_obj.functions[method](*argv).call()

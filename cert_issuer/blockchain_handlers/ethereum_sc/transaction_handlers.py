@@ -42,12 +42,17 @@ def get_contr_info_from_ens(address="blockcerts.eth"):
         print("couldnt init contract info")
 
 
-def issue(hash_val):
-    '''Issues a certificate on the blockchain'''
-    print("> following roothash gets issued: " + str(hash_val))
-    sc.functions.transact("issue_hash", hash_val)
-    print("> successfully issued " + str(hash_val) + " on " + config.config["current_chain"])
+def issue(app_config, hash_val):
+    '''Issues a certificate on the blockchain. hash_val = blockchain_bytes from issuer.py and represents the merkle root's hash'''
+    try:
+        sc = ContractConnection(app_config)
+    except (KeyError, JSONDecodeError):
+        print("Init your contr info first with deploy.py or issuer.py --init")
 
+    print("> following roothash gets issued: " + str(hash_val))
+    tx_id = sc.functions.transact("issue_hash", hash_val)
+    print("> successfully issued " + str(hash_val) + " on " + config.config["current_chain"])
+    return tx_id
 
 def revoke(hash_val):
     '''Revokes a certficate by putting the certificate hash into smart contract revocation list'''

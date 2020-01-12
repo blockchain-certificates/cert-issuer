@@ -19,7 +19,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
         certificate_batch_handler=certificate_batch_handler,
         transaction_handler=transaction_handler,
         max_retry=app_config.max_retry)
-    tx_id = issuer.issue(app_config.chain)
+    tx_id = issuer.issue(app_config.chain, app_config)
 
     certificate_batch_handler.post_batch_actions(app_config)
     return tx_id
@@ -28,7 +28,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 def main(app_config):
     chain = app_config.chain
     newimplement = app_config.issuing_address
-    
+
     if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
         if newimplement.endswith(".eth") && app_config.issuing_node != UNUSED:
             from cert_issuer.blockchain_handlers import ethereum_sc
@@ -48,6 +48,8 @@ if __name__ == '__main__':
     try:
         parsed_config = config.get_config()
         tx_id = main(parsed_config)
+
+        #this could throw an error resulting from to TO DO in file ethereum_sc/connectors.py @ method transact() --> not sure which tx_id has to be returned!
         if tx_id:
             logging.info('Transaction id is %s', tx_id)
         else:
