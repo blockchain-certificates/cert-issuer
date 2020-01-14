@@ -2,6 +2,7 @@
 [![PyPI version](https://badge.fury.io/py/cert-issuer.svg)](https://badge.fury.io/py/cert-issuer)
 
 
+
 # cert-issuer
 
 The cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
@@ -194,7 +195,7 @@ python setup.py install
 
 To issue to the ethereum blockchain, run the following:
 ```
-python setup.py experimental --blockchain=ethereum
+python setup.py install experimental --blockchain=ethereum
 
 ```
 
