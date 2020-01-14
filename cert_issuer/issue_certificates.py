@@ -26,16 +26,11 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 
 
 def main(app_config):
+    print(f"findme {app_config}")
     chain = app_config.chain
-    newimplement = app_config.issuing_address
-
     if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
-        if newimplement.endswith(".eth") && app_config.issuing_node != UNUSED:
-            from cert_issuer.blockchain_handlers import ethereum_sc
-            certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
-        else:
-            from cert_issuer.blockchain_handlers import ethereum
-            certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
+        from cert_issuer.blockchain_handlers import ethereum
+        certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
     else:
         from cert_issuer.blockchain_handlers import bitcoin
         certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)
