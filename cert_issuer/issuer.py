@@ -4,6 +4,7 @@ Base class for building blockchain transactions to issue Blockchain Certificates
 import logging
 
 from cert_issuer.errors import BroadcastError
+from blockchain_handlers/ethereum_sc/transaction_handler import issue
 
 MAX_TX_RETRIES = 5
 
@@ -14,7 +15,7 @@ class Issuer:
         self.transaction_handler = transaction_handler
         self.max_retry = max_retry
 
-    def issue(self, chain):
+    def issue(self, chain, app_config):
         """
         Issue the certificates on the blockchain
         :return:
@@ -22,15 +23,27 @@ class Issuer:
 
         blockchain_bytes = self.certificate_batch_handler.prepare_batch()
 
-        for attempt_number in range(0, self.max_retry):
-            try:
-                txid = self.transaction_handler.issue_transaction(blockchain_bytes)
-                self.certificate_batch_handler.finish_batch(txid, chain)
-                logging.info('Broadcast transaction with txid %s', txid)
-                return txid
-            except BroadcastError:
-                logging.warning(
-                    'Failed broadcast reattempts. Trying to recreate transaction. This is attempt number %d',
-                    attempt_number)
+        if app_config.issuing_address.endswith(".eth"):
+            for attempt_number in range(0, self.max_retry):
+                try:
+                    txid = self.issue(app_config, blockchain_bytes)
+                    self.certificate_batch_handler.finish_batch(txid, chain)
+                    logging.info('Broadcast transaction with txid %s', txid)
+                    return txid
+                except BroadcastError:
+                    logging.warning(
+                        'Failed broadcast reattempts. Trying to recreate transaction. This is attempt number %d',
+                        attempt_number)
+        else:
+            for attempt_number in range(0, self.max_retry):
+                try:
+                    txid = self.transaction_handler.issue_transaction(blockchain_bytes)
+                    self.certificate_batch_handler.finish_batch(txid, chain)
+                    logging.info('Broadcast transaction with txid %s', txid)
+                    return txid
+                except BroadcastError:
+                    logging.warning(
+                        'Failed broadcast reattempts. Trying to recreate transaction. This is attempt number %d',
+                        attempt_number)
         logging.error('All attempts to broadcast failed. Try rerunning issuer.')
         raise BroadcastError('All attempts to broadcast failed. Try rerunning issuer.')
