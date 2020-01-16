@@ -41,7 +41,7 @@ class MerkleTreeGenerator(object):
         merkle_root = self.tree.get_merkle_root()
         return h2b(ensure_string(merkle_root))
 
-    def get_proof_generator(self, tx_id, chain=Chain.bitcoin_mainnet):
+    def get_proof_generator(self, tx_id, app_config, chain=Chain.bitcoin_mainnet):
         """
         Returns a generator (1-time iterator) of proofs in insertion order.
 
@@ -60,21 +60,32 @@ class MerkleTreeGenerator(object):
                     dict2[key] = ensure_string(value)
                 proof2.append(dict2)
             target_hash = ensure_string(self.tree.get_leaf(index))
+
+            if app_config.issuing_method == "smart_config":
+                anchor_type = "ETHSmartContract"
+            else:
+                anchor_type = chain.blockchain_type.external_display_value
+
             merkle_proof = {
                 "type": ['MerkleProof2017', 'Extension'],
                 "merkleRoot": root,
                 "targetHash": target_hash,
                 "proof": proof2,
                 "anchors": [{
-                    "sourceId": to_source_id(tx_id, chain),
-                    "type": chain.blockchain_type.external_display_value,
+                    "sourceId": to_source_id(tx_id, chain, app_config),
+                    "type": anchor_type,
                     "chain": chain.external_display_value
                 }]}
             yield merkle_proof
 
 
-def to_source_id(txid, chain):
-    if chain == Chain.bitcoin_mainnet or Chain.bitcoin_testnet or Chain.ethereum_mainnet or Chain.ethereum_ropsten:
+def to_source_id(txid, chain, app_config):
+    if chain == Chain.bitcoin_mainnet or Chain.bitcoin_testnet:
         return txid
+    elif Chain.ethereum_mainnet or Chain.ethereum_ropsten:
+        if app_config.issuing_method == "smart_contract":
+            return app_config.contract_address
+        else:
+            return txid
     else:
         return 'This has not been issued on a blockchain and is for testing only'

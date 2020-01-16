@@ -1,72 +1,92 @@
-import argparse
-import json
-import subprocess
-import time
-from json import JSONDecodeError
+import logging
 
-import content_hash
-import ipfshttpclient
-from ens import ENS
+from pycoin.serialize import b2h
 
-import path_tools as tools
-from connectors import ContractConnection, MakeW3
-
-try:
-    sc = ContractConnection("blockcertsonchaining")
-except (KeyError, JSONDecodeError):
-    print("Init your contr info first with deploy.py or issuer.py --init")
+from cert_issuer.errors import InsufficientFundsError
+from cert_issuer.blockchain_handlers.ethereum import tx_utils
+from cert_issuer.models import TransactionHandler
+from cert_issuer.signer import FinalizableSigner
 
 
-def get_contr_info_from_ens(address="blockcerts.eth"):
-    try:
-        subprocess.Popen(["ipfs", "daemon"])
-        time.sleep(10)
-        client = ipfshttpclient.connect('/ip4/127.0.0.1/tcp/5001/http')
-        ens_domain = str(address)
-        ens_resolver = ContractConnection("ropsten_ens_resolver")
+# as the transaction format in Ethereum is different, the abstracted TransactionCreator doesn't satisfy
+class EthereumTransactionCreator(object):
+    def estimate_cost_for_certificate_batch(self):
+        pass
 
-        w3 = MakeW3().get_w3_obj()
-        ns = ENS.fromWeb3(w3)
-        node = ns.namehash(ens_domain)
+    def create_transaction(self, tx_cost_constants, issuing_address, nonce, to_address, blockchain_bytes):
+        gasprice = tx_cost_constants.get_gas_price()
+        gaslimit = tx_cost_constants.get_gas_limit()
 
-        contr_info = ""
-        if client is not None:
-            content = (ens_resolver.functions.call("contenthash", node)).hex()
-            content = content_hash.decode(content)
-            contr_info = str(client.cat(content))[2:-1]
-        with open(tools.get_contr_info_path(), "w+") as f:
-            json.dump(json.loads(contr_info), f)
-        subprocess.run(["ipfs", "shutdown"])
-        client.close()
-    except Exception:
-        print("couldnt init contract info")
+        transaction = tx_utils.create_ethereum_trx(
+            issuing_address,
+            nonce,
+            to_address,
+            blockchain_bytes,
+            gasprice,
+            gaslimit)
+
+        return transaction
 
 
-def issue(app_config, hash_val):
-    '''Issues a certificate on the blockchain. hash_val = blockchain_bytes from issuer.py and represents the merkle root's hash'''
-    try:
-        sc = ContractConnection(app_config)
-    except (KeyError, JSONDecodeError):
-        print("Init your contr info first with deploy.py or issuer.py --init")
+class EthereumTransactionHandler(TransactionHandler):
+    def __init__(self, connector, tx_cost_constants, secret_manager, issuing_address, prepared_inputs=None,
+                 transaction_creator=EthereumTransactionCreator()):
+        self.connector = connector
+        self.tx_cost_constants = tx_cost_constants
+        self.secret_manager = secret_manager
+        self.issuing_address = issuing_address
+        # input transactions are not needed for Ether
+        self.prepared_inputs = prepared_inputs
+        self.transaction_creator = transaction_creator
 
-    print("> following roothash gets issued: " + str(hash_val))
-    tx_id = sc.functions.transact("issue_hash", hash_val)
-    print("> successfully issued " + str(hash_val) + " on " + config.config["current_chain"])
-    return tx_id
+    def ensure_balance(self):
+        # testing etherscan api wrapper
+        self.balance = self.connector.get_balance(self.issuing_address)
 
-def revoke(hash_val):
-    '''Revokes a certficate by putting the certificate hash into smart contract revocation list'''
-    print("> following hash gets revoked : " + str(hash_val))
-    sc.functions.transact("revoke_hash", hash_val)
-    print("> successfully revoked " + str(hash_val) + " on " + config.config["current_chain"])
+        # for now transaction cost will be a constant: (25000 gas estimate times 20Gwei gasprice) from tx_utils
+        # can later be calculated inside EthereumTransaction_creator
+        transaction_cost = self.tx_cost_constants.get_recommended_max_cost()
+        logging.info('Total cost will be %d wei', transaction_cost)
 
+        if transaction_cost > self.balance:
+            error_message = 'Please add {} wei to the address {}'.format(
+                transaction_cost - self.balance, self.issuing_address)
+            logging.error(error_message)
+            raise InsufficientFundsError(error_message)
 
-def get_latest_contract():
-    w3_factory = MakeW3()
-    w3 = w3_factory.get_w3_obj()
-    account = w3_factory.get_w3_wallet()
-    ns = ENS.fromWeb3(w3, "0x112234455C3a32FD11230C42E7Bccd4A84e02010")
+    def issue_transaction(self, blockchain_bytes):
+        eth_data_field = b2h(blockchain_bytes)
+        prepared_tx = self.create_transaction(blockchain_bytes)
+        signed_tx = self.sign_transaction(prepared_tx)
+        self.verify_transaction(signed_tx, eth_data_field)
+        txid = self.broadcast_transaction(signed_tx)
+        return txid
 
-    name = ns.name(account.address)
-    address = ns.address(name)
-    print(address)
+    def create_transaction(self, blockchain_bytes):
+        if self.balance:
+            # it is assumed here that the address has sufficient funds, as the ensure_balance has just been checked
+            nonce = self.connector.get_address_nonce(self.issuing_address)
+            # Transactions in the first iteration will be send to burn address
+            toaddress = '0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddead'
+            tx = self.transaction_creator.create_transaction(self.tx_cost_constants, self.issuing_address, nonce,
+                                                             toaddress, blockchain_bytes)
+
+            prepared_tx = tx
+            return prepared_tx
+        else:
+            raise InsufficientFundsError('Not sufficient ether to spend at: %s', self.issuing_address)
+
+    def sign_transaction(self, prepared_tx):
+        # stubbed from BitcoinTransactionHandler
+        with FinalizableSigner(self.secret_manager) as signer:
+            signed_tx = signer.sign_transaction(prepared_tx)
+
+        logging.info('signed Ethereum trx = %s', signed_tx)
+        return signed_tx
+
+    def broadcast_transaction(self, signed_tx):
+        txid = self.connector.broadcast_tx(signed_tx)
+        return txid
+
+    def verify_transaction(self, signed_tx, eth_data_field):
+        tx_utils.verify_eth_transaction(signed_tx, eth_data_field)

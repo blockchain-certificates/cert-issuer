@@ -26,11 +26,15 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 
 
 def main(app_config):
-    print(f"findme {app_config}")
     chain = app_config.chain
     if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
-        from cert_issuer.blockchain_handlers import ethereum
-        certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
+        # if config.i # TODO
+        if app_config.issuing_method == "smart_contract":
+            from cert_issuer.blockchain_handlers import ethereum_sc
+            certificate_batch_handler, transaction_handler, connector = ethereum_sc.instantiate_blockchain_handlers(app_config)
+        else:
+            from cert_issuer.blockchain_handlers import ethereum
+            certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
     else:
         from cert_issuer.blockchain_handlers import bitcoin
         certificate_batch_handler, transaction_handler, connector = bitcoin.instantiate_blockchain_handlers(app_config)

@@ -25,7 +25,7 @@ class Issuer:
         for attempt_number in range(0, self.max_retry):
             try:
                 txid = self.transaction_handler.issue_transaction(blockchain_bytes)
-                self.certificate_batch_handler.finish_batch(txid, chain)
+                self.certificate_batch_handler.finish_batch(txid, chain, app_config)
                 logging.info('Broadcast transaction with txid %s', txid)
                 return txid
             except BroadcastError:
