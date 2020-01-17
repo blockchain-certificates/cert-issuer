@@ -50,7 +50,7 @@ class BitcoinTransactionHandler(TransactionHandler):
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-    def issue_transaction(self, blockchain_bytes):
+    def issue_transaction(self, blockchain_bytes, app_config):
         op_return_value = b2h(blockchain_bytes)
         prepared_tx = self.create_transaction(blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)

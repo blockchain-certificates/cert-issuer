@@ -34,7 +34,7 @@ def add_arguments(p):
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
     p.add_argument('--issuing_address', required=True, help='issuing address', env_var='ISSUING_ADDRESS')
-    p.add_argument('--issuing_node', default=False, help='issuing public node url (infura)', env_var='ISSUING_NODE')
+    p.add_argument('--node_url', default=False, help='issuing public node url (infura)', env_var='NODE_URL')
     p.add_argument('--issuing_method', default=False, help='issuing method for ethereum blockchain', env_var='ISSUING_METHOD')
     p.add_argument('--contract_address', default=False, help='address of smart contract to issue proofs to', env_var='CONTRACT_ADDRESS')
     p.add_argument('--ens_name', default=False, help='ens_name that points to the smart contract to which to issue', env_var='ENS_NAME')

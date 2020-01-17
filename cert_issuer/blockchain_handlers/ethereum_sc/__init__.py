@@ -5,9 +5,9 @@ from cert_core import BlockchainType
 from cert_core import Chain, UnknownChainError
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler
-from cert_issuer.blockchain_handlers.ethereum.connectors import EthereumServiceProviderConnector
-from cert_issuer.blockchain_handlers.ethereum.signer import EthereumSigner
-from cert_issuer.blockchain_handlers.ethereum.transaction_handlers import EthereumTransactionHandler
+from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumServiceProviderConnector
+from cert_issuer.blockchain_handlers.ethereum_sc.signer import EthereumSCSigner
+from cert_issuer.blockchain_handlers.ethereum_sc.transaction_handlers import EthereumSCTransactionHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
 from cert_issuer.signer import FileSecretManager
@@ -39,7 +39,7 @@ def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
 
     if app_config.chain.blockchain_type == BlockchainType.ethereum:
-        signer = EthereumSigner(ethereum_chain=app_config.chain)
+        signer = EthereumSCSigner(ethereum_chain=app_config.chain)
     elif app_config.chain == Chain.mockchain:
         signer = None
     else:
@@ -62,7 +62,7 @@ def instantiate_blockchain_handlers(app_config):
     elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
         cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
         connector = EthereumServiceProviderConnector(chain, app_config.api_token)
-        transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager,
+        transaction_handler = EthereumSCTransactionHandler(connector, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 
     return certificate_batch_handler, transaction_handler, connector

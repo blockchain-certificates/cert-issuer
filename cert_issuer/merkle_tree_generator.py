@@ -60,8 +60,7 @@ class MerkleTreeGenerator(object):
                     dict2[key] = ensure_string(value)
                 proof2.append(dict2)
             target_hash = ensure_string(self.tree.get_leaf(index))
-
-            if app_config.issuing_method == "smart_config":
+            if app_config.issuing_method == "smart_contract":
                 anchor_type = "ETHSmartContract"
             else:
                 anchor_type = chain.blockchain_type.external_display_value
@@ -76,13 +75,14 @@ class MerkleTreeGenerator(object):
                     "type": anchor_type,
                     "chain": chain.external_display_value
                 }]}
+
             yield merkle_proof
 
 
 def to_source_id(txid, chain, app_config):
-    if chain == Chain.bitcoin_mainnet or Chain.bitcoin_testnet:
+    if chain == Chain.bitcoin_mainnet or chain == Chain.bitcoin_testnet:
         return txid
-    elif Chain.ethereum_mainnet or Chain.ethereum_ropsten:
+    elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
         if app_config.issuing_method == "smart_contract":
             return app_config.contract_address
         else:
