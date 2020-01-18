@@ -3,38 +3,6 @@ import os
 
 from web3 import Web3, HTTPProvider
 
-# import onchaining_tools.config as config
-# import onchaining_tools.path_tools as tools
-
-
-class MakeW3(object):
-    '''
-    Defines a private key of an ethereum wallet to be used for the transaction,
-    node url to be used for communication with ethereum blockchain and instantiates the
-    web3 connection with ethereum node
-    '''
-    def __init__(self, node_url):
-        '''
-        Defines public & private keys of a wallet, defines an ethereum node
-        that will be used for communication with blockchain
-        '''
-        # current_chain = config.config["current_chain"]
-        # self._privkey = config.config["wallets"][current_chain]["privkey"]
-        self._url = config.config["wallets"][current_chain]["url"]
-
-        self.w3 = self._create_w3_obj()
-        self.account = self._get_w3_wallet()
-        self.pubkey = self.account.address
-        self.w3.eth.defaultAccount = self.pubkey
-
-    def _create_w3_obj(self):
-        '''Instantiates a web3 connection with ethereum node'''
-        return Web3(HTTPProvider(self._url))
-
-    def _get_w3_wallet(self):
-        '''Connects a private key to the account that is going to be used for the transaction'''
-        pass
-
 
 class ContractConnection(object):
     '''Collects abi, address, contract data and instantiates a contract object'''
@@ -44,15 +12,13 @@ class ContractConnection(object):
         self._w3 = Web3(HTTPProvider(self.app_config.node_url))
         self._w3.eth.defaultAccount = self.app_config.issuing_address
 
-        self.abi = self._get_abi()
-
         self.contract_obj = self._create_contract_object()
 
         self.functions = self.ContractFunctions(self._w3, self.contract_obj)
 
     def _create_contract_object(self):
         '''Returns contract address and abi'''
-        address = self._get_address()
+        address = self.app_config.contract_address
         abi = self._get_abi()
         return self._w3.eth.contract(address=address, abi=abi)
 
@@ -66,10 +32,6 @@ class ContractConnection(object):
             raw = f.read()
         abi = json.loads(raw)
         return abi
-
-    def _get_address(self):
-        '''Returns transaction address'''
-        return self.app_config.contract_address
 
     class ContractFunctions(object):
         def __init__(self, w3, contract_obj):
