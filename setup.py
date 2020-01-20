@@ -28,11 +28,17 @@ class InstallCommand(Command):
         self.blockchain = 'bitcoin'
 
     def finalize_options(self):
-        assert self.blockchain in ('bitcoin', 'ethereum'), 'Invalid blockchain!'
+        assert self.blockchain in ('bitcoin', 'ethereum', 'ethereum_smart_contract'), 'Invalid blockchain!'
 
     def run(self):
         if self.blockchain == 'ethereum':
             with open('ethereum_requirements.txt') as f:
+                install_reqs = f.readlines()
+                eth_reqs = [str(ir) for ir in install_reqs]
+                reqs.extend(eth_reqs)
+
+        if self.blockchain == 'ethereum_smart_contract':
+            with open('ethereum_smart_contract_requirements.txt') as f:
                 install_reqs = f.readlines()
                 eth_reqs = [str(ir) for ir in install_reqs]
                 reqs.extend(eth_reqs)
