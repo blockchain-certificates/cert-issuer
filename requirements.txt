@@ -11,3 +11,4 @@ pysha3>=1.0.2
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
 jsonschema<3.0.0
+lds-merkle-proof-2019>=0.0.1

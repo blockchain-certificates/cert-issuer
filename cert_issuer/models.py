@@ -3,10 +3,11 @@ from abc import abstractmethod
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
 class BatchHandler(object):
-    def __init__(self, secret_manager, certificate_handler, merkle_tree):
+    def __init__(self, secret_manager, certificate_handler, merkle_tree, config):
         self.certificate_handler = certificate_handler
         self.secret_manager = secret_manager
         self.merkle_tree = merkle_tree
+        self.config = config
 
     @abstractmethod
     def pre_batch_actions(self, config):
