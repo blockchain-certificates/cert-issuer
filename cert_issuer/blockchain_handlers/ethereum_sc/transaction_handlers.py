@@ -4,7 +4,6 @@ from pycoin.serialize import b2h
 
 from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
 from cert_issuer.errors import InsufficientFundsError
-from cert_issuer.blockchain_handlers.ethereum_sc import tx_utils
 from cert_issuer.models import TransactionHandler
 from cert_issuer.signer import FinalizableSigner
 
@@ -44,9 +43,6 @@ class EthereumSCTransactionHandler(TransactionHandler):
         prepared_tx = self.connector.create_transaction("issue_hash", blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
 
-        # TODO
-        # self.verify_transaction(signed_tx, eth_data_field)
-
         txid = self.broadcast_transaction(signed_tx)
         return txid
 
@@ -62,6 +58,3 @@ class EthereumSCTransactionHandler(TransactionHandler):
     def broadcast_transaction(self, signed_tx):
         txid = self.connector.broadcast_tx(signed_tx)
         return txid
-
-    def verify_transaction(self, signed_tx, eth_data_field):
-        tx_utils.verify_eth_transaction(signed_tx, eth_data_field)
