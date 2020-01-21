@@ -5,7 +5,7 @@ from cert_core import BlockchainType
 from cert_core import Chain, UnknownChainError
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler
-from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumServiceProviderConnector
+from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
 from cert_issuer.blockchain_handlers.ethereum_sc.signer import EthereumSCSigner
 from cert_issuer.blockchain_handlers.ethereum_sc.transaction_handlers import EthereumSCTransactionHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
@@ -61,7 +61,7 @@ def instantiate_blockchain_handlers(app_config):
     # ethereum chains
     elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
         cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
-        connector = EthereumServiceProviderConnector(chain, app_config.api_token)
+        connector = EthereumSCServiceProviderConnector(app_config)
         transaction_handler = EthereumSCTransactionHandler(connector, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 
