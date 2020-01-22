@@ -5,6 +5,19 @@ from models import ServiceProviderConnector
 
 from web3 import Web3, HTTPProvider
 
+def get_abi(contract):
+    '''
+    Returns smart contract abi.
+    possible values for contract: "blockcerts", "ens_registry"
+    '''
+
+    dir_path = os.path.dirname(os.path.abspath(__file__))
+    abi_path = os.path.join(dir_path, f"data/{contract}_abi.json")
+
+    with open(abi_path, "r") as f:
+        raw = f.read()
+    abi = json.loads(raw)
+    return abi
 
 class EthereumSCServiceProviderConnector(ServiceProviderConnector):
     '''Collects abi, address, contract data and instantiates a contract object'''
@@ -19,22 +32,11 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
     def _create_contract_object(self):
         '''Returns contract address and abi'''
         address = self.app_config.contract_address
-        abi = self._get_abi()
+        abi = get_abi("blockcerts")
         return self._w3.eth.contract(address=address, abi=abi)
 
     def get_balance(self, address):
         return self._w3.eth.getBalance(address)
-
-    def _get_abi(self):
-        '''Returns transaction abi'''
-
-        dir_path = os.path.dirname(os.path.abspath(__file__))
-        abi_path = os.path.join(dir_path, "data/contract_abi.json")
-
-        with open(abi_path, "r") as f:
-            raw = f.read()
-        abi = json.loads(raw)
-        return abi
 
     def _get_tx_options(self, estimated_gas):
         '''Returns raw transaction'''

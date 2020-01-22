@@ -61,20 +61,33 @@ class MerkleTreeGenerator(object):
                 proof2.append(dict2)
             target_hash = ensure_string(self.tree.get_leaf(index))
             if app_config.issuing_method == "smart_contract":
-                anchor_type = "ETHSmartContract"
-            else:
-                anchor_type = chain.blockchain_type.external_display_value
+                from blockchain_handlers.ethereum_sc.connectors import get_abi
 
-            merkle_proof = {
-                "type": ['MerkleProof2017', 'Extension'],
-                "merkleRoot": root,
-                "targetHash": target_hash,
-                "proof": proof2,
-                "anchors": [{
-                    "sourceId": to_source_id(tx_id, chain, app_config),
-                    "type": anchor_type,
-                    "chain": chain.external_display_value
-                }]}
+                abi = get_abi("blockcerts")
+
+                merkle_proof = {
+                    "type": ['MerkleProof2017', 'Extension'],
+                    "merkleRoot": root,
+                    "targetHash": target_hash,
+                    "proof": proof2,
+                    "anchors": [{
+                        "sourceId": app_config.contract_address,
+                        "type": "ETHSmartContract",
+                        "chain": chain.external_display_value,
+                        "ens_name": app_config.ens_name,
+                        "contract_abi": abi
+                    }]}
+            else:
+                merkle_proof = {
+                    "type": ['MerkleProof2017', 'Extension'],
+                    "merkleRoot": root,
+                    "targetHash": target_hash,
+                    "proof": proof2,
+                    "anchors": [{
+                        "sourceId": to_source_id(tx_id, chain, app_config),
+                        "type": chain.blockchain_type.external_display_value,
+                        "chain": chain.external_display_value
+                    }]}
 
             yield merkle_proof
 
