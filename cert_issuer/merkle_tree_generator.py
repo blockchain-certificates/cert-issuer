@@ -72,7 +72,7 @@ class MerkleTreeGenerator(object):
                     helpers.tx_to_blink(chain, tx_id)
                   ]
                 }
-            logging.info('merkle_json: %s', str(merkle_json))
+            logging.debug('merkle_json: %s', str(merkle_json))
 
             proof_value = mp2019.encode(merkle_json)
             merkle_proof = {

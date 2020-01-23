@@ -31,12 +31,10 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         self.do_test_signature(Chain.bitcoin_testnet, 'bitcoinTestnet', 'BTCOpReturn')
 
     def test_proofs_bitcoin_regtest(self):
-        ''' TODO merkle proof 2019 library with regtest '''
-        # self.do_test_signature(Chain.bitcoin_regtest, 'bitcoinRegtest', 'BTCOpReturn')
+        self.do_test_signature(Chain.bitcoin_regtest, 'bitcoinRegtest', 'BTCOpReturn')
 
     def test_proofs_mock(self):
-        ''' TODO merkle proof 2019 library with mocknet '''
-        # self.do_test_signature(Chain.mockchain, 'mockchain', 'Mock')
+        self.do_test_signature(Chain.mockchain, 'mockchain', 'Mock')
 
     def do_test_signature(self, chain, display_chain, type):
         merkle_tree_generator = MerkleTreeGenerator()
@@ -47,22 +45,6 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         p1 = next(gen)
         _ = next(gen)
         p3 = next(gen)
-        p1_expected_old = {
-                    'type': ['MerkleProof2017', 'Extension'],
-                    'merkleRoot': '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044',
-                    'targetHash': '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
-                    'proof': [
-                        {'right': 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35'},
-                        {'right': '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce'}
-                    ],
-                    'anchors': [
-                        {
-                            'sourceId': '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582',
-                            'type': type,
-                            'chain': display_chain
-                        }
-                    ]
-                }
 
         p1_json_proof = {
             'path': [
@@ -86,13 +68,6 @@ class TestMerkleTreeGenerator(unittest.TestCase):
                 "verificationMethod": "ecdsa-koblitz-pubkey:123"
             }
 
-        p3_expected_old = {'type': ['MerkleProof2017', 'Extension'],
-                       'merkleRoot': '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044',
-                       'targetHash': '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce',
-                       'proof': [{'left': '4295f72eeb1e3507b8461e240e3b8d18c1e7bd2f1122b11fc9ec40a65894031a'}],
-                       'anchors': [{'sourceId': '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582',
-                                    'type': type,
-                                    'chain': display_chain}]}
         p3_json_proof = {
             'path': [
                 {'left': '4295f72eeb1e3507b8461e240e3b8d18c1e7bd2f1122b11fc9ec40a65894031a'}
