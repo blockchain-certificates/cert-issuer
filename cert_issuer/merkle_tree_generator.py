@@ -63,7 +63,7 @@ class MerkleTreeGenerator(object):
             if app_config.issuing_method == "smart_contract":
                 from blockchain_handlers.ethereum_sc.connectors import get_abi
 
-                abi = get_abi("blockcerts")
+                abi = get_abi("cert_store")
 
                 merkle_proof = {
                     "type": ['MerkleProof2017', 'Extension'],
@@ -84,7 +84,7 @@ class MerkleTreeGenerator(object):
                     "targetHash": target_hash,
                     "proof": proof2,
                     "anchors": [{
-                        "sourceId": to_source_id(tx_id, chain, app_config),
+                        "sourceId": to_source_id(tx_id, chain),
                         "type": chain.blockchain_type.external_display_value,
                         "chain": chain.external_display_value
                     }]}
@@ -92,13 +92,8 @@ class MerkleTreeGenerator(object):
             yield merkle_proof
 
 
-def to_source_id(txid, chain, app_config):
-    if chain == Chain.bitcoin_mainnet or chain == Chain.bitcoin_testnet:
-        return txid
-    elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
-        if app_config.issuing_method == "smart_contract":
-            return app_config.contract_address
-        else:
-            return txid
+def to_source_id(txid, chain):
+    if chain == Chain.bitcoin_mainnet or chain == Chain.bitcoin_testnet or chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
+         return txid
     else:
         return 'This has not been issued on a blockchain and is for testing only'

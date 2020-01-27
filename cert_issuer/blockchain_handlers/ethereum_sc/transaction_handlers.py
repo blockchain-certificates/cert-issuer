@@ -3,6 +3,7 @@ import logging
 from pycoin.serialize import b2h
 
 from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
+from cert_issuer.blockchain_handlers.ethereum_sc.ens import VerifyENS
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.models import TransactionHandler
 from cert_issuer.signer import FinalizableSigner
@@ -17,7 +18,6 @@ class EthereumSCTransactionHandler(TransactionHandler):
         # input transactions are not needed for Ether
         self.prepared_inputs = prepared_inputs
 
-    # inherited
     def ensure_balance(self):
         # testing etherscan api wrapper
         self.balance = self.connector.get_balance(self.issuing_address)
@@ -33,12 +33,11 @@ class EthereumSCTransactionHandler(TransactionHandler):
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-    # starting point for issuing
-    # inherited
     def issue_transaction(self, blockchain_bytes, app_config):
-        eth_data_field = b2h(blockchain_bytes)
+        ens = VerifyENS(app_config)
+        ens.verify_ens()
 
-        # self.contract = ContractConnection(app_config)
+        eth_data_field = b2h(blockchain_bytes)
 
         prepared_tx = self.connector.create_transaction("issue_hash", blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)

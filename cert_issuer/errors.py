@@ -68,3 +68,9 @@ class UnrecognizedChainError(Error):
     Didn't recognize chain
     """
     pass
+
+class UnmatchingENSEntryError(Error):
+    """
+    ENS record and config entry do not match
+    """
+    pass

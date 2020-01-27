@@ -1,7 +1,8 @@
 import json
 import os
+from errors import UnableToSignTxError
 
-from models import ServiceProviderConnector
+from cert_issuer.models import ServiceProviderConnector
 
 from web3 import Web3, HTTPProvider
 
@@ -11,18 +12,27 @@ def get_abi(contract):
     possible values for contract: "blockcerts", "ens_registry"
     '''
 
-    dir_path = os.path.dirname(os.path.abspath(__file__))
-    abi_path = os.path.join(dir_path, f"data/{contract}_abi.json")
+    directory = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(directory, f"data/{contract}_abi.json")
 
-    with open(abi_path, "r") as f:
+    with open(path, "r") as f:
         raw = f.read()
     abi = json.loads(raw)
     return abi
 
 class EthereumSCServiceProviderConnector(ServiceProviderConnector):
     '''Collects abi, address, contract data and instantiates a contract object'''
-    def __init__(self, app_config):
+    def __init__(self, app_config, abi_type="cert_store", contract_address=None, private_key=None):
         self.app_config = app_config
+        self._private_key = private_key
+
+        # this class can be used for both ENS contracts as well as our own ("cert_store")
+        if contract_address == None:
+            self.address = self.app_config.contract_address
+        else:
+            self.address = contract_address
+
+        self.abi = get_abi(abi_type)
 
         self._w3 = Web3(HTTPProvider(self.app_config.node_url))
         self._w3.eth.defaultAccount = self.app_config.issuing_address
@@ -31,9 +41,7 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
 
     def _create_contract_object(self):
         '''Returns contract address and abi'''
-        address = self.app_config.contract_address
-        abi = get_abi("blockcerts")
-        return self._w3.eth.contract(address=address, abi=abi)
+        return self._w3.eth.contract(address=self.address, abi=self.abi)
 
     def get_balance(self, address):
         return self._w3.eth.getBalance(address)
@@ -56,23 +64,29 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         tx_receipt = self._w3.eth.waitForTransactionReceipt(tx_hash)
         return tx_receipt.transactionHash.hex()
 
-    # depracated (sort of)
     def transact(self, method, *argv):
-        '''Sends a signed transaction on the blockchain and waits for a response'''
-        # gas estimation
-        estimated_gas = self._contract_obj.functions[method](*argv).estimateGas()
-        # print("Estimated gas for " + str(method) + ": " + str(estimated_gas))
-        tx_options = self._get_tx_options(estimated_gas)
-        # building a transaction
-        construct_txn = self._contract_obj.functions[method](*argv).buildTransaction(tx_options)
-        # signing a transaction
-        # TODO outsource signing of txn
-        signed = self.acct.sign_transaction(construct_txn)
-        # sending a transaction to the blockchain and waiting for a response
-        tx_hash = self._w3.eth.sendRawTransaction(signed.rawTransaction)
-        tx_receipt = self._w3.eth.waitForTransactionReceipt(tx_hash)
-        return tx_receipt
-        # print("Gas used: " + str(method) + ": " + str(tx_receipt.gasUsed))
+        '''
+        Sends a signed transaction on the blockchain and waits for a response.
+        If initialized with private key this class can sign the transaction.
+        In general, an external signer can be used in conjunction with
+            create_transaction() and broadcast_tx.
+        '''
+        if self._private_key == None:
+            raise UnableToSignTxError("This method is only available if a private key was passed upon initialization")
+
+        prepared_tx = self.create_transaction(method, *argv)
+        signed_tx = self._sign_transaction(prepared_tx)
+        txid = self.broadcast_transaction(signed_tx)
+        return txid
+
+    def _sign_transaction(self, prepared_tx):
+        acct = self._w3.eth.account.from_key(self._private_key)
+
+        try:
+            signed_tx = acct.sign_transaction(transaction_to_sign)
+            return signed_tx
+        except Exception as msg:
+            raise UnableToSignTxError('You are trying to sign a non transaction type')
 
     def call(self, method, *argv):
         return self._contract_obj.functions[method](*argv).call()
