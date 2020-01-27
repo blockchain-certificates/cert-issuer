@@ -43,7 +43,7 @@ class TestCertificateHandler(unittest.TestCase):
         certificates_to_issue['3'] = mock.Mock()
 
         config = mock.Mock()
-        config.issuing_address = "123"
+        config.issuing_address = "http://example.com"
 
         handler = CertificateBatchWebHandler(
                 secret_manager=secret_manager,
@@ -61,7 +61,7 @@ class TestCertificateHandler(unittest.TestCase):
         certificates_to_issue['3'] = mock.Mock()
 
         config = mock.Mock()
-        config.issuing_address = "123"
+        config.issuing_address = "http://example.com"
 
         handler = CertificateBatchHandler(
                 secret_manager=secret_manager,
@@ -113,7 +113,7 @@ class TestCertificateHandler(unittest.TestCase):
         proof = self._proof_helper(chain)
 
         config = mock.Mock()
-        config.issuing_address = "123"
+        config.issuing_address = "http://example.com"
 
         with patch.object(DummyCertificateHandler, 'add_proof') as mock_method:
             result = certificate_batch_handler.finish_batch(
@@ -193,7 +193,7 @@ class TestCertificateHandler(unittest.TestCase):
 class DummyCertificateHandler(CertificateHandler):
     def __init__(self):
         self.config = mock.Mock()
-        self.config.issuing_address = "123"
+        self.config.issuing_address = "http://example.com"
         self.counter = 0
 
     def validate_certificate(self, certificate_metadata):

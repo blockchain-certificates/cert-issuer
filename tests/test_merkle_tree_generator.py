@@ -41,7 +41,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         merkle_tree_generator.populate(get_test_data_generator())
         _ = merkle_tree_generator.get_blockchain_data()
         gen = merkle_tree_generator.get_proof_generator(
-            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', '123', chain)
+            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', 'http://example.com', chain)
         p1 = next(gen)
         _ = next(gen)
         p3 = next(gen)
@@ -65,7 +65,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
                 "created": p1['created'],
                 "proofValue": proof_value.decode('utf8'),
                 "proofPurpose": "assertionMethod",
-                "verificationMethod": "ecdsa-koblitz-pubkey:123"
+                "verificationMethod": "http://example.com"
             }
 
         p3_json_proof = {
@@ -86,7 +86,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
             "created": p3['created'],
             "proofValue": proof_value.decode('utf8'),
             "proofPurpose": "assertionMethod",
-            "verificationMethod": "ecdsa-koblitz-pubkey:123"
+            "verificationMethod": "http://example.com"
         }
 
         self.assertEqual(p1, p1_expected)

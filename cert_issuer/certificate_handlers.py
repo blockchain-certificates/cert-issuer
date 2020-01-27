@@ -49,7 +49,7 @@ class CertificateWebV3Handler(CertificateHandler):
 class CertificateBatchWebHandler(BatchHandler):
     def finish_batch(self, tx_id, chain):
         self.proof = []
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.issuing_address, chain)
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.verification_method, chain)
         for metadata in self.certificates_to_issue:
             proof = next(proof_generator)
             self.proof.append(self.certificate_handler.add_proof(metadata, proof))
@@ -120,7 +120,7 @@ class CertificateBatchHandler(BatchHandler):
             yield data_to_issue
 
     def finish_batch(self, tx_id, chain):
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.issuing_address, chain)
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.verification_method, chain)
         for _, metadata in self.certificates_to_issue.items():
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)

@@ -260,6 +260,9 @@ Edit your conf.ini file (the config file for this application).
 ```
 issuing_address = <issuing-address>
 
+# issuer URL / DID
+verification_method = <verification-method>
+
 chain=<bitcoin_regtest|bitcoin_testnet|bitcoin_mainnet|ethereum_ropsten|ethereum_mainnet|mockchain>
     
 usb_name = </Volumes/path-to-usb/>
