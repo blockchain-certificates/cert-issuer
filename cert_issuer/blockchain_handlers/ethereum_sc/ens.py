@@ -18,6 +18,7 @@ class ENSConnector(object):
         self._w3 = Web3(HTTPProvider())
 
     def get_registry_address(self):
+        # TODO Mainnet
         addr = ENS_CONTRACTS["ethereum_ropsten"]["ens_registry"]
         return self._w3.toChecksumAddress(addr)
 
@@ -55,21 +56,3 @@ class ENSConnector(object):
 
         addr = ens_resolver.call("addr", node)
         return addr
-
-
-class VerifyENS:
-    def __init__(self, app_config):
-        self.app_config = app_config
-        self.ens = ENSConnector(app_config)
-
-    def verify_ens(self):
-        """ Verifies that {ens_name} points to {contract_address} """
-        ens_resolver = self.ens.get_resolver_contract()
-
-        ens_name = self.app_config.ens_name
-        node = self.ens.get_node(ens_name)
-
-        addr = ens_resolver.call("addr", node)
-
-        if addr != self.app_config.contract_address:
-            raise UnmatchingENSEntryError("Contract address set in ENS entry does not match contract address from config")

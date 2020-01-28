@@ -6,11 +6,13 @@ from cert_core import Chain, UnknownChainError
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler
 from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
+from cert_issuer.blockchain_handlers.ethereum_sc.ens import ENSConnector
 from cert_issuer.blockchain_handlers.ethereum_sc.signer import EthereumSCSigner
 from cert_issuer.blockchain_handlers.ethereum_sc.transaction_handlers import EthereumSCTransactionHandler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
 from cert_issuer.signer import FileSecretManager
+from cert_issuer.errors import UnmatchingENSEntryError
 
 
 class EthereumTransactionCostConstants(object):
@@ -49,24 +51,17 @@ def initialize_signer(app_config):
     return secret_manager
 
 def instantiate_connector(app_config):
-    # print(f"contr_addr: {app_config.contract_address}")
-    EthereumSCServiceProviderConnector(app_config)
-    print(app_config)
     # if contr_addr is not set explicitly (recommended), get it from ens entry
     ens = ENSConnector(app_config)
     contr_addr = ens.get_addr_by_ens_name(app_config.ens_name)
+
     if app_config.contract_address == False:
         app_config.contract_address = contr_addr
-        print(app_config)
+    else:
+        if contr_addr != app_config.contract_address:
+            raise UnmatchingENSEntryError("Contract address set in ENS entry does not match contract address from config")
 
-        # print(f"here {app_config.contract_address}")
-    # else:
-        # if contr_addr != app_config.contract_address:
-            # raise UnmatchingENSEntryError("Contract address set in ENS entry does not match contract address from config")
-
-
-
-    # ens.verify_ens()
+    connector = EthereumSCServiceProviderConnector(app_config, contr_addr)
     return connector
 
 
@@ -83,8 +78,8 @@ def instantiate_blockchain_handlers(app_config):
     # ethereum chains
     elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
         cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
-        # connector = instantiate_connector(app_config)
-        connector = EthereumSCServiceProviderConnector(app_config, app_config.contract_address)
+        connector = instantiate_connector(app_config)
+        # connector = EthereumSCServiceProviderConnector(app_config, app_config.contract_address)
         transaction_handler = EthereumSCTransactionHandler(connector, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 

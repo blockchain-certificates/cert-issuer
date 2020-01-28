@@ -12,7 +12,6 @@ from cert_issuer.signer import FinalizableSigner
 class CertificateV2Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        print(f"certificate json {certificate_json}")
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
         return normalized.encode('utf-8')
 

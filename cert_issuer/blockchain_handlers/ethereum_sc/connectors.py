@@ -27,17 +27,12 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         self.app_config = app_config
         self._private_key = private_key
 
-
-        self.abi = get_abi(abi_type)
+        abi = get_abi(abi_type)
 
         self._w3 = Web3(HTTPProvider(self.app_config.node_url))
         self._w3.eth.defaultAccount = self.app_config.issuing_address
 
-        self._contract_obj = self._create_contract_object()
-
-    def _create_contract_object(self):
-        '''Returns contract address and abi'''
-        return self._w3.eth.contract(address=self.address, abi=self.abi)
+        self._contract_obj = self._w3.eth.contract(address=contract_address, abi=abi)
 
     def get_balance(self, address):
         return self._w3.eth.getBalance(address)
