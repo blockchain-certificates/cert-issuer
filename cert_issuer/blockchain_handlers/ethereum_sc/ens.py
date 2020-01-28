@@ -3,6 +3,8 @@ from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCSer
 from cert_issuer.errors import UnmatchingENSEntryError
 from web3 import Web3, HTTPProvider
 
+from cert_core import Chain
+
 ENS_CONTRACTS = {
     'ethereum_mainnet': {
         'ens_registry': '0x314159265dd8dbb310642f98f50c066173c1259b'
@@ -18,8 +20,12 @@ class ENSConnector(object):
         self._w3 = Web3(HTTPProvider())
 
     def get_registry_address(self):
-        # TODO Mainnet
-        addr = ENS_CONTRACTS["ethereum_ropsten"]["ens_registry"]
+        if self.app_config.chain == Chain.ethereum_ropsten:
+            chain = "ethereum_ropsten"
+        else:
+            chain = "ethereum_mainnet"
+
+        addr = ENS_CONTRACTS[chain]["ens_registry"]
         return self._w3.toChecksumAddress(addr)
 
     def get_registry_contract(self):

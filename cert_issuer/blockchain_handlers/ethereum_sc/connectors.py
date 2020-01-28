@@ -3,7 +3,6 @@ import os
 from errors import UnableToSignTxError
 
 from cert_issuer.models import ServiceProviderConnector
-
 from web3 import Web3, HTTPProvider
 
 def get_abi(contract):
