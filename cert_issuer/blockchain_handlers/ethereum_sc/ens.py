@@ -47,6 +47,15 @@ class ENSConnector(object):
     def get_node(self, ens_name):
         return namehash(ens_name)
 
+    def get_addr_by_ens_name(self, ens_name):
+        ens_resolver = self.get_resolver_contract()
+
+        ens_name = self.app_config.ens_name
+        node = self.get_node(ens_name)
+
+        addr = ens_resolver.call("addr", node)
+        return addr
+
 
 class VerifyENS:
     def __init__(self, app_config):

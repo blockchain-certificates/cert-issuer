@@ -12,6 +12,7 @@ from cert_issuer.signer import FinalizableSigner
 class CertificateV2Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
+        print(f"certificate json {certificate_json}")
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
         return normalized.encode('utf-8')
 
@@ -69,7 +70,7 @@ class CertificateBatchWebHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
-        
+ 
         for cert in self.certificates_to_issue:
             self.certificate_handler.validate_certificate(cert)
 
@@ -86,7 +87,7 @@ class CertificateBatchHandler(BatchHandler):
     """
     def pre_batch_actions(self, config):
         self._process_directories(config)
-        
+
     def post_batch_actions(self, config):
         helpers.copy_output(self.certificates_to_issue)
         logging.info('Your Blockchain Certificates are in %s', config.blockchain_certificates_dir)
@@ -130,7 +131,7 @@ class CertificateBatchHandler(BatchHandler):
         signed_certs_dir = config.signed_certificates_dir
         blockchain_certificates_dir = config.blockchain_certificates_dir
         work_dir = config.work_dir
-        
+ 
         certificates_metadata = helpers.prepare_issuance_batch(
                 unsigned_certs_dir,
                 signed_certs_dir,

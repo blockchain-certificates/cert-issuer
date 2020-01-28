@@ -20,17 +20,13 @@ def get_abi(contract):
     abi = json.loads(raw)
     return abi
 
+# this class can be used for both ENS contracts as well as our own ("cert_store")
 class EthereumSCServiceProviderConnector(ServiceProviderConnector):
     '''Collects abi, address, contract data and instantiates a contract object'''
-    def __init__(self, app_config, abi_type="cert_store", contract_address=None, private_key=None):
+    def __init__(self, app_config, contract_address, abi_type="cert_store", private_key=None):
         self.app_config = app_config
         self._private_key = private_key
 
-        # this class can be used for both ENS contracts as well as our own ("cert_store")
-        if contract_address == None:
-            self.address = self.app_config.contract_address
-        else:
-            self.address = contract_address
 
         self.abi = get_abi(abi_type)
 

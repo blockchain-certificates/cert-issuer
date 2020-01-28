@@ -48,6 +48,28 @@ def initialize_signer(app_config):
                                        safe_mode=app_config.safe_mode, issuing_address=app_config.issuing_address)
     return secret_manager
 
+def instantiate_connector(app_config):
+    # print(f"contr_addr: {app_config.contract_address}")
+    EthereumSCServiceProviderConnector(app_config)
+    print(app_config)
+    # if contr_addr is not set explicitly (recommended), get it from ens entry
+    ens = ENSConnector(app_config)
+    contr_addr = ens.get_addr_by_ens_name(app_config.ens_name)
+    if app_config.contract_address == False:
+        app_config.contract_address = contr_addr
+        print(app_config)
+
+        # print(f"here {app_config.contract_address}")
+    # else:
+        # if contr_addr != app_config.contract_address:
+            # raise UnmatchingENSEntryError("Contract address set in ENS entry does not match contract address from config")
+
+
+
+    # ens.verify_ens()
+    return connector
+
+
 
 def instantiate_blockchain_handlers(app_config):
     issuing_address = app_config.issuing_address
@@ -61,7 +83,8 @@ def instantiate_blockchain_handlers(app_config):
     # ethereum chains
     elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
         cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
-        connector = EthereumSCServiceProviderConnector(app_config)
+        # connector = instantiate_connector(app_config)
+        connector = EthereumSCServiceProviderConnector(app_config, app_config.contract_address)
         transaction_handler = EthereumSCTransactionHandler(connector, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 
