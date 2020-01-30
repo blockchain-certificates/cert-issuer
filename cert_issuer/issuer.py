@@ -14,7 +14,7 @@ class Issuer:
         self.transaction_handler = transaction_handler
         self.max_retry = max_retry
 
-    def issue(self, chain):
+    def issue(self, chain, app_config):
         """
         Issue the certificates on the blockchain
         :return:
@@ -24,8 +24,8 @@ class Issuer:
 
         for attempt_number in range(0, self.max_retry):
             try:
-                txid = self.transaction_handler.issue_transaction(blockchain_bytes)
-                self.certificate_batch_handler.finish_batch(txid, chain)
+                txid = self.transaction_handler.issue_transaction(blockchain_bytes, app_config)
+                self.certificate_batch_handler.finish_batch(txid, chain, app_config)
                 logging.info('Broadcast transaction with txid %s', txid)
                 return txid
             except BroadcastError:

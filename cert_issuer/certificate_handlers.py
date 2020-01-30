@@ -47,7 +47,7 @@ class CertificateWebV2Handler(CertificateHandler):
         return certificate_json
 
 class CertificateBatchWebHandler(BatchHandler):
-    def finish_batch(self, tx_id, chain):
+    def finish_batch(self, tx_id, chain, app_config):
         self.proof = []
         proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
         for metadata in self.certificates_to_issue:
@@ -69,7 +69,7 @@ class CertificateBatchWebHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
-        
+ 
         for cert in self.certificates_to_issue:
             self.certificate_handler.validate_certificate(cert)
 
@@ -86,7 +86,7 @@ class CertificateBatchHandler(BatchHandler):
     """
     def pre_batch_actions(self, config):
         self._process_directories(config)
-        
+
     def post_batch_actions(self, config):
         helpers.copy_output(self.certificates_to_issue)
         logging.info('Your Blockchain Certificates are in %s', config.blockchain_certificates_dir)
@@ -119,8 +119,8 @@ class CertificateBatchHandler(BatchHandler):
             data_to_issue = self.certificate_handler.get_byte_array_to_issue(metadata)
             yield data_to_issue
 
-    def finish_batch(self, tx_id, chain):
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
+    def finish_batch(self, tx_id, chain, app_config):
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, app_config, chain)
         for _, metadata in self.certificates_to_issue.items():
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)
@@ -130,7 +130,7 @@ class CertificateBatchHandler(BatchHandler):
         signed_certs_dir = config.signed_certificates_dir
         blockchain_certificates_dir = config.blockchain_certificates_dir
         work_dir = config.work_dir
-        
+ 
         certificates_metadata = helpers.prepare_issuance_batch(
                 unsigned_certs_dir,
                 signed_certs_dir,
