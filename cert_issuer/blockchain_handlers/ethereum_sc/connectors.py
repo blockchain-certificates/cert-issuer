@@ -48,10 +48,7 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         }
 
     def create_transaction(self, method, *argv):
-        try:
-            estimated_gas = self._contract_obj.functions[method](*argv).estimateGas()
-        except ValueError:
-            estimated_gas = 2500000
+        estimated_gas = self._contract_obj.functions[method](*argv).estimateGas()
         tx_options = self._get_tx_options(estimated_gas)
         construct_txn = self._contract_obj.functions[method](*argv).buildTransaction(tx_options)
         return construct_txn
