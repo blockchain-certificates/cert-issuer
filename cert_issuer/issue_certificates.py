@@ -4,6 +4,7 @@ import sys
 from cert_core import Chain
 
 from cert_issuer.issuer import Issuer
+from cert_issuer.revoker import Revoker
 
 if sys.version_info.major < 3:
     sys.stderr.write('Sorry, Python 3.x required by this script.\n')
@@ -24,6 +25,16 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
     certificate_batch_handler.post_batch_actions(app_config)
     return tx_id
 
+def revoke_certificates(app_config, transaction_handler):
+    # has to scale with number of revocations, so balance is checked before every transaction
+    # transaction_handler.ensure_balance()
+
+    revoker = Revoker(
+        transaction_handler=transaction_handler,
+        max_retry=app_config.max_retry)
+    tx_id = revoker.revoke(app_config)
+
+    return tx_id
 
 def main(app_config):
     chain = app_config.chain
@@ -31,6 +42,8 @@ def main(app_config):
         if app_config.issuing_method == "smart_contract":
             from cert_issuer.blockchain_handlers import ethereum_sc
             certificate_batch_handler, transaction_handler, connector = ethereum_sc.instantiate_blockchain_handlers(app_config)
+            if app_config.revoke is True:
+                return revoke_certificates(app_config, transaction_handler)
         else:
             from cert_issuer.blockchain_handlers import ethereum
             certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)

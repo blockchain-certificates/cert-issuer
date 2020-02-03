@@ -38,6 +38,8 @@ class EthereumSCTransactionHandler(TransactionHandler):
         prepared_tx = self.connector.create_transaction("issue_hash", blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
 
+        logging.info('Broadcasting transaction to the blockchain...')
+
         txid = self.broadcast_transaction(signed_tx)
         return txid
 
