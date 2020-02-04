@@ -48,7 +48,9 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         }
 
     def create_transaction(self, method, *argv):
-        estimated_gas = self._contract_obj.functions[method](*argv).estimateGas()
+        # estimated_gas = self._contract_obj.functions[method](*argv).estimateGas()
+        estimated_gas = 200000
+        print("estimatedGas: ", estimated_gas)
         tx_options = self._get_tx_options(estimated_gas)
         construct_txn = self._contract_obj.functions[method](*argv).buildTransaction(tx_options)
         return construct_txn

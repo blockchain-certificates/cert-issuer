@@ -32,11 +32,13 @@ class EthereumSCTransactionHandler(TransactionHandler):
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-    def issue_transaction(self, blockchain_bytes, app_config):
+    def issue_transaction(self, method, blockchain_bytes, app_config):
         eth_data_field = b2h(blockchain_bytes)
 
-        prepared_tx = self.connector.create_transaction("issue_hash", blockchain_bytes)
+        prepared_tx = self.connector.create_transaction(method, blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
+
+        logging.info('Broadcasting transaction to the blockchain...')
 
         txid = self.broadcast_transaction(signed_tx)
         return txid
