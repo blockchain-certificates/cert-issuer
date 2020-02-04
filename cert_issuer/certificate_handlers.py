@@ -2,12 +2,12 @@ import json
 import logging
 
 from cert_schema import normalize_jsonld
-from cert_schema import validate_v2
 from cert_issuer import helpers
 from pycoin.serialize import b2h
 from cert_issuer.models import CertificateHandler, BatchHandler
 
 from cert_issuer.signer import FinalizableSigner
+
 
 class CertificateV2Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_metadata):
@@ -32,6 +32,7 @@ class CertificateV2Handler(CertificateHandler):
             certificate_json = json.load(unsigned_cert_file)
         return certificate_json
 
+
 class CertificateWebV2Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_json):
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
@@ -45,6 +46,7 @@ class CertificateWebV2Handler(CertificateHandler):
         """
         certificate_json['signature'] = merkle_proof
         return certificate_json
+
 
 class CertificateBatchWebHandler(BatchHandler):
     def finish_batch(self, tx_id, chain, app_config):
@@ -69,7 +71,7 @@ class CertificateBatchWebHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
- 
+
         for cert in self.certificates_to_issue:
             self.certificate_handler.validate_certificate(cert)
 
@@ -130,7 +132,7 @@ class CertificateBatchHandler(BatchHandler):
         signed_certs_dir = config.signed_certificates_dir
         blockchain_certificates_dir = config.blockchain_certificates_dir
         work_dir = config.work_dir
- 
+
         certificates_metadata = helpers.prepare_issuance_batch(
                 unsigned_certs_dir,
                 signed_certs_dir,
@@ -144,4 +146,3 @@ class CertificateBatchHandler(BatchHandler):
 
         logging.info('Processing %d certificates under work path=%s', num_certificates, work_dir)
         self.set_certificates_in_batch(certificates_metadata)
-
