@@ -67,7 +67,7 @@ class Revoker:
             blockchain_bytes = h2b(ensure_string(hash))
 
             try:
-                txid = self.transaction_handler.issue_transaction("revoke_hash", blockchain_bytes, app_config)
+                txid = self.transaction_handler.issue_transaction(blockchain_bytes, app_config)
                 logging.info('Broadcast transaction with txid %s', txid)
 
                 tx_ids.append(txid)

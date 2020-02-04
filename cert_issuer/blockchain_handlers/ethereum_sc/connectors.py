@@ -64,8 +64,8 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         """
         Sends a signed transaction on the blockchain and waits for a response.
         If initialized with private key this class can sign the transaction.
-        In general, an external signer can be used in conjunction with
-            create_transaction() and broadcast_tx.
+        In general, an external signer should be used in conjunction with
+        create_transaction() and broadcast_tx.
         """
         if self._private_key == None:
             raise UnableToSignTxError("This method is only available if a private key was passed upon initialization")
