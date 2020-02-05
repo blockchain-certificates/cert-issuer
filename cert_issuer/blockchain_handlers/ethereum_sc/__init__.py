@@ -12,7 +12,7 @@ from cert_issuer.blockchain_handlers.ethereum_sc.transaction_handlers import Eth
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
 from cert_issuer.signer import FileSecretManager
-from cert_issuer.errors import UnmatchingENSEntryError
+from cert_issuer.errors import UnmatchingENSEntryError, MissingArgument
 
 
 class EthereumTransactionCostConstants(object):
@@ -56,7 +56,7 @@ def instantiate_connector(app_config):
     ens = ENSConnector(app_config)
     contr_addr = ens.get_addr_by_ens_name(app_config.ens_name)
 
-    if app_config.contract_address is False:
+    if app_config.contract_address is None:
         app_config.contract_address = contr_addr
     else:
         if contr_addr != app_config.contract_address:
@@ -66,8 +66,22 @@ def instantiate_connector(app_config):
     connector = EthereumSCServiceProviderConnector(app_config, contr_addr)
     return connector
 
+def check_necessary_arguments(app_config):
+    # print("app_config: ", app_config)
+
+    # required arguments only for smart_contract method
+    if app_config.ens_name is None:
+        raise MissingArgument("Missing argument ens_name, check your config file.")
+    if app_config.node_url is None:
+        raise MissingArgument("Missing argument node_url, check your config file.")
+
+    # required only if revoke is set
+    if app_config.revoke is True and app_config.revocation_list_file is None:
+        raise MissingArgument("Missing argument revocation_list_file, check your config file.")
 
 def instantiate_blockchain_handlers(app_config):
+    check_necessary_arguments(app_config)
+
     issuing_address = app_config.issuing_address
     chain = app_config.chain
     secret_manager = initialize_signer(app_config)
