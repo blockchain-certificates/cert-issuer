@@ -121,6 +121,9 @@ class TestCertificateHandler(unittest.TestCase):
                 b2h(result), '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044')
 
     def test_batch_web_handler_finish_batch(self):
+        app_config = mock.Mock()
+        app_config.issuing_method == "transaction"
+
         certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_web_handler()
 
         certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
@@ -131,7 +134,7 @@ class TestCertificateHandler(unittest.TestCase):
 
         with patch.object(DummyCertificateHandler, 'add_proof', return_value= {"cert": "cert"} ) as mock_method:
             result = certificate_batch_handler.finish_batch(
-                        '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain
+                        '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain, app_config
                         )
         self.assertEqual(certificate_batch_handler.proof, [{'cert': 'cert'}, {'cert': 'cert'}, {'cert': 'cert'}])
         mock_method.assert_any_call(ANY, proof)
@@ -139,6 +142,9 @@ class TestCertificateHandler(unittest.TestCase):
         mock_method.assert_any_call(ANY, proof_2)
 
     def test_batch_handler_finish_batch(self):
+        app_config = mock.Mock()
+        app_config.issuing_method = "transaction"
+
         certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_handler()
 
         certificate_batch_handler.set_certificates_in_batch(certificates_to_issue)
@@ -149,7 +155,7 @@ class TestCertificateHandler(unittest.TestCase):
 
         with patch.object(DummyCertificateHandler, 'add_proof') as mock_method:
             result = certificate_batch_handler.finish_batch(
-                    '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain
+                    '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain, app_config
                     )
 
         mock_method.assert_any_call(ANY, proof)
