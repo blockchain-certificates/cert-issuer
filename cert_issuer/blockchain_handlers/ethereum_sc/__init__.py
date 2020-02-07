@@ -67,8 +67,6 @@ def instantiate_connector(app_config):
     return connector
 
 def check_necessary_arguments(app_config):
-    # print("app_config: ", app_config)
-
     # required arguments only for smart_contract method
     if app_config.ens_name is None:
         raise MissingArgument("Missing argument ens_name, check your config file.")

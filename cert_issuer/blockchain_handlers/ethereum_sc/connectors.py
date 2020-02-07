@@ -5,6 +5,7 @@ from errors import UnableToSignTxError
 from cert_issuer.models import ServiceProviderConnector
 from web3 import Web3, HTTPProvider
 
+
 def get_abi(contract):
     """
     Returns smart contract abi.
@@ -18,6 +19,7 @@ def get_abi(contract):
         raw = f.read()
     abi = json.loads(raw)
     return abi
+
 
 # this class can be used for both ENS contracts as well as our own ("cert_store")
 class EthereumSCServiceProviderConnector(ServiceProviderConnector):
@@ -66,7 +68,7 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         In general, an external signer should be used in conjunction with
         create_transaction() and broadcast_tx.
         """
-        if self._private_key == None:
+        if self._private_key is None:
             raise UnableToSignTxError("This method is only available if a private key was passed upon initialization")
 
         prepared_tx = self.create_transaction(method, *argv)
@@ -78,9 +80,9 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         acct = self._w3.eth.account.from_key(self._private_key)
 
         try:
-            signed_tx = acct.sign_transaction(transaction_to_sign)
+            signed_tx = acct.sign_transaction(prepared_tx)
             return signed_tx
-        except Exception as msg:
+        except Exception:
             raise UnableToSignTxError('You are trying to sign a non transaction type')
 
     def call(self, method, *argv):

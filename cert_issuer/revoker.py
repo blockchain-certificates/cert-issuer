@@ -68,7 +68,7 @@ class Revoker:
 
             try:
                 txid = self.transaction_handler.issue_transaction(blockchain_bytes, app_config)
-                logging.info('Broadcast transaction with txid %s', txid)
+                logging.info('Broadcast revokation hash %s with txid %s', hash, txid)
 
                 tx_ids.append(txid)
 
