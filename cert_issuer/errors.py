@@ -75,7 +75,7 @@ class UnmatchingENSEntryError(Error):
     """
     pass
 
-class MissingArgument(Error):
+class MissingArgumentError(Error):
     """
     Missing required argument
     """

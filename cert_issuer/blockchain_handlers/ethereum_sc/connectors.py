@@ -26,7 +26,9 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
     """
     Collects abi, address, contract data and instantiates a contract object
     """
-    def __init__(self, app_config, contract_address, abi_type="cert_store", private_key=None):
+    def __init__(self, app_config, contract_address, abi_type="cert_store", private_key=None, cost_constants=None):
+        self.cost_constants = cost_constants
+
         self.app_config = app_config
         self._private_key = private_key
 
@@ -40,25 +42,24 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
     def get_balance(self, address):
         return self._w3.eth.getBalance(address)
 
-    def _get_tx_options(self, estimated_gas):
-        """
-        Returns raw transaction
-        """
-        return {
-            'nonce': self._w3.eth.getTransactionCount(self._w3.eth.defaultAccount),
-            'gas': estimated_gas * 2
-        }
-
     def create_transaction(self, method, *argv):
         # estimated_gas = self._contract_obj.functions[method](*argv).estimateGas()
-        estimated_gas = 200000
-        tx_options = self._get_tx_options(estimated_gas)
+
+        tx_options = {
+            'nonce': self._w3.eth.getTransactionCount(self._w3.eth.defaultAccount),
+            'gas': self.cost_constants.get_gas_limit(),
+            'gasPrice': self.cost_constants.get_gas_price()
+        }
+
         construct_txn = self._contract_obj.functions[method](*argv).buildTransaction(tx_options)
         return construct_txn
 
     def broadcast_tx(self, signed_tx):
         tx_hash = self._w3.eth.sendRawTransaction(signed_tx.rawTransaction)
         tx_receipt = self._w3.eth.waitForTransactionReceipt(tx_hash)
+
+        print("tx_receipt: ", tx_receipt)
+
         return tx_receipt.transactionHash.hex()
 
     def transact(self, method, *argv):
