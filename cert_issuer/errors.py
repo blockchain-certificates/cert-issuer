@@ -74,3 +74,9 @@ class UnmatchingENSEntryError(Error):
     ENS record and config entry do not match
     """
     pass
+
+class MissingArgumentError(Error):
+    """
+    Missing required argument
+    """
+    pass

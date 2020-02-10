@@ -1,8 +1,5 @@
 import logging
 
-from pycoin.serialize import b2h
-
-from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.models import TransactionHandler
 from cert_issuer.signer import FinalizableSigner
@@ -32,8 +29,11 @@ class EthereumSCTransactionHandler(TransactionHandler):
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-    def issue_transaction(self, method, blockchain_bytes, app_config):
-        eth_data_field = b2h(blockchain_bytes)
+    def issue_transaction(self, blockchain_bytes, app_config):
+        if app_config.revoke is True:
+            method = "revoke_hash"
+        else:
+            method = "issue_hash"
 
         prepared_tx = self.connector.create_transaction(method, blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)

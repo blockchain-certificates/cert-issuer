@@ -1,5 +1,7 @@
 import unittest
 
+import mock
+
 from cert_core import Chain
 from pycoin.serialize import b2h
 
@@ -35,11 +37,15 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         self.do_test_signature(Chain.mockchain, 'mockchain', 'Mock')
 
     def do_test_signature(self, chain, display_chain, type):
+        self.maxDiff = None
+        app_config = mock.Mock()
+        app_config.issuing_method = "transaction"
+        
         merkle_tree_generator = MerkleTreeGenerator()
         merkle_tree_generator.populate(get_test_data_generator())
         _ = merkle_tree_generator.get_blockchain_data()
         gen = merkle_tree_generator.get_proof_generator(
-            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', chain)
+            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', app_config, chain)
         p1 = next(gen)
         _ = next(gen)
         p3 = next(gen)

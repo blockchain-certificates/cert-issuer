@@ -51,7 +51,7 @@ class CertificateWebV2Handler(CertificateHandler):
 class CertificateBatchWebHandler(BatchHandler):
     def finish_batch(self, tx_id, chain, app_config):
         self.proof = []
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, app_config, chain)
         for metadata in self.certificates_to_issue:
             proof = next(proof_generator)
             self.proof.append(self.certificate_handler.add_proof(metadata, proof))
