@@ -16,9 +16,7 @@ from cert_issuer.errors import UnmatchingENSEntryError, MissingArgumentError
 
 
 class EthereumTransactionCostConstants(object):
-    # def __init__(self, recommended_gas_price=20000000000, recommended_gas_limit=25000):
-    def __init__(self, recommended_gas_price=20000000000, recommended_gas_limit=50000):
-    # def __init__(self, recommended_gas_price=200000, recommended_gas_limit=2500):
+    def __init__(self, recommended_gas_price=30000000000, recommended_gas_limit=25000):
         self.recommended_gas_price = recommended_gas_price
         self.recommended_gas_limit = recommended_gas_limit
         logging.info('Set cost constants to recommended_gas_price=%f, recommended_gas_limit=%f',
@@ -28,7 +26,6 @@ class EthereumTransactionCostConstants(object):
     The below methods currently only use the supplied gasprice/limit.
     These values can also be better estimated via a call to the Ethereum blockchain.
     """
-
 
     def get_recommended_max_cost(self):
         return self.recommended_gas_price * self.recommended_gas_limit
