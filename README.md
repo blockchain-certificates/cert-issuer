@@ -201,7 +201,7 @@ To issue to the ethereum blockchain using the smart contract backend, run the fo
 ```
 python setup.py install experimental --blockchain=ethereum_smart_contract
 ```
-For more information on the smart contract backend reference the [comeplete documentation](docs/ethereum_smart_contract.md).
+For more information on the smart contract backend reference the [complete documentation](docs/ethereum_smart_contract.md).
 
 ### Create a Bitcoin issuing address
 
