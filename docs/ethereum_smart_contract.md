@@ -1,10 +1,10 @@
 # Ethereum Smart Contract Backend
 
 ## Introduction
-The value added of this extension lies within, on the one hand, the move of core functionalities (e.g. issuance and revocation of certificates) to smart contracts located on the Ethereum blockchain, and, on the other hand, the utilization of the [Ethereum Name System (ENS)](https://ens.domains/) enabling a sustainable and secure authentication of issuers' identities.
-Backwards compatibility is ensured for all components at any time – one just has to adjust the config file for choosing the desired issuing or verification method.
+The value added by this extension lies in the move of core functionalities (e.g. issuance and revocation of certificates) to smart contracts located on the Ethereum blockchain and the utilization of the [Ethereum Name System (ENS)](https://ens.domains/) enabling a sustainable and secure authentication of issuers' identities.
+Backwards compatibility for all tool components is ensured at any time –  a flag in the corresponding config file is used to choose the desired issuing or verification method.
 
-## Why smart contract backend?
+## Why use the smart contract backend?
 Using simple transactions on the blockchain to store merkle root hashes requires external data to be stored and queried from web servers. Each issuing institution has to host both a file proving its identity and a list of revoked certificates on a server. This approach is prone to availability and security issues – particularly for smaller institutions – as it is neither trivial to run an updated and secure web server, nor the most efficient option. Even a temporary server outage would lead to valid certificates being indistinguishable from invalid ones. Longer lasting outages could thus make existing certificates useless.
 
 Tackling this way of managing the issuer’s identity and the list of revoked certificates, we identified the following requirements that need to be met:
@@ -23,21 +23,19 @@ Both issuing and revoking can be done via the smart contract on the Ethereum blo
 The revocation process was transferred to the smart contract. Now, instead of certificate id's their hashes are used to attach a *state* to them on the blockchain. This state can be `not issued`, `revoked` or `valid`.
 
 Initially, as a batch is issued, the state associated with the batch's merkle root hash is set to `valid`. To revoke the batch, this state can be set to `revoked`.
-
 Individual certificates can be revoked as well. Initially a single certificate's hash has the state `not issued`, as it was not explicitly issued. The certificate's state can be set to `revoked` the same way a batches merkle root hash can. This is reclected in the verification process as well.
 
 ### Identity
-To verify an issuer’s identity, the corresponding hosted issuer.json file has to be validated. This file is generally accessible via a URL on the certificate. The only information to be cross-referenced by humans: the domain name itself, which, for any given institution, is public knowledge. Thus, a strong chain of trust can be established – as long as the server is online.
+A strong chain of trust has to be established to trust the issuer's identity. In the initial BlockCerts design this was done by hosting an issuer.json file that has to be validated by the verifier. This file is generally accessible via a URL on the certificate. The only information to be cross-referenced by humans: the domain name itself, which, for any given institution, is public knowledge. Thus, a strong chain of trust can be established – as long as the server is online.
 
-The goal of this project was to create a similar chain of trust using ENS which allows blockchain resources being addressable to be linked to a human-readable name, e.g. tu-berlin.eth. When an institution’s Blockcerts smart contract is deployed, its ENS domain is instructed to point to this contract. In any certificates issued to this contract, this ENS name will be present as the URL has been previously. If institutions advertise their domain and it becomes public knowledge, this chain of trust established supersedes the former one, as ENS comes with the same availability guarantees as the blockchain itself.
+This issuing method moves this chain of trust completely onto the blockchain by using ENS which allows any addressable blockchain resources to be linked to a human-readable name, e.g. tu-berlin.eth. When an institution’s Blockcerts smart contract is deployed, its ENS domain is instructed to point to this contract. In any certificates issued to this contract, this ENS name will be present as the URL has been previously. If institutions advertise their domain and it becomes public knowledge, this chain of trust established supersedes the former, as ENS comes with the same availability guarantees as the blockchain itself. In the verification process only the institution's ENS name has to be manually verified, as before the institution's hostname.
 
 ## Implementation
 ### Smart contract
-Smart contracts, in our implementation, have the role of server-like mediators we have chosen over the current Blockcerts approach using transaction payloads to write data to the blockchain, due to its flexibility, while maintaining availability and security guarantees a blockchain provides. Generally, the contract bundles functionalities for both issuing and revoking certificates. This is achieved by mapping hashes to certain states while hashes can explicitly be either a batches’ merkle root hash or the one of a single certificate. In our current design, there are three states: not_issued, valid and revoked. Remarkably, the use of a mapping ensures a constant complexity for issuing certificates, thus minimizing gas-costs. Since no gas-costs are incurred by calling data from the ethereum blockchain, the verification process does not consume any gas at all.
+Once before starting the issuing process a smart contract has to be deployed by an institution. The contract bundles functionality for both issuing and revoking certificates. It works by storing storing a hash representation of the certificate or a batch of certificates. Each hash has one of three states associated to it: `not issued` (default), `revoked` or `valid`.
+Internally the use of a mapping ensures constant complexity for both read and write access to certificate states, thus minimizing gas-costs. Since no gas-costs are incurred by calling data from the ethereum blockchain, the verification process is free of charge.
 
-To authenticate issuers, incoming transactions are only allowed, if they are sent by the originally deploying account. Internally, this is ensured by an only_owner modifier within the smart contract.
-
-After registering an ENS domain (ens_name), an organization can establish a human readable link between a smart contract and the related ethereum account. Additionally, the deploying organization could register some subdomains with respectively deployed smart contracts being controlled by different accounts (faculties, departments, etc.) to form a hierarchical system.
+To only allow authorized write access to the contract, it is restricted to the ethereum account that deployed the contract. Internally, this is ensured by an `only_owner` modifier.
 
 The contract is shipped in source with the deployer package and only compiled upon deployment onto the blockchain. This is beneficial for two reasons: First, the code can be reviewed, ensuring it contains no malevolent functions. Second, if an institution wishes to make changes to the inner workings of the contract, this can be easily done.
 
@@ -50,7 +48,8 @@ Though being a completely new feature within the Blockcerts environment, syntact
 As indicated earlier, there are two administrative requirements potential issuers have to meet before they can start deploying smart contracts. First, they have to set up an Ethereum wallet and, second, register an ENS domain (ideally a top-level one). Both the ropsten test network as well as the Ethereum mainnet chains are supported. In a scenario, where an ENS domain already points to an existing smart contract, the configuration contains a flag (overwrite_ens_link) that has to be explicitly set to enable overwriting this link. This is especially meant to prevent accidental data loss or unnecessary expenses.
 
 Finally, according configuration parameters, as it has always been, have to be entered to the conf_eth.ini. Most of the cert-deployer’s configuration is similar to the one of the cert-issuer being presented more detailed in the subsequent section.
-Setup and dependencies
+
+#### Setup and dependencies
 All dependencies required can be installed by running:
 
 `python setup.py install`
