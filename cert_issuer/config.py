@@ -74,7 +74,7 @@ def add_arguments(p):
     # ethereum arguments
     p.add_argument('--gas_price', default=20000000000, type=int,
                    help='decide the price per gas spent (in wei (smallest ETH unit))', env_var='GAS_PRICE')
-    p.add_argument('--gas_limit', default=25000, type=int,
+    p.add_argument('--gas_limit', default=60000, type=int,
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient', env_var='GAS_LIMIT')
     p.add_argument('--api_token', default=None, type=str,
                    help='the API token of the blockchain broadcaster you are using. Currently Etherscan only supported.', env_var='API_TOKEN')
