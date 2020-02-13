@@ -1,20 +1,18 @@
 # Ethereum Smart Contract Backend
 
 ## Quick Start
-
 1. [Create Ethereum wallet](https://www.myetherwallet.com/)
 1. [Register an ENS name](app.ens.domains/)
 1. Get ready to issue
-  1. Install cert-deployer
-  1. Configure cert-deployer
-  1. Deploy smart contract
+   1. Install cert-deployer
+   1. Configure cert-deployer
+   1. Deploy smart contract
 1. Issue certificates
-  1. Install cert-issuer
-  1. Run cert-issuer to issue certificates to the blockchain
+   1. Install cert-issuer
+   1. Run cert-issuer to issue certificates to the blockchain
 
 ## Introduction
-The value added by this extension lies in the move of core functionalities (e.g. issuance and revocation of certificates) to smart contracts located on the Ethereum blockchain and the utilization of the [Ethereum Name System (ENS)](https://ens.domains/) enabling a sustainable and secure authentication of issuers' identities.
-Backwards compatibility for all tool components is ensured at any time –  a flag in the corresponding config file is used to choose the desired issuing or verification method.
+The value added by this extension lies in the move of core functionalities (e.g. issuance and revocation of certificates) to smart contracts located on the Ethereum blockchain and the utilization of the [Ethereum Name System (ENS)](https://ens.domains/) enabling validation of issuers' identities. Backwards compatibility for all tool components is ensured at any time –  a flag in the corresponding config file is used to choose the desired issuing or verification method.
 
 ## Why use the smart contract backend?
 Using simple transactions on the blockchain to store merkle root hashes requires external data to be stored and queried from web servers. Each issuing institution has to host both a file proving its identity and a list of revoked certificates on a server. This approach is prone to availability and security issues – particularly for smaller institutions – as it is neither trivial to run an updated and secure web server, nor the most efficient option. Even a temporary server outage would lead to valid certificates being indistinguishable from invalid ones. Longer lasting outages could thus make existing certificates useless.
@@ -25,7 +23,7 @@ Tackling this way of managing the issuer’s identity and the list of revoked ce
 - Consistent and continuous chain of trust
 - Cost efficiency – costs per transaction have to be constant and proportional to the number of batches issued or revoked
 
-## Approach
+## Design
 The issuer does no longer need to host the `issuer.json` and `revocation_list.json` files.
 As a consequence, asserting issuer's identity and revoking certificates are handled directly on the blockchain. The basis of the changes we propose is the introduction of a smart contract to act as a certificate (hash) store and the Ethereum Name Service.
 
@@ -60,23 +58,23 @@ The main difference is the way blockchain resources are accessed. The Web3 libra
 #### Configuration
 Configuration is done via the `conf_eth.ini` file. Cert-deployer's configuration closely resembles that of cert-issuer. All options are detailed in the subsequent section.
 
-`deploying_address = <Your Ethereum address>`
+`deploying_address = <Your Ethereum address>`  
 The ethereum account's address.
 
-`chain = <ethereum_ropsten|ethereum_mainnet>`
+`chain = <ethereum_ropsten|ethereum_mainnet>`  
 Choice of deployment on Ethereum Mainnet or the Ropsten test network.
 
-`node_url = <ethereum web3 public node url (e.g. infura)>`
+`node_url = <ethereum web3 public node url (e.g. infura)>`  
 The web3py library requires an ethereum node that is compatible with the json-rpc interface. The easiest option is to use a public node e.g. infura’s, or connect to a locally-run node such as geth or parity.
 
-`ens_name = <Your ENS name registered with your ethereum address>`
+`ens_name = <Your ENS name registered with your ethereum address>`  
 The institution's ENS name - has to be registered beforehand via the [ENS Management App](https://app.ens.domains/).
 
-`overwrite_ens_link = <Do you want to overwrite a present link to a smart contract? True/False>`
+`overwrite_ens_link = <Do you want to overwrite a present link to a smart contract? True/False>`  
 In a scenario, where an ENS domain already points to an existing smart contract, this flag has to be explicitly set to overwrite this link. This is meant to prevent accidental loss of data. This should normally be set to False, except you explicitly want to deploy a new contract that your ENS entry points to.
 
-`usb_name= </Volumes/path-to-usb/>`
-`key_file= <file-you-saved-pk-to>`
+`usb_name= </Volumes/path-to-usb/>`  
+`key_file= <file-you-saved-pk-to>`  
 Path and file name of the account's private key.
 
 #### Setup and requirements
@@ -97,20 +95,20 @@ Lastly, the ability to revoke certificates was implemented. In the current imple
 
 #### Configuration
 The following options were added:
-)
-`issuing_method = <transaction(default)|smart_contract>`
+
+`issuing_method = <transaction(default)|smart_contract>`  
 This indicates whether to use the smart contract backend or the current transaction-based approach. As explained below, due to dependency clashes this distinction also has to be made at install time.
 
-`node_url = <ethereum web3 (public) node url (e.g. infura)>`
+`node_url = <ethereum web3 (public) node url (e.g. infura)>`  
 The web3py library requires an ethereum node that is compatible with the json-rpc interface. The easiest option is to use a public node e.g. infura’s, or connect to a locally-run node such as geth or parity.
 
-`ens_name = <Your ENS name registered with your ethereum address that points to your smart contract>`
+`ens_name = <Your ENS name registered with your ethereum address that points to your smart contract>`  
 The ENS domain that points to a smart contract deployed with cert-deployer.
 
-`contract_address = <smart_contract_address>`
+`contract_address = <smart_contract_address>`  
 This argument is not required. The contract address can be queried from the provided ENS entry.
 
-`revocation_list_file = <path-to-your-revocation_list>`
+`revocation_list_file = <path-to-your-revocation_list>`  
 This file lists certificates that will be revoked when passing the --revoke flag when running from the command line.
 
 #### Setup and dependencies
@@ -143,8 +141,7 @@ For the expiration check there were no changes made.
 #### Revocation / Validity check
 The issuer owned smart contract provides a function, which returns the state associated to any given hash.
 Possible states are `not_issued`, `revoked` or `valid`.
-To verify if a certificate is valid, the following checks are done:
-
+To verify if a certificate is valid, the following checks are done:  
 - If merkle root hash and target hash differ from each other, the merkle root hash should be `valid` and not `revoked`, while the target hash should be `not_issued` (as it wasn't explicitly issued).
 - If the batch consists of only one certificate i.e. merkle root hash and target hash are equal, the merkle root hash should be `issued` and not `revoked`.
 
@@ -165,19 +162,19 @@ The V2 schema was slightly modified by adding additional fields into the `anchor
 #### Changes
 The `anchors` field looks as follows:
 
-`ens_name`
+`ens_name`  
 Contains an ENS name of a certificate issuer.
 
-`sourceId`
+`sourceId`  
 Contains the smart contract's address that this certificate was issued to. This value is compared to the address the ENS name points to.
 
-`type`
+`type`  
 Is used by the verifier to identify the method to use in the verification process. Example: `["type" : "ETHSmartContract"]`
 
-`chain`
+`chain`  
 Which chain the certificate was issued to. As smart contracts are not supported by the Bitcoin blockchain, only the Ethereum chains are supported.
 
-`contract_abi`
+`contract_abi`  
 The application binary interface (ABI) is necessary to communicate with the smart contract.
 
 `chain`, `type` and `sourceId` are present in the [chainpoint v2 schema](https://chainpoint.org/) used.
