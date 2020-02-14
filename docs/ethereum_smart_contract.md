@@ -148,9 +148,8 @@ To verify if a certificate is valid, the following checks are done:
 #### ENS Check
 Since ENS is our trust anchor, we have added a new verification step. This verification step compares the address in the ENS Name with the smart contract address embedded in the anchors source id field and checks if they match. If there is an attempt to change the ENS Name in the certificate, the verifier will mark the validation as failed.
 
-# TODO
 #### Configuration
-We have added a config.ini file to enable later changes of the ens registry or the blockchain access point. We believe this config file is a good addition for individual use cases, although it should stay the same in most of the cases. Only the <chain> parameter should be either set to <mainnet> or <ropsten>, while ropsten is the fallback chain. It should be mentioned that the nodes in config.ini are only recommendations from our side.
+The config file is used to set Ethereum node addresses to be used in the verifying process.
 
 ### Cert-schema
 #### Description
