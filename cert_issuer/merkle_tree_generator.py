@@ -71,9 +71,10 @@ class MerkleTreeGenerator(object):
                     "targetHash": target_hash,
                     "proof": proof2,
                     "anchors": [{
-                        "sourceId": app_config.contract_address,
+                        "sourceId": to_source_id(tx_id, chain),
                         "type": "ETHSmartContract",
                         "chain": chain.external_display_value,
+                        "contract_address": app_config.contract_address,
                         "ens_name": app_config.ens_name,
                         "contract_abi": abi
                     }]}
