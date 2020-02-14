@@ -5,15 +5,6 @@ from web3 import Web3, HTTPProvider
 
 from cert_core import Chain
 
-ENS_CONTRACTS = {
-    'ethereum_mainnet': {
-        'ens_registry': '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
-        },
-    'ethereum_ropsten': {
-        'ens_registry': '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
-        }
-    }
-
 class ENSConnector(object):
     def __init__(self, app_config):
         self.app_config = app_config
@@ -21,11 +12,10 @@ class ENSConnector(object):
 
     def get_registry_address(self):
         if self.app_config.chain == Chain.ethereum_ropsten:
-            chain = "ethereum_ropsten"
+            addr = self.app_config.ens_registry_ropsten
         else:
-            chain = "ethereum_mainnet"
+            addr = self.app_config.ens_registry_mainnet
 
-        addr = ENS_CONTRACTS[chain]["ens_registry"]
         return self._w3.toChecksumAddress(addr)
 
     def get_registry_contract(self):

@@ -91,6 +91,10 @@ def add_arguments(p):
                    help='ens_name that points to the smart contract to which to issue', env_var='ENS_NAME')
     p.add_argument('--revocation_list_file', required=False,
                    help='list of certificates or batches to be revokes', env_var='REVOCATION_LIST_FILE')
+    p.add_argument('--ens_registry_ropsten', required=False, default="0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
+                   help='ENS registry address on ropsten', env_var='ENS_RESGISTRY_ROPSTEN')
+    p.add_argument('--ens_registry_mainnet', required=False, default="0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
+                   help='ENS registry address on ropsten', env_var='ENS_RESGISTRY_MAINNET')
 
 def get_config():
     configure_logger()
