@@ -85,8 +85,6 @@ def add_arguments(p):
                    help='issuing public node url (infura)', env_var='NODE_URL')
     p.add_argument('--issuing_method', default=None,
                    help='issuing method for ethereum blockchain', env_var='ISSUING_METHOD')
-    p.add_argument('--contract_address', default=None,
-                   help='address of smart contract to issue proofs to', env_var='CONTRACT_ADDRESS')
     p.add_argument('--ens_name', default=None,
                    help='ens_name that points to the smart contract to which to issue', env_var='ENS_NAME')
     p.add_argument('--revocation_list_file', required=False,

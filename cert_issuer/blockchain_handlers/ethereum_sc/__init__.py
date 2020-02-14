@@ -12,7 +12,7 @@ from cert_issuer.blockchain_handlers.ethereum_sc.transaction_handlers import Eth
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
 from cert_issuer.signer import FileSecretManager
-from cert_issuer.errors import UnmatchingENSEntryError, MissingArgumentError
+from cert_issuer.errors import ENSEntryError, MissingArgumentError
 
 
 class EthereumTransactionCostConstants(object):
@@ -56,12 +56,10 @@ def instantiate_connector(app_config, cost_constants):
     ens = ENSConnector(app_config)
     contr_addr = ens.get_addr_by_ens_name(app_config.ens_name)
 
-    if app_config.contract_address is None:
-        app_config.contract_address = contr_addr
-    else:
-        if contr_addr != app_config.contract_address:
-            raise UnmatchingENSEntryError("Contract address set in ENS entry does \
-                                           not match contract address from config")
+    if contr_addr == "0x0000000000000000000000000000000000000000":
+        raise ENSEntryError(f"Resolved address {contr_addr} from ENS entry {app_config.ens_name}")
+
+    app_config.contract_address = contr_addr
 
     connector = EthereumSCServiceProviderConnector(app_config, contr_addr, cost_constants=cost_constants)
     return connector

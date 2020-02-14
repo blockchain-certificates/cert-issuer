@@ -69,9 +69,9 @@ class UnrecognizedChainError(Error):
     """
     pass
 
-class UnmatchingENSEntryError(Error):
+class ENSEntryError(Error):
     """
-    ENS record and config entry do not match
+    Failure to resolve valid address from ENS
     """
     pass
 

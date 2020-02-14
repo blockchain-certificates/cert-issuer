@@ -1,6 +1,5 @@
 from namehash.namehash import namehash
 from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
-from cert_issuer.errors import UnmatchingENSEntryError
 from web3 import Web3, HTTPProvider
 
 from cert_core import Chain
@@ -47,7 +46,6 @@ class ENSConnector(object):
     def get_addr_by_ens_name(self, ens_name):
         ens_resolver = self.get_resolver_contract()
 
-        ens_name = self.app_config.ens_name
         node = self.get_node(ens_name)
 
         addr = ens_resolver.call("addr", node)
