@@ -112,7 +112,7 @@ This argument is not required. The contract address can be queried from the prov
 This file lists certificates that will be revoked when passing the --revoke flag when running from the command line.
 
 #### Setup and dependencies
-The smart contract backend requires the web3 module to interact with the blockchain. This dependency is incompatible with the ethereum module required by the current implementation. For this reason, there is an install-time option to install the smart contract backend. The use of a [virtual environment](docs/virtualenv.md) is highly recommended.
+The smart contract backend requires the web3 module to interact with the blockchain. This dependency is incompatible with the ethereum module required by the current implementation. For this reason, there is an install-time option to install the smart contract backend. The use of a [virtual environment](virtualenv.md) is highly recommended.
 
 `python setup.py install experimental --blockchain=ethereum_smart_contract`
 
