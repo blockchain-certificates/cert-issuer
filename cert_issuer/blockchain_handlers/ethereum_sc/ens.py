@@ -1,4 +1,4 @@
-from namehash.namehash import namehash
+from ens import ENS
 from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
 from web3 import Web3, HTTPProvider
 
@@ -41,7 +41,7 @@ class ENSConnector(object):
         return ens_resolver
 
     def get_node(self, ens_name):
-        return namehash(ens_name)
+        return ENS.namehash(ens_name)
 
     def get_addr_by_ens_name(self, ens_name):
         ens_resolver = self.get_resolver_contract()
