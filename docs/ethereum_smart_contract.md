@@ -105,9 +105,6 @@ The web3py library requires an ethereum node that is compatible with the json-rp
 `ens_name = <Your ENS name registered with your ethereum address that points to your smart contract>`  
 The ENS domain that points to a smart contract deployed with cert-deployer.
 
-`contract_address = <smart_contract_address>`  
-This argument is not required. The contract address can be queried from the provided ENS entry.
-
 `revocation_list_file = <path-to-your-revocation_list>`  
 This file lists certificates that will be revoked when passing the --revoke flag when running from the command line.
 
