@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from errors import UnableToSignTxError
 
 from cert_issuer.models import ServiceProviderConnector
@@ -43,11 +44,14 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         return self._w3.eth.getBalance(address)
 
     def create_transaction(self, method, *argv):
-        # estimated_gas = self._contract_obj.functions[method](*argv).estimateGas()
+        gas_limit = self.cost_constants.get_gas_limit()
+        estimated_gas = self._contract_obj.functions[method](*argv).estimateGas() * 2
+        if estimated_gas > gas_limit:
+            logging.warning("Estimated gas of %s more than gas limit of %s, transaction might fail.", estimated_gas, gas_limit)
 
         tx_options = {
             'nonce': self._w3.eth.getTransactionCount(self._w3.eth.defaultAccount),
-            'gas': self.cost_constants.get_gas_limit(),
+            'gas': estimated_gas,
             'gasPrice': self.cost_constants.get_gas_price()
         }
 
