@@ -26,14 +26,14 @@ def get_revocation_hashes(app_config):
     return hashes
 
 
-def update_revocations_list(app_config, revoked_hashes, remaining_hashes):
+def remove_from_revocations_list(app_config, hash):
     revocation_list_file = app_config.revocation_list_file
     with open(revocation_list_file, "r") as f:
         data = f.read()
     revocations = json.loads(data)
 
-    revocations["hashes_to_be_revoked"] = remaining_hashes
-    revocations["revoked_assertions"] += revoked_hashes
+    revocations["hashes_to_be_revoked"].remove(hash)
+    revocations["revoked_assertions"].append(hash)
 
     with open(revocation_list_file, "w+") as f:
         data = json.dump(revocations, f, indent=4)
@@ -46,20 +46,23 @@ class Revoker:
 
     def revoke(self, app_config):
         """
-        Issue the certificates on the blockchain
+        Revoke certificates or batches on the blockchain listed in revocation_list_file.
+        Multiple transactions will be executed.
         :return:
         """
 
         hashes = get_revocation_hashes(app_config)
 
-        revoked_hashes = []
         tx_ids = []
 
         if hashes == []:
             logging.info('No hashes to revoke. Check your revocation_list_file if you meant to revoke hashes.')
             return None
+        else:
+            logging.info('Revoking the following hashes: %s', hashes)
 
-        for hash in hashes:
+        while len(hashes) > 0:
+            hash = hashes.pop()
             # ensure balance before every transaction
             self.transaction_handler.ensure_balance()
 
@@ -67,15 +70,12 @@ class Revoker:
             blockchain_bytes = h2b(ensure_string(hash))
 
             try:
-                txid = self.transaction_handler.issue_transaction(blockchain_bytes, app_config)
-                logging.info('Broadcast revokation hash %s with txid %s', hash, txid)
+                txid = self.transaction_handler.revoke_transaction(blockchain_bytes, app_config)
+                logging.info('Broadcast revocation of hash %s in tx with txid %s', hash, txid)
 
                 tx_ids.append(txid)
 
-                # convert to sets for easy difference operation, back to list
-                revoked_hashes.append(hash)
-                remaining_hashes = sorted(set(hashes)-set(revoked_hashes))
-                update_revocations_list(app_config, revoked_hashes, remaining_hashes)
+                remove_from_revocations_list(app_config, hash)
             except BroadcastError:
                 logging.warning('Failed broadcast of transaction.')
 

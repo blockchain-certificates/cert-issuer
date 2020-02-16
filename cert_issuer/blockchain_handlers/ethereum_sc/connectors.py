@@ -61,9 +61,6 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
     def broadcast_tx(self, signed_tx):
         tx_hash = self._w3.eth.sendRawTransaction(signed_tx.rawTransaction)
         tx_receipt = self._w3.eth.waitForTransactionReceipt(tx_hash)
-
-        print("tx_receipt: ", tx_receipt)
-
         return tx_receipt.transactionHash.hex()
 
     def transact(self, method, *argv):

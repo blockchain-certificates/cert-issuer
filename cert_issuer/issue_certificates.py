@@ -26,7 +26,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
     return tx_id
 
 def revoke_certificates(app_config, transaction_handler):
-    # has to scale with number of revocations, so balance is checked before every transaction
+    # revocations are executed one hash at a time - balance is ensure before each tx
     # transaction_handler.ensure_balance()
 
     revoker = Revoker(
@@ -60,7 +60,6 @@ if __name__ == '__main__':
         parsed_config = config.get_config()
         tx_id = main(parsed_config)
 
-        #this could throw an error resulting from to TO DO in file ethereum_sc/connectors.py @ method transact() --> not sure which tx_id has to be returned!
         if tx_id:
             logging.info('Transaction id is %s', tx_id)
         else:

@@ -15,11 +15,8 @@ class EthereumSCTransactionHandler(TransactionHandler):
         self.prepared_inputs = prepared_inputs
 
     def ensure_balance(self):
-        # testing etherscan api wrapper
         self.balance = self.connector.get_balance(self.issuing_address)
 
-        # for now transaction cost will be a constant: (25000 gas estimate times 20Gwei gasprice) from tx_utils
-        # can later be calculated inside EthereumTransaction_creator
         transaction_cost = self.tx_cost_constants.get_recommended_max_cost()
         logging.info('Total cost will be %d wei', transaction_cost)
 
@@ -29,12 +26,13 @@ class EthereumSCTransactionHandler(TransactionHandler):
             logging.error(error_message)
             raise InsufficientFundsError(error_message)
 
-    def issue_transaction(self, blockchain_bytes, app_config):
-        if app_config.revoke is True:
-            method = "revoke_hash"
-        else:
-            method = "issue_hash"
+    def revoke_transaction(self, blockchain_bytes, app_config):
+        return self.make_transaction(blockchain_bytes, app_config, "revoke_hash")
 
+    def issue_transaction(self, blockchain_bytes, app_config):
+        return self.make_transaction(blockchain_bytes, app_config, "issue_hash")
+
+    def make_transaction(self, blockchain_bytes, app_config, method):
         prepared_tx = self.connector.create_transaction(method, blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
 
