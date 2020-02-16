@@ -33,7 +33,6 @@ def remove_from_revocations_list(app_config, hash):
     revocations = json.loads(data)
 
     revocations["hashes_to_be_revoked"].remove(hash)
-    revocations["revoked_assertions"].append(hash)
 
     with open(revocation_list_file, "w+") as f:
         data = json.dump(revocations, f, indent=4)
