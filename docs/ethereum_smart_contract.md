@@ -94,7 +94,18 @@ The issuer was subject to two main changes: First, another Ethereum blockchain h
 The main contribution to the issuer can be found in the addition of an ethereum_sc blockchain handler. Being a wrapper for the web3 library this module enables the issuer to interact with smart contracts in general and, via the interface model defined in `ServiceProviderConnector`, implements the same interface as the other blockchain handlers. Thus, only minor adjustments were required to enable issuing of certificate hashes to the smart contract.
 The main changes made to the existing program logic were needed to embed the necessary information about how to verify within the certificates. This information includes a valid contract address and contract abi. More information on this can be found in the cert-schema section. The required information is generated in `merkle_tree_generator.py`.
 
-Lastly, the ability to revoke certificates was implemented. In the current implementation certificate IDs are used to identify certificates in the revocation list. For a reduced footprint on the blockchain, we opted to identify certificates by their hash. When running with the `--revoke` flag, a json file containing a list of hashes to be revoked is referenced. One by one, the hashes are processed. In case of failure, the hashes that have not been revoked at that point are written back into the file. A list of certificate hashes that have already been revoked is kept locally.
+#### Revocation
+The cert-issuer tool is also used to revoke certificates. As opposed to using certificate IDs to identify certificates in the revocation list, certificate and merkle root hashes are used for a reduced footprint on the blockchain. When running with the `--revoke` flag, a json file containing a list of hashes to be revoked is referenced. One by one, the hashes are processed. In case of failure, the hashes that have not been revoked at that point are written back into the file.
+
+The `revocations.json` should be of the following format:
+```json
+{
+  "hashes_to_be_revoked": [
+    "637ec732fa4b7b56f4c15a6a12680519a17a9e9eade09f5b424a48eb0e6f5ad0"
+  ]
+}
+
+```
 
 #### Configuration
 The following options were added:
