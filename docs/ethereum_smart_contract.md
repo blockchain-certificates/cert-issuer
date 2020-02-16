@@ -78,9 +78,12 @@ In a scenario, where an ENS domain already points to an existing smart contract,
 Path and file name of the account's private key.
 
 #### Setup and requirements
-There are two administrative requirements potential issuers have to meet before they can start deploying smart contracts. First, they have to set up an Ethereum wallet and, second, register an ENS domain.
+There are two administrative requirements potential issuers have to meet before they can start deploying smart contracts.
+1. Have an Ethereum wallet with enough currency
+1. Be owner or controller of an [ENS domain](app.ens.domains/)
+1. Issue v2 certificates
 
-All dependencies required can be installed by running (preferrably inside a [virtual environment](docs/virtualenv.md)).
+All dependencies required can be installed by running (preferrably inside a [virtual environment](docs/virtualenv.md)):
 
 `python setup.py install`
 
