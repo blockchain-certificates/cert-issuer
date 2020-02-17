@@ -47,13 +47,21 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         gas_limit = self.cost_constants.get_gas_limit()
         estimated_gas = self._contract_obj.functions[method](*argv).estimateGas() * 2
         if estimated_gas > gas_limit:
-            logging.warning("Estimated gas of %s more than gas limit of %s, transaction might fail.", estimated_gas, gas_limit)
+            logging.warning("Estimated gas of %s more than gas limit of %s, transaction might fail. Please verify on etherescan.com.", estimated_gas, gas_limit)
+            estimated_gas = gas_limit
+
+        gas_price = self._w3.eth.gasPrice
+        gas_price_limit = self.cost_constants.get_gas_price()
+
+        if gas_price > gas_price_limit:
+            logging.warning("Gas price provided by network of %s higher than gas price of %s set in config", gas_price, gas_price_limit)
+            gas_price = gas_price_limit
 
         tx_options = {
             'nonce': self._w3.eth.getTransactionCount(self._w3.eth.defaultAccount),
             'gas': estimated_gas,
-            'gasPrice': self.cost_constants.get_gas_price()
-        }
+            'gasPrice': gas_price
+            }
 
         construct_txn = self._contract_obj.functions[method](*argv).buildTransaction(tx_options)
         return construct_txn
