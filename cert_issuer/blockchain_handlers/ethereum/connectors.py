@@ -95,7 +95,7 @@ class EtherscanBroadcaster(object):
 
         broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
         if api_token:
-            '&apikey=%s' % api_token
+            broadcast_url += '&apikey=%s' % api_token
         response = requests.post(broadcast_url, data={'hex': tx_hex})
         if 'error' in response.json():
             logging.error("Etherscan returned an error: %s", response.json()['error'])
@@ -118,7 +118,7 @@ class EtherscanBroadcaster(object):
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=latest'
         if api_token:
-            '&apikey=%s' % api_token
+            broadcast_url += '&apikey=%s' % api_token
         response = requests.get(broadcast_url)
         if int(response.status_code) == 200:
             if response.json().get('message', None) == 'NOTOK':
@@ -137,7 +137,7 @@ class EtherscanBroadcaster(object):
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=latest'
         if api_token:
-            '&apikey=%s' % api_token
+            broadcast_url += '&apikey=%s' % api_token
         response = requests.get(broadcast_url, )
         if int(response.status_code) == 200:
             if response.json().get('message', None) == 'NOTOK':
