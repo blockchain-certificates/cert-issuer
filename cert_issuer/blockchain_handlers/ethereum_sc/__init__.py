@@ -54,7 +54,7 @@ def initialize_signer(app_config):
 def instantiate_connector(app_config, cost_constants):
     # if contr_addr is not set explicitly (recommended), get it from ens entry
     ens = ENSConnector(app_config)
-    contr_addr = ens.get_addr_by_ens_name(app_config.ens_name)
+    contr_addr = ens.get_addr()
 
     if contr_addr == "0x0000000000000000000000000000000000000000":
         raise ENSEntryError(f"Resolved address {contr_addr} from ENS entry {app_config.ens_name}")

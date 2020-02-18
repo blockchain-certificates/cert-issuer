@@ -33,7 +33,11 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         self.app_config = app_config
         self._private_key = private_key
 
-        abi = get_abi(abi_type)
+        if abi_type == "cert_store":
+            from cert_issuer.blockchain_handlers.ethereum_sc.ens import ENSConnector
+            abi = ENSConnector(app_config).get_abi()
+        else:
+            abi = get_abi(abi_type)
 
         self._w3 = Web3(HTTPProvider(self.app_config.node_url))
         self._w3.eth.defaultAccount = self.app_config.issuing_address
@@ -54,7 +58,7 @@ class EthereumSCServiceProviderConnector(ServiceProviderConnector):
         gas_price_limit = self.cost_constants.get_gas_price()
 
         if gas_price > gas_price_limit:
-            logging.warning("Gas price provided by network of %s higher than gas price of %s set in config", gas_price, gas_price_limit)
+            logging.warning("Gas price provided by network of %s higher than gas price of %s set in config, transaction might fail. Please verify on etherescan.com.", gas_price, gas_price_limit)
             gas_price = gas_price_limit
 
         tx_options = {

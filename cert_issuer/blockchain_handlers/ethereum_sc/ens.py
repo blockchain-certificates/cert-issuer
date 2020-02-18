@@ -1,4 +1,5 @@
 from ens import ENS
+import json
 from cert_issuer.blockchain_handlers.ethereum_sc.connectors import EthereumSCServiceProviderConnector
 from web3 import Web3, HTTPProvider
 
@@ -43,10 +44,18 @@ class ENSConnector(object):
     def get_node(self, ens_name):
         return ENS.namehash(ens_name)
 
-    def get_addr_by_ens_name(self, ens_name):
+    def get_abi(self):
         ens_resolver = self.get_resolver_contract()
 
-        node = self.get_node(ens_name)
+        node = self.get_node(self.app_config.ens_name)
+
+        abi = ens_resolver.call("ABI", node, 1) # 1 for content type json
+        return json.loads(abi[1])
+
+    def get_addr(self):
+        ens_resolver = self.get_resolver_contract()
+
+        node = self.get_node(self.app_config.ens_name)
 
         addr = ens_resolver.call("addr", node)
         return addr
