@@ -165,9 +165,7 @@ The config file is used to set Ethereum node addresses to be used in the verifyi
 ### Cert-schema
 #### Description
 In order to verify certificates issued to a smart contract the necessary information needs to be stored in the certificate file.
-The V2 schema was slightly modified by adding additional fields into the `anchors` section.
-
-, that are meant to map the correlation between the certificate being issued and corresponding smart contract and an ENS name owner.
+The V2 schema was slightly modified by adding additional fields into the `anchors` sections to hold the additional information necessary to verify certificates issued to the smart contract.
 
 #### Changes
 The `anchors` field looks as follows:
