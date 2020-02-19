@@ -22,7 +22,7 @@ class CertificateV3Handler(CertificateHandler):
         :return:
         """
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        certificate_json['signature'] = merkle_proof
+        certificate_json['proof'] = merkle_proof
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
             out_file.write(json.dumps(certificate_json))
