@@ -166,7 +166,7 @@ class TestCertificateHandler(unittest.TestCase):
 
         cert_to_issue = {'kek':'kek'}
         proof = {'a': 'merkel'}
-        file_call = 'call().__enter__().write(\'{"kek": "kek", "signature": {"a": "merkel"}}\')'
+        file_call = 'call().__enter__().write(\'{"kek": "kek", "proof": {"a": "merkel"}}\')'
 
         chain = mock.Mock()
         metadata = mock.Mock()
