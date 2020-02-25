@@ -1,4 +1,5 @@
 # Ethereum Smart Contract Backend
+*v1.0*
 
 ## Quick Start
 1. [Create Ethereum wallet](https://www.myetherwallet.com/)
