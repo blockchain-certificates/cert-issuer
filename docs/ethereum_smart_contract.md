@@ -1,5 +1,5 @@
 # Ethereum Smart Contract Backend
-*v1.0*
+*v1.1*
 
 ## Quick Start
 1. [Create Ethereum wallet](https://www.myetherwallet.com/)
@@ -123,7 +123,7 @@ The ENS domain that points to a smart contract deployed with cert-deployer.
 `revocation_list_file = <path-to-your-revocation_list>`  
 This file lists certificates that will be revoked when passing the --revoke flag when running from the command line.
 
-#### Setup and dependencies
+#### Setup and requirements
 The smart contract backend requires the web3 module to interact with the blockchain. This dependency is incompatible with the ethereum module required by the current implementation. For this reason, there is an install-time option to install the smart contract backend. The use of a [virtual environment](virtualenv.md) is highly recommended.
 
 `python setup.py install experimental --blockchain=ethereum_smart_contract`
@@ -162,6 +162,11 @@ Since ENS is our trust anchor, we have added a new verification step. This verif
 
 #### Configuration
 The config file is used to set Ethereum node addresses to be used in the verifying process.
+
+#### Setup
+All dependencies required can be installed by running (preferrably inside a [virtual environment](docs/virtualenv.md)):
+
+`python setup.py install`
 
 ### Cert-schema
 #### Description
