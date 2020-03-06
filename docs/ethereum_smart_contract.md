@@ -41,7 +41,7 @@ A strong chain of trust has to be established to trust the issuer's identity. In
 
 This issuing method moves this chain of trust completely onto the blockchain by using ENS which allows any addressable blockchain resources to be linked to a human-readable name, e.g. tu-berlin.eth. When an institution’s Blockcerts smart contract is deployed, its ENS domain is instructed to point to this contract. In any certificates issued to this contract, this ENS name will be present as the URL has been previously. If institutions advertise their domain and it becomes public knowledge, this chain of trust established supersedes the former, as ENS comes with the same availability guarantees as the blockchain itself. In the verification process only the institution's ENS name has to be manually verified, as before the institution's hostname.
 
-## Implementation
+## Usage
 ### Smart contract
 Once before starting the issuing process a smart contract has to be deployed by an institution. The contract bundles functionality for both issuing and revoking certificates. It works by storing storing a hash representation of the certificate or a batch of certificates. Each hash has one of three states associated to it: `not issued` (default), `revoked` or `valid`.
 Internally the use of a mapping ensures constant complexity for both read and write access to certificate states, thus minimizing gas-costs. Since no gas-costs are incurred by calling data from the ethereum blockchain, the verification process is free of charge.
