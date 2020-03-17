@@ -135,7 +135,7 @@ class EtherscanBroadcaster(object):
         """
         broadcast_url = self.base_url + '?module=proxy&action=eth_getTransactionCount'
         broadcast_url += '&address=%s' % address
-        broadcast_url += '&tag=latest'
+        broadcast_url += '&tag=pending' # Valid tags are 'earliest', 'latest', and 'pending', the last of which includes both pending and committed transactions.
         if api_token:
             broadcast_url += '&apikey=%s' % api_token
         response = requests.get(broadcast_url, )
