@@ -201,7 +201,7 @@ class MyEtherWalletBroadcaster(object):
         data = {
             "jsonrpc": "2.0",
             "method": "eth_getTransactionCount",
-            "params": [address, "latest"],
+            "params": [address, "pending"],
             "id": 1
         }
         response = requests.post(self.base_url, json=data)
