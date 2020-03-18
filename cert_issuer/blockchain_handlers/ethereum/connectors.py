@@ -116,7 +116,7 @@ class EtherscanBroadcaster(object):
         """
         broadcast_url = self.base_url + '?module=account&action=balance'
         broadcast_url += '&address=%s' % address
-        broadcast_url += '&tag=latest'
+        broadcast_url += '&tag=pending'
         if api_token:
             broadcast_url += '&apikey=%s' % api_token
         response = requests.get(broadcast_url)
