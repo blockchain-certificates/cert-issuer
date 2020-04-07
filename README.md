@@ -46,6 +46,10 @@ experimenting only.
     ```
     docker run -it bc/cert-issuer:1.0 bash
     ```
+6. Copy the blockchain certificates you issued out of the docker container to a local directory
+    ```
+    docker cp <container for your bc/cert-issuer>:/etc/cert-issuer/data/blockchain_certificates/<your-certificate-guid>.json <path_to_local_dir>
+    ```
 
 ## Create issuing address
 
