@@ -202,62 +202,12 @@ python setup.py experimental --blockchain=ethereum
 
 ```
 
-### Create a Bitcoin issuing address
+### Getting started with Bitcoin/Ethereum addresses
 
-First, ensure you've created an issuing address appropriate for the Bitcoin chain you are using. Please note:
-- regtest or testnet addresses will start with 'm' or 'n'
-- mainnet addresses will start with '1'
-
- __These steps involve storing secure information on a USB. Do not plug in this USB when your computer's wifi is on.__
-
-1. Use bitaddress.org
-    - for testnet addresses go to [bitaddress.org?testnet=true](http://bitaddress.org?testnet=true)
-    - for mainnet addresses go to [bitaddress.org](http://bitaddress.org)
-2. Create an 'issuing address', i.e. the address from which your certificates are issued.
-    - save the unencrypted private key to a file (we recommend to store it on a removable drive for security).
-    - save the public address as the `issuing_address` value in conf.ini
-
-If you are using a local bitcoin node, you can create addresses by command line. See [bitcoind.md](docs/bitcoind.md)
+See the docs here for helpful tips on creating / funding blockchain addresses: [docs/testnet_mainnet_addresses](./docs/testnet_mainnet_addresses.md)
 
 
-### Create an Ethereum issuing address
-
-Currently Blockcerts just supports issuing to the Ropsten Ethereum testnet, and the Ethereum mainnet. In Ethereum a public/private key pair is the same accross all test/main networks.
-
- __These steps involve storing secure information on a USB. Do not plug in this USB when your computer's wifi is on.__
-
- 1. Create issuing address on Myetherwallet
-    - Go to https://www.myetherwallet.com/.
-    - For the best security turn off your connection to the internet when you are on the create wallet page.
- 2. Go through the create wallet process
-    - Store the private key on the USB stick and unplug it afterwards.
-    - Copy the public key to the `issuing_address` value in conf.ini
-
-### Get coins
-
-Note ensure you've transferred sufficient funds to your issuing address to cover the transaction fee.  Some notes:
-- The transaction fee is the same no matter the number of certificates in the batch
-- __For Bitcoin:__
-  - The default transaction fee used by cert-issuer is 60,000 satoshis for bitcoin (~$2.88 USD, 10/11/2017)
-  - Because the transaction fee is a factor in confirmation time, you may decide to increase or decrease this value in the config file (read more about current transaction fee/latency estimates: https://bitcoinfees.21.co/)
-- __For Ethereum:__
-  - The default gasprice is set at 20 GWei, which makes the transaction price about 0.00047 ETH (~$0.14 USD, 10/11/2017)
-  - Lowering the default setting may impact the confirmation time. Please reference http://ethgasstation.info/ to find a fitting gasprice.
-
-#### Obtaining testnet coins
-
-- Request some testnet coins by searching for “Testnet Faucet”, and entering your issuing public address. It may take a while for the transaction to be confirmed.
-- Important: make sure you follow the guidance of the testnet faucet provider!
-
-#### Obtaining mainnet coins
-
-- If this is your first time purchasing Bitcoin or Ethereum, start by reading starter information:
-   - For __Bitcoin__: [https://bitcoin.org/en/getting-started] Specifically, the first section “How to use Bitcoin” is an overview of choosing a wallet, obtaining your first Bitcoins, and securing your money.
-   - For __Ethereum__: https://myetherwallet.github.io/knowledge-base/getting-started/getting-started-new.html - MyEtherWallet's knowledge base getting started entry.
-- Transfer a small amount of money to the issuer address created in step 1.
-
-
-## Configuring cert-issuer
+## Configuring cert-issuer 
 
 Edit your conf.ini file (the config file for this application).
 
@@ -301,82 +251,13 @@ python cert-issuer -c conf.ini
     - The transaction id is located in the Blockchain Certificate under `signature.anchors[0].sourceId`
 
 
-# Unit tests
 
-This project uses tox to validate against several python environments.
+# Contributing 
 
-1. Ensure you have an python environment. [Recommendations](docs/virtualenv.md)
-
-2. Run tests
-    ```
-    ./run_tests.sh
-    ```
-
-# Class design
-
-## Core issuing classes
-![](img/issuer_main_classes.png)
-
-The `Issuer` api is quite simple; it relies on `CertificateHandler`s and `Transaction Handler`s to do the work of
-extracting the data to issue on the blockchain, and handling the blockchain transaction, respectively.
-
-`CertificateBatchHandler` manages the certificates to issue on the blockchain. It ensures that all accessors iterate
- certificates in a predictable order. This is critical because the Merkle Proofs must be associated with the correct
- certificate. Python generators are used here to help keep the memory footprint low while reading from files.
-
-- `prepare_batch`
-    - performs the preparatory steps on certificates in the batch, including validation of the schema and forming the
-    data that will go on the blockchain. Certificate-level details are handled by `CertificateHandler`s
-    - returns the hex byte array that will go on the blockchain
-- `finish_batch` ensures each certificate is updated with the blockchain transaction information (and proof in general)
-
-`CertificateHandler` is responsible for reading from and updating a specific certificate (identified by certificate_metadata).
-It is used exclusively by `CertificateBatchHandler` to handle certificate-level details:
-- `validate`: ensure the certificate is well-formed
-- `sign`: (currently unused)
-- `get_byte_array_to_issue`: return byte array that will be hashed, hex-digested and added to the Merkle Tree
-- `add_proof`: associate a a proof with a certificate (in the current implementation, the proof is embedded in the file)
-
-`TransactionHandler` deals with putting the data on the blockchain. Currently only a Bitcoin implementation exists
-
-## Signing and secret management
-
-![](img/signing_classes.png)
-
-Finalizable signer is a convenience class allowing use of python's `with` syntax. E.g.:
-
-```
-
-with FinalizableSigner(secret_manager) as fs:
-    fs.sign_message(message_to_sign)
-
-```
-
-SecretManagers ensure the secret key (wif) is loaded into memory for signing. FileSecretManager is the only current
-implemenation.
-
-## Merkle tree generator
-
-![](img/merkle_tree_generator.png)
-
-Handles forming the Merkle Tree, returning the data to put on the blockchain, and returning a python generator of the
-proofs.
-
-This class structure is intended to be general-purpose to allow other implementations. (Do this carefully if at all.)
+More information on contributing to the cert-issuer codebase can be found in [docs/contributing.md](./docs/contributing.md)
 
 # Advanced setup
 - [Installing and using a local bitcoin node](docs/bitcoind.md)
-
-# Publishing To Pypi
-- Create an account for [pypi](https://pypi.org) & [pypi test](https://test.pypi.org)
-- Install [twine](github.com/pypa/twine) - `pip install twine`
-- Increment version in `__init__.py`
-- Remove current items in dist - `rm -rf dist/*`
-- Build cert-issuer - `python setup.py install`
-- Build sdist - `python setup.py sdist`
-- Run pypi test upload - `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
-- Upload to pypi - `twine upload --repository-url https://upload.pypi.org/legacy/ dist/*`
-
 
 # Examples
 
