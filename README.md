@@ -2,6 +2,7 @@
 [![PyPI version](https://badge.fury.io/py/cert-issuer.svg)](https://badge.fury.io/py/cert-issuer)
 
 
+
 # cert-issuer
 
 The cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
@@ -193,14 +194,18 @@ Decide which chain (Bitcoin or Ethereum) to issue to and follow the steps. The b
 By default, cert-issuer issues to the Bitcoin blockchain. Run the default setup script if this is the mode you want:
 ```
 python setup.py install
-
 ```
 
 To issue to the ethereum blockchain, run the following:
 ```
-python setup.py experimental --blockchain=ethereum
-
+python setup.py install experimental --blockchain=ethereum
 ```
+
+To issue to the ethereum blockchain using the smart contract backend, run the following:
+```
+python setup.py install experimental --blockchain=ethereum_smart_contract
+```
+For more information on the smart contract backend reference the [complete documentation](docs/ethereum_smart_contract.md).
 
 ### Getting started with Bitcoin/Ethereum addresses
 

@@ -1,0 +1,2 @@
+coincurve==7.1.0
+web3>=5

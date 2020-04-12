@@ -68,3 +68,15 @@ class UnrecognizedChainError(Error):
     Didn't recognize chain
     """
     pass
+
+class ENSEntryError(Error):
+    """
+    Failure to resolve valid address from ENS
+    """
+    pass
+
+class MissingArgumentError(Error):
+    """
+    Missing required argument
+    """
+    pass

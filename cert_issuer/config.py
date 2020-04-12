@@ -31,8 +31,12 @@ def configure_logger():
 
 # restructured arguments to put the chain specific arguments together.
 def add_arguments(p):
+    # invoked from cli
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
+    p.add('-r', '--revoke', required=False, action='store_true', help='revoke certificates in file set in revocation_list_file')
+
+    # 'invoked' through config file
     p.add_argument('--issuing_address', required=True, help='issuing address', env_var='ISSUING_ADDRESS')
     p.add_argument('--usb_name', required=True, help='usb path to key_file', env_var='USB_NAME')
     p.add_argument('--key_file', required=True,
@@ -70,13 +74,25 @@ def add_arguments(p):
     # ethereum arguments
     p.add_argument('--gas_price', default=20000000000, type=int,
                    help='decide the price per gas spent (in wei (smallest ETH unit))', env_var='GAS_PRICE')
-    p.add_argument('--gas_limit', default=25000, type=int,
+    p.add_argument('--gas_limit', default=60000, type=int,
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient', env_var='GAS_LIMIT')
     p.add_argument('--api_token', default=None, type=str,
                    help='the API token of the blockchain broadcaster you are using. Currently Etherscan only supported.', env_var='API_TOKEN')
     p.add_argument('--blockcypher_api_token', default=None, type=str,
                    help='the API token of the blockcypher broadcaster', env_var='BLOCKCYPHER_API_TOKEN')
-
+    # ethereum smart contract arguments
+    p.add_argument('--node_url', default=None, required=False,
+                   help='issuing public node url (infura)', env_var='NODE_URL')
+    p.add_argument('--issuing_method', default=None,
+                   help='issuing method for ethereum blockchain', env_var='ISSUING_METHOD')
+    p.add_argument('--ens_name', default=None,
+                   help='ens_name that points to the smart contract to which to issue', env_var='ENS_NAME')
+    p.add_argument('--revocation_list_file', required=False,
+                   help='list of certificates or batches to be revokes', env_var='REVOCATION_LIST_FILE')
+    p.add_argument('--ens_registry_ropsten', required=False, default="0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
+                   help='ENS registry address on ropsten', env_var='ENS_RESGISTRY_ROPSTEN')
+    p.add_argument('--ens_registry_mainnet', required=False, default="0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
+                   help='ENS registry address on ropsten', env_var='ENS_RESGISTRY_MAINNET')
 
 def get_config():
     configure_logger()

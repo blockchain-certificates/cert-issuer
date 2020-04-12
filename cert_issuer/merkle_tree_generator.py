@@ -1,7 +1,8 @@
 import hashlib
 
 from cert_core import Chain
-from chainpoint.chainpoint import MerkleTools
+# from chainpoint3.chainpoint import MerkleTools
+from merkletools import MerkleTools
 from pycoin.serialize import h2b
 
 
@@ -40,7 +41,7 @@ class MerkleTreeGenerator(object):
         merkle_root = self.tree.get_merkle_root()
         return h2b(ensure_string(merkle_root))
 
-    def get_proof_generator(self, tx_id, chain=Chain.bitcoin_mainnet):
+    def get_proof_generator(self, tx_id, app_config, chain=Chain.bitcoin_mainnet):
         """
         Returns a generator (1-time iterator) of proofs in insertion order.
 
@@ -59,21 +60,45 @@ class MerkleTreeGenerator(object):
                     dict2[key] = ensure_string(value)
                 proof2.append(dict2)
             target_hash = ensure_string(self.tree.get_leaf(index))
-            merkle_proof = {
-                "type": ['MerkleProof2017', 'Extension'],
-                "merkleRoot": root,
-                "targetHash": target_hash,
-                "proof": proof2,
-                "anchors": [{
-                    "sourceId": to_source_id(tx_id, chain),
-                    "type": chain.blockchain_type.external_display_value,
-                    "chain": chain.external_display_value
-                }]}
+            if app_config.issuing_method == "smart_contract":
+                from blockchain_handlers.ethereum_sc.ens import ENSConnector
+
+                ens = ENSConnector(app_config)
+                abi = ens.get_abi()
+
+                merkle_proof = {
+                    "type": ['MerkleProof2017', 'Extension'],
+                    "merkleRoot": root,
+                    "targetHash": target_hash,
+                    "proof": proof2,
+                    "anchors": [{
+                        "sourceId": to_source_id(tx_id, chain),
+                        "type": "ETHSmartContract",
+                        "chain": chain.external_display_value,
+                        "contract_address": app_config.contract_address,
+                        "ens_name": app_config.ens_name,
+                        "contract_abi": abi
+                    }]}
+            else:
+                merkle_proof = {
+                    "type": ['MerkleProof2017', 'Extension'],
+                    "merkleRoot": root,
+                    "targetHash": target_hash,
+                    "proof": proof2,
+                    "anchors": [{
+                        "sourceId": to_source_id(tx_id, chain),
+                        "type": chain.blockchain_type.external_display_value,
+                        "chain": chain.external_display_value
+                    }]}
+
             yield merkle_proof
 
 
 def to_source_id(txid, chain):
-    if chain == Chain.bitcoin_mainnet or Chain.bitcoin_testnet or Chain.ethereum_mainnet or Chain.ethereum_ropsten:
-        return txid
+    # workaround
+    return txid
+    # previously the == operator to actually compare with 'chain' was missing - this caused the below text to be returned, breaking the tests
+    if chain == Chain.bitcoin_mainnet or chain == Chain.bitcoin_testnet or chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
+         return txid
     else:
         return 'This has not been issued on a blockchain and is for testing only'
