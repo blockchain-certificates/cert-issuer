@@ -5,7 +5,8 @@ We recommend using virtualenv [details](http://docs.python-guide.org/en/latest/d
 1. Ensure virtualenv is installed
    ```bash
    pip install virtualenv
-   pip -p python3 virtualenv // for python 3
+ #  pip -p python3 virtualenv // for python 3
+   virtualenv env
    ```
 2. Create a virtualenv for your project
    ```bash
@@ -15,7 +16,8 @@ We recommend using virtualenv [details](http://docs.python-guide.org/en/latest/d
 
 3. Activate the environment
    ```bash
-   source ./venv/bin/activate
+ #  source ./venv/bin/activate
+  source env/bin/activate
    ```
 4. After you're finished, deactivate the environment by running
    ```bash
