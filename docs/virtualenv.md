@@ -5,10 +5,18 @@ We recommend using virtualenv [details](http://docs.python-guide.org/en/latest/d
 1. Ensure virtualenv is installed
    ```bash
    pip install virtualenv
-   pip -p python3 virtualenv // for python 3
+
+ # below code does not work with ubuntu 16.04.
+ # pip -p python3 virtualenv // for python 3
+ 
+ 
    ```
 2. Create a virtualenv for your project
    ```bash
+   virtualenv -p python3 $project_home
+   
+ #  OR
+   
    cd $project_home
    virtualenv venv
    ```
