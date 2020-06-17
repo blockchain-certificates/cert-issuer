@@ -2,6 +2,8 @@ import logging
 import time
 
 import requests
+import web3
+from web3 import Web3, HTTPProvider
 
 try:
     from urllib2 import urlopen, HTTPError
@@ -20,13 +22,41 @@ MAX_BROADCAST_ATTEMPTS = 3
 
 class EthereumServiceProviderConnector(ServiceProviderConnector):
     # param local_node indicates if a local node is running or if the tx should be broadcast to external providers
-    def __init__(self, ethereum_chain, api_key, local_node=False):
+    def __init__(
+            self,
+            ethereum_chain,
+            app_config,
+            local_node=False):
         self.ethereum_chain = ethereum_chain
-        self.api_key = api_key
+        self.api_key = app_config.api_token
+        self.ethereum_rpc_url = app_config.ethereum_rpc_url
+        self.ropsten_rpc_url = app_config.ropsten_rpc_url
         self.local_node = local_node
 
+        # initialize connectors
+        self.connectors = {}
+
+        # Configure Ethereum mainnet connectors
+        eth_provider_list = []
+        if hasattr(self, 'ethereum_rpc_url'):
+            eth_provider_list.append(EthereumRPCProvider(self.ethereum_rpc_url))
+        eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api'))
+        eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth'))
+        self.connectors[Chain.ethereum_mainnet] = eth_provider_list
+
+        # Configure Ethereum Ropsten testnet connectors
+        rop_provider_list = []
+        if hasattr(self, 'ropsten_rpc_url'):
+            rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
+        rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
+        rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop'))
+        self.connectors[Chain.ethereum_ropsten] = rop_provider_list
+
+    def get_providers_for_chain(self, chain, local_node=False):
+        return self.connectors[chain]
+
     def get_balance(self, address):
-        for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
+        for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
             try:
                 logging.debug('m=%s', m)
                 balance = m.get_balance(address, self.api_key)
@@ -37,7 +67,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         return 0
 
     def get_address_nonce(self, address):
-        for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
+        for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
             try:
                 logging.debug('m=%s', m)
                 nonce = m.get_address_nonce(address, self.api_key)
@@ -54,7 +84,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 
         # Broadcast to all available api's
         for attempt_number in range(0, MAX_BROADCAST_ATTEMPTS):
-            for m in get_providers_for_chain(self.ethereum_chain, self.local_node):
+            for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
                 try:
                     logging.debug('m=%s', m)
                     txid = m.broadcast_tx(tx, self.api_key)
@@ -84,6 +114,31 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         logging.error('Failed broadcasting through all providers')
         logging.error(last_exception, exc_info=True)
         raise BroadcastError(last_exception)
+
+
+class EthereumRPCProvider(object):
+    def __init__(self, ethereum_url):
+        self.ethereum_url = ethereum_url
+        self.w3 = Web3(HTTPProvider(ethereum_url))
+
+    def broadcast_tx(self, tx, api_token):
+        response = self.w3.eth.sendRawTransaction("0x" + tx).hex()
+        return response
+
+    def get_balance(self, address, api_token):
+        """
+        Returns the balance in Wei.
+        """
+        response = self.w3.eth.getBalance(account=address, block_identifier="latest")
+        return response
+
+    def get_address_nonce(self, address, api_token):
+        """
+        Looks up the address nonce of this address.
+        Necessary for the transaction creation.
+        """
+        response = self.w3.eth.getTransactionCount(address, "pending")
+        return response
 
 
 class EtherscanBroadcaster(object):
@@ -213,23 +268,3 @@ class MyEtherWalletBroadcaster(object):
         else:
             logging.info('response error checking nonce')
         raise BroadcastError('Error checking the nonce through the MyEtherWallet API. Error msg: %s', response.text)
-
-
-# initialize connectors
-connectors = {}
-
-# Configure Ethereum mainnet connectors
-eth_provider_list = []
-eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api'))
-eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth'))
-connectors[Chain.ethereum_mainnet] = eth_provider_list
-
-# Configure Ethereum Ropsten testnet connectors
-rop_provider_list = []
-rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
-rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop'))
-connectors[Chain.ethereum_ropsten] = rop_provider_list
-
-
-def get_providers_for_chain(chain, local_node=False):
-    return connectors[chain]
