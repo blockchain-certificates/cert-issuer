@@ -54,7 +54,7 @@ experimenting only.
 ## Create issuing address
 
 __Important__: this is a simplification to avoid using a USB, which needs to be inserted and removed during the
-standard certficate issuing process. Do not use these addresses or private keys for anything other than experimenting.
+standard certificate issuing process. Do not use these addresses or private keys for anything other than experimenting.
 
 Ensure your docker image is running and bitcoind process is started
 
