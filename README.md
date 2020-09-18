@@ -6,7 +6,10 @@
 # cert-issuer
 
 The cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
-recipient on the Bitcoin blockchain that includes the hash of the certificate itself. 
+recipient on the Bitcoin blockchain that includes the hash of the certificate itself.
+
+## What's special about this fork?
+See our [documentation](docs/ethereum_smart_contract.md).
 
 ## Web resources
 For development or testing using web requests, check out the documentation at [docs/web_resources.md](./docs/web_resources.md).
