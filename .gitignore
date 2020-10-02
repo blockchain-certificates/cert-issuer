@@ -20,6 +20,7 @@ data/work/*
 data*/*
 dist/*
 build/*
+node_modules/*
 
 requirements.txt
 .idea/*
