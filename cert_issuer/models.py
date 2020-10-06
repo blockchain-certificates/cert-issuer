@@ -15,6 +15,11 @@ def validate_type (certificate_type):
 def validate_credential_subject (credential_subject):
     pass
 
+def validate_issuer (certificate_issuer):
+    if not isinstance(certificate_issuer, str):
+        raise ValueError('`issuer` property must be a string')
+    pass
+
 class BatchHandler(object):
     def __init__(self, secret_manager, certificate_handler, merkle_tree, config):
         self.certificate_handler = certificate_handler
@@ -38,11 +43,21 @@ class CertificateHandler(object):
     @abstractmethod
     def validate_certificate(self, certificate_metadata):
         validate_type(certificate_metadata['type'])
+
         try:
             # if undefined will throw KeyError
             validate_credential_subject(certificate_metadata['credentialSubject'])
         except:
             raise ValueError('`credentialSubject property must be defined`')
+
+        try:
+            # if undefined will throw KeyError
+            validate_issuer(certificate_metadata['issuer'])
+        except KeyError:
+            raise ValueError('`issuer property must be defined`')
+        except ValueError as err:
+            raise ValueError(err)
+
         pass
 
     @abstractmethod
