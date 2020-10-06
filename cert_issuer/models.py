@@ -2,6 +2,16 @@ from abc import abstractmethod
 
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
+def validate_type (certificate_type):
+    compulsory_types = ['VerifiableCredential', 'VerifiablePresentation']
+    if not isinstance(certificate_type, list):
+        raise ValueError('`type` property should be an array')
+    if isinstance(certificate_type, list) and len(certificate_type) <= 1:
+        raise ValueError('`type` property should be an array with at least 2 values')
+    if isinstance(certificate_type, list) and certificate_metadata['type'][0] not in compulsory_types:
+        raise ValueError('`type` property first value should be either VerifiableCredential or VerifiablePresentation')
+    pass
+
 class BatchHandler(object):
     def __init__(self, secret_manager, certificate_handler, merkle_tree, config):
         self.certificate_handler = certificate_handler
@@ -24,6 +34,7 @@ class BatchHandler(object):
 class CertificateHandler(object):
     @abstractmethod
     def validate_certificate(self, certificate_metadata):
+        validate_type(certificate_metadata['type'])
         pass
 
     @abstractmethod

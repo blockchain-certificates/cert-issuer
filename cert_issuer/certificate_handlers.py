@@ -99,7 +99,8 @@ class CertificateBatchHandler(BatchHandler):
 
         # validate batch
         for _, metadata in self.certificates_to_issue.items():
-            self.certificate_handler.validate_certificate(metadata)
+            certificate_json = self.certificate_handler._get_certificate_to_issue(metadata)
+            self.certificate_handler.validate_certificate(certificate_json)
 
         # sign batch
         with FinalizableSigner(self.secret_manager) as signer:
