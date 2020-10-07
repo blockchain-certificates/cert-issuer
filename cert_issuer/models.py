@@ -1,3 +1,4 @@
+import re
 from abc import abstractmethod
 
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
@@ -18,6 +19,17 @@ def validate_credential_subject (credential_subject):
 def validate_issuer (certificate_issuer):
     if not isinstance(certificate_issuer, str):
         raise ValueError('`issuer` property must be a string')
+    pass
+
+def validate_issuance_date (certificate_issuance_date):
+    has_error = False
+    if not isinstance(certificate_issuance_date, str):
+        raise ValueError('`issuance_date` property must be a RFC3339 valid string')
+
+    is_valid_RFC3339_date = re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', certificate_issuance_date)
+    if not is_valid_RFC3339_date:
+        raise ValueError('`issuance_date` property must be a RFC3339 valid string')
+
     pass
 
 class BatchHandler(object):
@@ -55,6 +67,14 @@ class CertificateHandler(object):
             validate_issuer(certificate_metadata['issuer'])
         except KeyError:
             raise ValueError('`issuer property must be defined`')
+        except ValueError as err:
+            raise ValueError(err)
+
+        try:
+            # if undefined will throw KeyError
+            validate_issuance_date(certificate_metadata['issuanceDate'])
+        except KeyError:
+            raise ValueError('`issuance_date property must be defined`')
         except ValueError as err:
             raise ValueError(err)
 
