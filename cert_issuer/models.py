@@ -21,15 +21,24 @@ def validate_issuer (certificate_issuer):
         raise ValueError('`issuer` property must be a string')
     pass
 
+def validate_RFC3339_date (date):
+    return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', date)
+
+def validate_date_RFC3339_string_format (date, property_name):
+    error_message = '{} property must be a valid RFC3339 string'.format(property_name)
+    if not isinstance(date, str):
+        raise ValueError(error_message)
+
+    if not validate_RFC3339_date(date):
+        raise ValueError(error_message)
+    pass
+
 def validate_issuance_date (certificate_issuance_date):
-    has_error = False
-    if not isinstance(certificate_issuance_date, str):
-        raise ValueError('`issuance_date` property must be a RFC3339 valid string')
+    validate_date_RFC3339_string_format(certificate_issuance_date, 'issuanceDate')
+    pass
 
-    is_valid_RFC3339_date = re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', certificate_issuance_date)
-    if not is_valid_RFC3339_date:
-        raise ValueError('`issuance_date` property must be a RFC3339 valid string')
-
+def validate_expiration_date (certificate_expiration_date):
+    validate_date_RFC3339_string_format(certificate_expiration_date, 'expirationDate')
     pass
 
 class BatchHandler(object):
@@ -75,6 +84,14 @@ class CertificateHandler(object):
             validate_issuance_date(certificate_metadata['issuanceDate'])
         except KeyError:
             raise ValueError('`issuance_date property must be defined`')
+        except ValueError as err:
+            raise ValueError(err)
+
+        try:
+            # if undefined will throw KeyError
+            validate_expiration_date(certificate_metadata['expirationDate'])
+        except KeyError:
+            pass
         except ValueError as err:
             raise ValueError(err)
 
