@@ -1,7 +1,17 @@
 import re
+from urllib.parse import urlparse
 from abc import abstractmethod
 
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
+
+def validate_RFC3339_date (date):
+    return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', date)
+
+def validate_url (url):
+    parsed_url = urlparse(url)
+    if parsed_url.path.__contains__(' ') or parsed_url.netloc.__contains__(' '):
+        raise ValueError('Invalid URL')
+    pass
 
 def validate_type (certificate_type):
     compulsory_types = ['VerifiableCredential', 'VerifiablePresentation']
@@ -21,9 +31,6 @@ def validate_issuer (certificate_issuer):
         raise ValueError('`issuer` property must be a string')
     pass
 
-def validate_RFC3339_date (date):
-    return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', date)
-
 def validate_date_RFC3339_string_format (date, property_name):
     error_message = '{} property must be a valid RFC3339 string'.format(property_name)
     if not isinstance(date, str):
@@ -39,6 +46,22 @@ def validate_issuance_date (certificate_issuance_date):
 
 def validate_expiration_date (certificate_expiration_date):
     validate_date_RFC3339_string_format(certificate_expiration_date, 'expirationDate')
+    pass
+
+def validate_credential_status (certificate_credential_status):
+    try:
+        validate_url(certificate_credential_status['id'])
+    except KeyError:
+        raise ValueError('credentialStatus.id must be defined')
+    except ValueError:
+        raise ValueError('credentialStatus.id must be a valid URL')
+
+    try:
+        isinstance(certificate_credential_status['type'], str)
+    except KeyError:
+        raise ValueError('credentialStatus.type must be defined')
+    except:
+        raise ValueError('credentialStatus.type must be a string')
     pass
 
 class BatchHandler(object):
@@ -91,6 +114,16 @@ class CertificateHandler(object):
             # if undefined will throw KeyError
             validate_expiration_date(certificate_metadata['expirationDate'])
         except KeyError:
+            # optional property
+            pass
+        except ValueError as err:
+            raise ValueError(err)
+
+        try:
+            # if undefined will throw KeyError
+            validate_credential_status(certificate_metadata['credentialStatus'])
+        except KeyError:
+            # optional property
             pass
         except ValueError as err:
             raise ValueError(err)
