@@ -9,8 +9,12 @@ def validate_RFC3339_date (date):
 
 def validate_url (url):
     parsed_url = urlparse(url)
-    if parsed_url.path.__contains__(' ') or parsed_url.netloc.__contains__(' '):
-        raise ValueError('Invalid URL')
+    is_valid_url = (not (parsed_url.path.__contains__(' ')
+        or parsed_url.netloc.__contains__(' '))
+        and url.__contains__(':'))
+
+    if not is_valid_url:
+        raise ValueError('Invalid URL: {}'.format(url))
     pass
 
 def validate_type (certificate_type):
@@ -39,8 +43,10 @@ def validate_credential_subject (credential_subject):
     pass
 
 def validate_issuer (certificate_issuer):
-    if not isinstance(certificate_issuer, str):
-        raise ValueError('`issuer` property must be a string')
+    try:
+        validate_url(certificate_issuer)
+    except:
+        raise ValueError('`issuer` property must be a URL string')
     pass
 
 def validate_date_RFC3339_string_format (date, property_name):
