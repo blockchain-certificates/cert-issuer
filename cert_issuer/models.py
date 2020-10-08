@@ -23,6 +23,18 @@ def validate_type (certificate_type):
         raise ValueError('`type` property must be an array with at least `VerifiableCredential` or `VerifiablePresentation` value')
     pass
 
+def validate_context (context, type):
+    vc_context_url = 'https://www.w3.org/2018/credentials/v1'
+
+    if not isinstance(context, list):
+        raise ValueError('@context property must be an array')
+    if context[0] != vc_context_url:
+        raise ValueError('First @context declared must be {}, was given {}'.format(vc_context_url, context[0]))
+    if len(type) > 1 and len(context) == 1:
+        raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
+
+    pass
+
 def validate_credential_subject (credential_subject):
     pass
 
@@ -138,6 +150,7 @@ class CertificateHandler(object):
     @abstractmethod
     def validate_certificate(self, certificate_metadata):
         validate_type(certificate_metadata['type'])
+        validate_context(certificate_metadata['@context'], certificate_metadata['type'])
 
         if (certificate_metadata['type'][0] == 'VerifiableCredential'):
             verify_credential(certificate_metadata)
