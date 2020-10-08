@@ -16,11 +16,11 @@ def validate_url (url):
 def validate_type (certificate_type):
     compulsory_types = ['VerifiableCredential', 'VerifiablePresentation']
     if not isinstance(certificate_type, list):
-        raise ValueError('`type` property should be an array')
-    if isinstance(certificate_type, list) and len(certificate_type) <= 1:
-        raise ValueError('`type` property should be an array with at least 2 values')
-    if isinstance(certificate_type, list) and certificate_type[0] not in compulsory_types:
-        raise ValueError('`type` property first value should be either VerifiableCredential or VerifiablePresentation')
+        raise ValueError('`type` property must be an array')
+
+    contains_compulsory_types = list(set(compulsory_types) & set(certificate_type))
+    if len(certificate_type) == 0 or len(contains_compulsory_types) == 0:
+        raise ValueError('`type` property must be an array with at least `VerifiableCredential` or `VerifiablePresentation` value')
     pass
 
 def validate_credential_subject (credential_subject):
@@ -64,6 +64,57 @@ def validate_credential_status (certificate_credential_status):
         raise ValueError('credentialStatus.type must be a string')
     pass
 
+def verify_credential(certificate_metadata):
+    try:
+        # if undefined will throw KeyError
+        validate_credential_subject(certificate_metadata['credentialSubject'])
+    except:
+        raise ValueError('`credentialSubject property must be defined`')
+
+    try:
+        # if undefined will throw KeyError
+        validate_issuer(certificate_metadata['issuer'])
+    except KeyError:
+        raise ValueError('`issuer property must be defined`')
+    except ValueError as err:
+        raise ValueError(err)
+
+    try:
+        # if undefined will throw KeyError
+        validate_issuance_date(certificate_metadata['issuanceDate'])
+    except KeyError:
+        raise ValueError('`issuance_date property must be defined`')
+    except ValueError as err:
+        raise ValueError(err)
+
+    try:
+        # if undefined will throw KeyError
+        validate_expiration_date(certificate_metadata['expirationDate'])
+    except KeyError:
+        # optional property
+        pass
+    except ValueError as err:
+        raise ValueError(err)
+
+    try:
+        # if undefined will throw KeyError
+        validate_credential_status(certificate_metadata['credentialStatus'])
+    except KeyError:
+        # optional property
+        pass
+    except ValueError as err:
+        raise ValueError(err)
+
+    pass
+
+def verify_presentation (certificate_metadata):
+    try:
+        for credential in certificate_metadata['verifiableCredential']:
+            verify_credential(credential)
+    except:
+        raise ValueError('A Verifiable Presentation must contain valid verifiableCredential(s)')
+    pass
+
 class BatchHandler(object):
     def __init__(self, secret_manager, certificate_handler, merkle_tree, config):
         self.certificate_handler = certificate_handler
@@ -88,45 +139,11 @@ class CertificateHandler(object):
     def validate_certificate(self, certificate_metadata):
         validate_type(certificate_metadata['type'])
 
-        try:
-            # if undefined will throw KeyError
-            validate_credential_subject(certificate_metadata['credentialSubject'])
-        except:
-            raise ValueError('`credentialSubject property must be defined`')
+        if (certificate_metadata['type'][0] == 'VerifiableCredential'):
+            verify_credential(certificate_metadata)
 
-        try:
-            # if undefined will throw KeyError
-            validate_issuer(certificate_metadata['issuer'])
-        except KeyError:
-            raise ValueError('`issuer property must be defined`')
-        except ValueError as err:
-            raise ValueError(err)
-
-        try:
-            # if undefined will throw KeyError
-            validate_issuance_date(certificate_metadata['issuanceDate'])
-        except KeyError:
-            raise ValueError('`issuance_date property must be defined`')
-        except ValueError as err:
-            raise ValueError(err)
-
-        try:
-            # if undefined will throw KeyError
-            validate_expiration_date(certificate_metadata['expirationDate'])
-        except KeyError:
-            # optional property
-            pass
-        except ValueError as err:
-            raise ValueError(err)
-
-        try:
-            # if undefined will throw KeyError
-            validate_credential_status(certificate_metadata['credentialStatus'])
-        except KeyError:
-            # optional property
-            pass
-        except ValueError as err:
-            raise ValueError(err)
+        if (certificate_metadata['type'][0] == 'VerifiablePresentation'):
+            verify_presentation(certificate_metadata)
 
         pass
 
