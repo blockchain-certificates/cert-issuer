@@ -33,7 +33,7 @@ function verify (req, res) {
   return new Promise((resolve, reject) => {
     let stdout = [];
     let stderr = [];
-    const verificationProcess = spawn('python3', ['cert_issuer', '-c', 'conf.ini']);
+    const verificationProcess = spawn('python3', ['cert_issuer/__main__.py', '-c', 'conf.ini']);
     verificationProcess.stdout.pipe(process.stdout);
 
     verificationProcess.on('error', err => reject(new Error(err)));
