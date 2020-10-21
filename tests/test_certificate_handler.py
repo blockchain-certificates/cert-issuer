@@ -196,6 +196,9 @@ class DummyCertificateHandler(CertificateHandler):
         self.config.issuing_address = "http://example.com"
         self.counter = 0
 
+    def _get_certificate_to_issue (self, certificate_metadata):
+        pass
+
     def validate_certificate(self, certificate_metadata):
         pass
 
