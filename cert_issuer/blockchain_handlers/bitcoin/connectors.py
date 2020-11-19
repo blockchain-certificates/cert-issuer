@@ -38,22 +38,6 @@ def to_hex(transaction):
     tx_as_hex = b2h(s.getvalue())
     return tx_as_hex
 
-
-class BlockExplorerBroadcaster(object):
-    def __init__(self, base_url):
-        self.base_url = base_url
-
-    def broadcast_tx(self, tx):
-        hextx = to_hex(tx)
-        broadcast_url = self.base_url + '/tx/send'
-        response = requests.post(broadcast_url, json={'rawtx': hextx})
-        if int(response.status_code) == 200:
-            tx_id = response.json().get('txid', None)
-            return tx_id
-        logging.error('Error broadcasting the transaction through the BlockExplorer API. Error msg: %s', response.text)
-        raise BroadcastError(response.text)
-
-
 class BlockcypherProvider(object):
     """
     Note that this needs an API token
@@ -110,22 +94,6 @@ class BlockstreamBroadcaster(object):
             return tx_id
         logging.error('Error broadcasting the transaction through the Blockstream API. Error msg: %s', response.text)
         raise BroadcastError(response.text)
-
-
-class BitpayBroadcaster(object):
-    def __init__(self, base_url):
-        self.base_url = base_url
-
-    def broadcast_tx(self, tx):
-        hextx = to_hex(tx)
-        broadcast_url = self.base_url + '/tx/send'
-        response = requests.post(broadcast_url, json={'rawtx': hextx})
-        if int(response.status_code) == 200:
-            tx_id = response.json().get('txid', None)
-            return tx_id
-        logging.error('Error broadcasting the transaction through the Bitpay API. Error msg: %s', response.text)
-        raise BroadcastError(response.text)
-
 
 class BitcoindConnector(object):
     def __init__(self, netcode):
@@ -274,8 +242,8 @@ class BitcoinServiceProviderConnector(ServiceProviderConnector):
 config = cert_issuer.config.CONFIG
 blockcypher_token = None if config is None else config.blockcypher_api_token
 
-PYCOIN_BTC_PROVIDERS = "blockchain.info blockexplorer.com chain.so"  # blockcypher.com
-PYCOIN_XTN_PROVIDERS = "blockexplorer.com"  # chain.so
+PYCOIN_BTC_PROVIDERS = "blockchain.info chain.so"  # blockcypher.com
+PYCOIN_XTN_PROVIDERS = ""  # chain.so
 
 # initialize connectors
 connectors = {}
@@ -283,12 +251,10 @@ connectors = {}
 # configure mainnet providers
 provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS,
                                                       helpers.to_pycoin_chain(Chain.bitcoin_mainnet))
-provider_list.append(BlockExplorerBroadcaster('https://blockexplorer.com/api'))
 provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/main', blockcypher_token))
 provider_list.append(InsightProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
 provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
 provider_list.append(BlockstreamBroadcaster('https://blockstream.info/api'))
-provider_list.append(BitpayBroadcaster('https://insight.bitpay.com/api'))
 connectors[Chain.bitcoin_mainnet] = provider_list
 
 # configure testnet providers
@@ -296,9 +262,7 @@ xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS,
                                                           helpers.to_pycoin_chain(Chain.bitcoin_testnet))
 xtn_provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_testnet)))
 xtn_provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/test3', blockcypher_token))
-xtn_provider_list.append(BlockExplorerBroadcaster('https://testnet.blockexplorer.com/api'))
 xtn_provider_list.append(BlockstreamBroadcaster('https://blockstream.info/testnet/api'))
-xtn_provider_list.append(BitpayBroadcaster('https://test-insight.bitpay.com/api'))
 connectors[Chain.bitcoin_testnet] = xtn_provider_list
 
 
