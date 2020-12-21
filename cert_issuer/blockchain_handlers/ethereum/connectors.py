@@ -85,7 +85,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         logging.error(last_exception, exc_info=True)
         raise BroadcastError(last_exception)
 
-
+'''
 class EtherscanBroadcaster(object):
     def __init__(self, base_url):
         self.base_url = base_url
@@ -148,9 +148,9 @@ class EtherscanBroadcaster(object):
         else:
             logging.info('response error checking nonce')
         raise BroadcastError('Error checking the nonce through the Etherscan API. Error msg: %s', response.text)
+'''
 
-
-class MyEtherWalletBroadcaster(object):
+class InfuraBroadcaster(object):
     def __init__(self, base_url):
         self.base_url = base_url
 
@@ -161,15 +161,15 @@ class MyEtherWalletBroadcaster(object):
             "params": ["0x" + tx],
             "id": 1
         }
-        response = requests.post(self.base_url, json=data)
+        response = requests.post(self.base_url, json=data, headers={'Content-Type': 'application/json'})
         if 'error' in response.json():
-            logging.error("MyEtherWallet returned an error: %s", response.json()['error'])
+            logging.error("Infura returned an error: %s", response.json()['error'])
             raise BroadcastError(response.json()['error'])
         if int(response.status_code) == 200:
             tx_id = response.json().get('result', None)
-            logging.info("Transaction ID obtained from broadcast through MyEtherWallet: %s", tx_id)
+            logging.info("Transaction ID obtained from broadcast through Infura: %s", tx_id)
             return tx_id
-        logging.error('Error broadcasting the transaction through MyEtherWallet. Error msg: %s', response.text)
+        logging.error('Error broadcasting the transaction through infura. Error msg: %s', response.text)
         raise BroadcastError(response.text)
 
     def get_balance(self, address, api_token):
@@ -183,13 +183,13 @@ class MyEtherWalletBroadcaster(object):
             "params": [address, "latest"],
             "id": 1
         }
-        response = requests.post(self.base_url, json=data)
+        response = requests.post(self.base_url, json=data, headers={'Content-Type': 'application/json'})
         if int(response.status_code) == 200:
             logging.info('Balance check response: %s', response.json())
             balance = int(response.json().get('result', None), 0)
             logging.info('Balance check succeeded: %s', response.json())
             return balance
-        logging.error('Error getting balance through MyEtherWallet. Error msg: %s', response.text)
+        logging.error('Error getting balance through Infura. Error msg: %s', response.text)
         raise BroadcastError(response.text)
 
     def get_address_nonce(self, address, api_token):
@@ -204,7 +204,7 @@ class MyEtherWalletBroadcaster(object):
             "params": [address, "pending"],
             "id": 1
         }
-        response = requests.post(self.base_url, json=data)
+        response = requests.post(self.base_url, json=data, headers={'Content-Type': 'application/json'})
         if int(response.status_code) == 200:
             # the int(res, 0) transforms the hex nonce to int
             nonce = int(response.json().get('result', None), 0)
@@ -212,7 +212,7 @@ class MyEtherWalletBroadcaster(object):
             return nonce
         else:
             logging.info('response error checking nonce')
-        raise BroadcastError('Error checking the nonce through the MyEtherWallet API. Error msg: %s', response.text)
+        raise BroadcastError('Error checking the nonce through the Infura API. Error msg: %s', response.text)
 
 
 # initialize connectors
@@ -220,14 +220,14 @@ connectors = {}
 
 # Configure Ethereum mainnet connectors
 eth_provider_list = []
-eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api'))
-eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth'))
+# eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api'))
+eth_provider_list.append(InfuraBroadcaster('https://mainnet.infura.io/v3/123a511f09564b2a890fef4028264f1b'))
 connectors[Chain.ethereum_mainnet] = eth_provider_list
 
 # Configure Ethereum Ropsten testnet connectors
 rop_provider_list = []
-rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
-rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop'))
+# rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
+rop_provider_list.append(InfuraBroadcaster('https://ropsten.infura.io/v3/123a511f09564b2a890fef4028264f1b'))
 connectors[Chain.ethereum_ropsten] = rop_provider_list
 
 
