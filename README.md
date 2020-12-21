@@ -194,13 +194,13 @@ Decide which chain (Bitcoin or Ethereum) to issue to and follow the steps. The b
 
 By default, cert-issuer issues to the Bitcoin blockchain. Run the default setup script if this is the mode you want:
 ```
-python setup.py install
+python3 setup.py install
 
 ```
 
 To issue to the ethereum blockchain, run the following:
 ```
-python setup.py experimental --blockchain=ethereum
+python3 setup.py experimental --blockchain=ethereum
 
 ```
 
@@ -242,7 +242,7 @@ Notes:
 2. If you've installed the package you can issue certificates by running:
 
 ```
-python cert-issuer -c conf.ini
+python3 cert-issuer -c conf.ini
 ```
 
 3. Output
