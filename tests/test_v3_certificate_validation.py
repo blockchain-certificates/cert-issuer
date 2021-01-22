@@ -1,103 +1,58 @@
 import unittest
-
 import mock
-import json
-import io
-from pycoin.serialize import b2h
-from mock import patch, mock_open
+import copy
 
-from cert_issuer.certificate_handlers import CertificateWebV3Handler, CertificateV3Handler, CertificateBatchHandler, CertificateHandler, CertificateBatchWebHandler
-from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
-from cert_issuer import helpers
-from cert_core import Chain
-from mock import ANY
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler
+from cert_issuer.models import CertificateHandler
 
-class TestV3CertificateValidation(unittest.TestCase):
-    def _proof_helper(self, chain):
-        proof = {
-                    'type': 'MerkleProof2019',
-                    'created': ANY,
-                    'proofValue': ANY,
-                    'proofPurpose': 'assertionMethod',
-                    'verificationMethod': ANY
-                }
-        return proof
+credential_example = {
+   "@context": [
+     "https://www.w3.org/2018/credentials/v1",
+     "https://www.blockcerts.org/schema/3.0-alpha/context.json",
+     "https://www.w3.org/2018/credentials/examples/v1"
+   ],
+   "id": "urn:uuid:bbba8553-8ec1-445f-82c9-a57251dd731c",
+   "type": [
+     "VerifiableCredential",
+     "BlockcertsCredential"
+   ],
+   "issuer": "https://raw.githubusercontent.com/AnthonyRonning/https-github.com-labnol-files/master/issuer-eth.json",
+   "issuanceDate": "2010-01-01T19:33:24Z",
+   "credentialSubject": {
+     "id": "did:key:z6Mkq3L1jEDDZ5R7eT523FMLxC4k6MCpzqD7ff1CrkWpoJwM",
+     "alumniOf": {
+       "id": "did:example:c276e12ec21ebfeb1f712ebc6f1"
+     }
+   }
+}
 
-    def _helper_mock_call(self, *args):
-        helper_mock = mock.MagicMock()
-        helper_mock.__len__.return_value = self.directory_count
-
-        assert args == (
-            '/unsigned_certificates_dir',
-            '/signed_certificates_dir',
-            '/blockchain_certificates_dir',
-            '/work_dir')
-        
-        return helper_mock
-
-    def _get_certificate_batch_web_handler(self):
-        secret_manager = mock.Mock()
-        certificates_to_issue = dict()
-        certificates_to_issue['1'] = mock.Mock()
-        certificates_to_issue['2'] = mock.Mock()
-        certificates_to_issue['3'] = mock.Mock()
-
-        config = mock.Mock()
-        config.issuing_address = "http://example.com"
-
-        handler = CertificateBatchWebHandler(
-                secret_manager=secret_manager,
-                certificate_handler=DummyCertificateHandler(),
-                merkle_tree=MerkleTreeGenerator(),
-                config=config)
-
-        return handler, certificates_to_issue
-
-    def _get_certificate_batch_handler(self):
-        secret_manager = mock.Mock()
-        certificates_to_issue = dict()
-        certificates_to_issue['1'] = mock.Mock()
-        certificates_to_issue['2'] = mock.Mock()
-        certificates_to_issue['3'] = mock.Mock()
-
-        config = mock.Mock()
-        config.issuing_address = "http://example.com"
-
+class TestCertificateV3Validation(unittest.TestCase):
+    def missing_credential_subject (self):
+        candidate = copy.deepcopy(credential_example)
+        del candidate['credentialSubject']
+        handler.certificates_to_issue = [mock.Mock()]
         handler = CertificateBatchHandler(
-                secret_manager=secret_manager,
-                certificate_handler=DummyCertificateHandler(),
-                merkle_tree=MerkleTreeGenerator(),
-                config=config)
+            secret_manager=mock.Mock(),
+            certificate_handler=MockCertificateV3Handler(candidate),
+            merkle_tree=mock.Mock(),
+            config=mock.Mock()
+        )
 
-        return handler, certificates_to_issue
+        try:
+            handler.prepare_batch()
+        except:
+            assert False
+            return
 
-    def test_validate_type_valid(self):
-        certificate = {
-            'type': ['VerifiableCredential', 'VerifiablePresentation']
-        }
+        assert True
 
-class DummyCertificateHandler(CertificateHandler):
-    def __init__(self):
-        self.config = mock.Mock()
-        self.config.issuing_address = "http://example.com"
-        self.counter = 0
-
-    def _get_certificate_to_issue (self, certificate_metadata):
-        pass
-
-    def validate_certificate(self, certificate_metadata):
-        pass
-
-    def sign_certificate(self, signer, certificate_metadata):
-        pass
-
-    def get_byte_array_to_issue(self, certificate_metadata):
-        self.counter += 1
-        return str(self.counter).encode('utf-8')
-
-    def add_proof(self, certificate_metadata, merkle_proof):
-        pass
-
+class MockCertificateV3Handler(CertificateV3Handler):
+    def __init__(self, test_certificate):
+        raise ValueError('mock init');
+        self.test_certificate = test_certificate
+    def _get_certificate_to_issue(data):
+        print('mock call')
+        return self.test_certificate
 
 if __name__ == '__main__':
     unittest.main()

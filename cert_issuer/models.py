@@ -155,6 +155,7 @@ class BatchHandler(object):
 class CertificateHandler(object):
     @abstractmethod
     def validate_certificate(self, certificate_metadata):
+        raise ValueError('yo yo yo')
         validate_type(certificate_metadata['type'])
         validate_context(certificate_metadata['@context'], certificate_metadata['type'])
 

@@ -28,6 +28,7 @@ class CertificateV3Handler(CertificateHandler):
             out_file.write(json.dumps(certificate_json))
 
     def _get_certificate_to_issue(self, certificate_metadata):
+        print('not mock')
         with open(certificate_metadata.unsigned_cert_file_name, 'r') as unsigned_cert_file:
             certificate_json = json.load(unsigned_cert_file)
         return certificate_json
@@ -99,7 +100,10 @@ class CertificateBatchHandler(BatchHandler):
 
         # validate batch
         for _, metadata in self.certificates_to_issue.items():
+            print(self.certificate_handler)
             certificate_json = self.certificate_handler._get_certificate_to_issue(metadata)
+            print(certificate_json)
+            raise ValueError(certificate_json)
             self.certificate_handler.validate_certificate(certificate_json)
 
         # sign batch
