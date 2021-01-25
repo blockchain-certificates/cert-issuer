@@ -31,7 +31,7 @@ def validate_context (context, type):
     vc_context_url = 'https://www.w3.org/2018/credentials/v1'
 
     if not isinstance(context, list):
-        raise ValueError('@context property must be an array')
+        raise ValueError('`@context` property must be an array')
     if context[0] != vc_context_url:
         raise ValueError('First @context declared must be {}, was given {}'.format(vc_context_url, context[0]))
     if len(type) > 1 and len(context) == 1:
@@ -50,7 +50,7 @@ def validate_issuer (certificate_issuer):
     pass
 
 def validate_date_RFC3339_string_format (date, property_name):
-    error_message = '{} property must be a valid RFC3339 string'.format(property_name)
+    error_message = '`{}` property must be a valid RFC3339 string'.format(property_name)
     if not isinstance(date, str):
         raise ValueError(error_message)
 
@@ -87,13 +87,13 @@ def verify_credential(certificate_metadata):
         # if undefined will throw KeyError
         validate_credential_subject(certificate_metadata['credentialSubject'])
     except:
-        raise ValueError('`credentialSubject property must be defined`')
+        raise ValueError('`credentialSubject` property must be defined')
 
     try:
         # if undefined will throw KeyError
         validate_issuer(certificate_metadata['issuer'])
     except KeyError:
-        raise ValueError('`issuer property must be defined`')
+        raise ValueError('`issuer` property must be defined')
     except ValueError as err:
         raise ValueError(err)
 
@@ -101,7 +101,7 @@ def verify_credential(certificate_metadata):
         # if undefined will throw KeyError
         validate_issuance_date(certificate_metadata['issuanceDate'])
     except KeyError:
-        raise ValueError('`issuance_date property must be defined`')
+        raise ValueError('`issuanceDate` property must be defined')
     except ValueError as err:
         raise ValueError(err)
 
