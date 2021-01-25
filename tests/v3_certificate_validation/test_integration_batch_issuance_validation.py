@@ -26,32 +26,31 @@ credential_example = {
    }
 }
 
-class TestCertificateV3Validation(unittest.TestCase):
-    def missing_credential_subject (self):
+class TestIssuanceBatchValidation (unittest.TestCase):
+    def test_missing_credential_subject (self):
         candidate = copy.deepcopy(credential_example)
         del candidate['credentialSubject']
-        handler.certificates_to_issue = [mock.Mock()]
         handler = CertificateBatchHandler(
             secret_manager=mock.Mock(),
             certificate_handler=MockCertificateV3Handler(candidate),
             merkle_tree=mock.Mock(),
             config=mock.Mock()
         )
+        handler.certificates_to_issue = {'metadata': mock.Mock()}
 
         try:
             handler.prepare_batch()
-        except:
-            assert False
+        except Exception as e:
+            self.assertEqual(str(e), '`credentialSubject property must be defined`')
             return
 
-        assert True
+        assert False
 
 class MockCertificateV3Handler(CertificateV3Handler):
     def __init__(self, test_certificate):
-        raise ValueError('mock init');
         self.test_certificate = test_certificate
-    def _get_certificate_to_issue(data):
-        print('mock call')
+        print(self.test_certificate)
+    def _get_certificate_to_issue(self, data):
         return self.test_certificate
 
 if __name__ == '__main__':

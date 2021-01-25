@@ -100,10 +100,7 @@ class CertificateBatchHandler(BatchHandler):
 
         # validate batch
         for _, metadata in self.certificates_to_issue.items():
-            print(self.certificate_handler)
             certificate_json = self.certificate_handler._get_certificate_to_issue(metadata)
-            print(certificate_json)
-            raise ValueError(certificate_json)
             self.certificate_handler.validate_certificate(certificate_json)
 
         # sign batch
