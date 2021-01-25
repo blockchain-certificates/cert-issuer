@@ -28,7 +28,6 @@ class CertificateV3Handler(CertificateHandler):
             out_file.write(json.dumps(certificate_json))
 
     def _get_certificate_to_issue(self, certificate_metadata):
-        print('not mock')
         with open(certificate_metadata.unsigned_cert_file_name, 'r') as unsigned_cert_file:
             certificate_json = json.load(unsigned_cert_file)
         return certificate_json
