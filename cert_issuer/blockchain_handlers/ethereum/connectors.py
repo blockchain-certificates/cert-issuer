@@ -54,7 +54,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         rop_provider_list = []
         if hasattr(app_config, 'ropsten_rpc_url'):
             self.ropsten_rpc_url = app_config.ropsten_rpc_url
-        rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
+            rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
         rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api', etherscan_api_token))
         rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop'))
         self.connectors[Chain.ethereum_ropsten] = rop_provider_list
@@ -129,6 +129,7 @@ class EthereumRPCProvider(object):
         self.w3 = Web3(HTTPProvider(ethereum_url))
 
     def broadcast_tx(self, tx):
+        logging.info('Broadcasting transaction with EtheruemRPCProvider')
         response = self.w3.eth.sendRawTransaction("0x" + tx).hex()
         return response
 
@@ -136,6 +137,7 @@ class EthereumRPCProvider(object):
         """
         Returns the balance in Wei.
         """
+        logging.info('Getting balance with EthereumRPCProvider')
         response = self.w3.eth.getBalance(account=address, block_identifier="latest")
         return response
 
@@ -144,6 +146,7 @@ class EthereumRPCProvider(object):
         Looks up the address nonce of this address.
         Necessary for the transaction creation.
         """
+        logging.info('Fetching nonce with EthereumRPCProvider')
         response = self.w3.eth.getTransactionCount(address, "pending")
         return response
 
