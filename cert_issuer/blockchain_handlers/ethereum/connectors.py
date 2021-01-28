@@ -28,9 +28,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
             app_config,
             local_node=False):
         self.ethereum_chain = ethereum_chain
-        self.api_key = app_config.api_token
-        self.ethereum_rpc_url = app_config.ethereum_rpc_url
-        self.ropsten_rpc_url = app_config.ropsten_rpc_url
+
         self.local_node = local_node
 
         # initialize connectors
@@ -38,17 +36,26 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 
         # Configure Ethereum mainnet connectors
         eth_provider_list = []
-        if hasattr(self, 'ethereum_rpc_url'):
+        if hasattr(app_config, 'ethereum_rpc_url'):
+            self.ethereum_rpc_url = app_config.ethereum_rpc_url
             eth_provider_list.append(EthereumRPCProvider(self.ethereum_rpc_url))
-        eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api'))
+
+        etherscan_api_token = None
+        if hasattr(app_config, 'api_token'):
+            logging.warning('The api_token config property is deprecated in favor of the etherscan_api_token property.  It still works, but please switch over soon.')
+            etherscan_api_token = app_config.etherscan_api_token
+        if hasattr(app_config, 'etherscan_api_token'):
+            etherscan_api_token = app_config.etherscan_api_token
+        eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api', etherscan_api_token))
         eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth'))
         self.connectors[Chain.ethereum_mainnet] = eth_provider_list
 
         # Configure Ethereum Ropsten testnet connectors
         rop_provider_list = []
-        if hasattr(self, 'ropsten_rpc_url'):
-            rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
-        rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api'))
+        if hasattr(app_config, 'ropsten_rpc_url'):
+            self.ropsten_rpc_url = app_config.ropsten_rpc_url
+        rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
+        rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api', etherscan_api_token))
         rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop'))
         self.connectors[Chain.ethereum_ropsten] = rop_provider_list
 
@@ -59,7 +66,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
             try:
                 logging.debug('m=%s', m)
-                balance = m.get_balance(address, self.api_key)
+                balance = m.get_balance(address)
                 return balance
             except Exception as e:
                 logging.warning(e)
@@ -70,7 +77,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
             try:
                 logging.debug('m=%s', m)
-                nonce = m.get_address_nonce(address, self.api_key)
+                nonce = m.get_address_nonce(address)
                 return nonce
             except Exception as e:
                 logging.warning(e)
@@ -87,7 +94,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
             for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
                 try:
                     logging.debug('m=%s', m)
-                    txid = m.broadcast_tx(tx, self.api_key)
+                    txid = m.broadcast_tx(tx)
                     if (txid):
                         logging.info('Broadcasting succeeded with method_provider=%s, txid=%s', str(m), txid)
                         if final_tx_id and final_tx_id != txid:
@@ -121,18 +128,18 @@ class EthereumRPCProvider(object):
         self.ethereum_url = ethereum_url
         self.w3 = Web3(HTTPProvider(ethereum_url))
 
-    def broadcast_tx(self, tx, api_token):
+    def broadcast_tx(self, tx):
         response = self.w3.eth.sendRawTransaction("0x" + tx).hex()
         return response
 
-    def get_balance(self, address, api_token):
+    def get_balance(self, address):
         """
         Returns the balance in Wei.
         """
         response = self.w3.eth.getBalance(account=address, block_identifier="latest")
         return response
 
-    def get_address_nonce(self, address, api_token):
+    def get_address_nonce(self, address):
         """
         Looks up the address nonce of this address.
         Necessary for the transaction creation.
@@ -142,15 +149,16 @@ class EthereumRPCProvider(object):
 
 
 class EtherscanBroadcaster(object):
-    def __init__(self, base_url):
+    def __init__(self, base_url, api_token):
         self.base_url = base_url
+        self.api_token = api_token
 
-    def broadcast_tx(self, tx, api_token):
+    def broadcast_tx(self, tx):
         tx_hex = tx
 
         broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
-        if api_token:
-            broadcast_url += '&apikey=%s' % api_token
+        if self.api_token:
+            broadcast_url += '&apikey=%s' % self.api_token
         response = requests.post(broadcast_url, data={'hex': tx_hex})
         if 'error' in response.json():
             logging.error("Etherscan returned an error: %s", response.json()['error'])
@@ -164,7 +172,7 @@ class EtherscanBroadcaster(object):
         logging.error('Error broadcasting the transaction through the Etherscan API. Error msg: %s', response.text)
         raise BroadcastError(response.text)
 
-    def get_balance(self, address, api_token):
+    def get_balance(self, address):
         """
         returns the balance in wei
         with some inspiration from PyWallet
@@ -172,8 +180,8 @@ class EtherscanBroadcaster(object):
         broadcast_url = self.base_url + '?module=account&action=balance'
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=pending'
-        if api_token:
-            broadcast_url += '&apikey=%s' % api_token
+        if self.api_token:
+            broadcast_url += '&apikey=%s' % self.api_token
         response = requests.get(broadcast_url)
         if int(response.status_code) == 200:
             if response.json().get('message', None) == 'NOTOK':
@@ -183,7 +191,7 @@ class EtherscanBroadcaster(object):
             return balance
         raise BroadcastError(response.text)
 
-    def get_address_nonce(self, address, api_token):
+    def get_address_nonce(self, address):
         """
         Looks up the address nonce of this address
         Neccesary for the transaction creation
@@ -191,8 +199,8 @@ class EtherscanBroadcaster(object):
         broadcast_url = self.base_url + '?module=proxy&action=eth_getTransactionCount'
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=pending' # Valid tags are 'earliest', 'latest', and 'pending', the last of which includes both pending and committed transactions.
-        if api_token:
-            broadcast_url += '&apikey=%s' % api_token
+        if self.api_token:
+            broadcast_url += '&apikey=%s' % self.api_token
         response = requests.get(broadcast_url, )
         if int(response.status_code) == 200:
             if response.json().get('message', None) == 'NOTOK':
@@ -206,10 +214,11 @@ class EtherscanBroadcaster(object):
 
 
 class MyEtherWalletBroadcaster(object):
-    def __init__(self, base_url):
+    def __init__(self, base_url, api_token):
         self.base_url = base_url
+        self.api_token = api_token
 
-    def broadcast_tx(self, tx, api_token):
+    def broadcast_tx(self, tx):
         data = {
             "jsonrpc": "2.0",
             "method": "eth_sendRawTransaction",
@@ -227,7 +236,7 @@ class MyEtherWalletBroadcaster(object):
         logging.error('Error broadcasting the transaction through MyEtherWallet. Error msg: %s', response.text)
         raise BroadcastError(response.text)
 
-    def get_balance(self, address, api_token):
+    def get_balance(self, address):
         """
         returns the balance in wei
         """
@@ -247,7 +256,7 @@ class MyEtherWalletBroadcaster(object):
         logging.error('Error getting balance through MyEtherWallet. Error msg: %s', response.text)
         raise BroadcastError(response.text)
 
-    def get_address_nonce(self, address, api_token):
+    def get_address_nonce(self, address):
         """
         Looks up the address nonce of this address
         Neccesary for the transaction creation
