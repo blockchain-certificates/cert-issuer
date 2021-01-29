@@ -129,7 +129,7 @@ class EthereumRPCProvider(object):
         self.w3 = Web3(HTTPProvider(ethereum_url))
 
     def broadcast_tx(self, tx):
-        logging.info('Broadcasting transaction with EtheruemRPCProvider')
+        logging.info('Broadcasting transaction with EthereumRPCProvider')
         response = self.w3.eth.sendRawTransaction("0x" + tx).hex()
         return response
 
