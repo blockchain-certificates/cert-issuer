@@ -72,10 +72,14 @@ def add_arguments(p):
                    help='decide the price per gas spent (in wei (smallest ETH unit))', env_var='GAS_PRICE')
     p.add_argument('--gas_limit', default=25000, type=int,
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient', env_var='GAS_LIMIT')
-    p.add_argument('--api_token', default=None, type=str,
-                   help='the API token of the blockchain broadcaster you are using. Currently Etherscan only supported.', env_var='API_TOKEN')
-    p.add_argument('--blockcypher_api_token', default=None, type=str,
-                   help='the API token of the blockcypher broadcaster', env_var='BLOCKCYPHER_API_TOKEN')
+    p.add_argument('--etherscan_api_token', default=None, type=str,
+                   help='The API token of the Etherscan broadcaster', env_var='ETHERSCAN_API_TOKEN')
+    p.add_argument('--ethereum_rpc_url', default=None, type=str,
+                   help='The URL of an Ethereum main net RPC node - useful in the case of third-party full node vendors.',
+                   env_var='ETHEREUM_RPC_URL')
+    p.add_argument('--ropsten_rpc_url', default=None, type=str,
+                   help='The URL of an Ethereum Ropsten RPC node - useful in the case of third-party full node vendors.',
+                   env_var='ROPSTEN_RPC_URL')
 
 
 def get_config():
