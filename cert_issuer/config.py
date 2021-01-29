@@ -76,7 +76,7 @@ def add_arguments(p):
                    help='The API token of the Etherscan broadcaster', env_var='ETHERSCAN_API_TOKEN')
     p.add_argument('--ethereum_rpc_url', default=None, type=str,
                    help='The URL of an Ethereum main net RPC node - useful in the case of third-party full node vendors.',
-                   env_var='ETHEREUM_NODE_RPC_URL')
+                   env_var='ETHEREUM_RPC_URL')
     p.add_argument('--ropsten_rpc_url', default=None, type=str,
                    help='The URL of an Ethereum Ropsten RPC node - useful in the case of third-party full node vendors.',
                    env_var='ROPSTEN_NODE_RPC_URL')
