@@ -7,6 +7,8 @@
 The cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
 recipient on the Bitcoin blockchain that includes the hash of the certificate itself.
 
+Note: Work on Blockcerts v3 is underway.  It will handle Blockcerts using the Verifiable Credentials standard, and sign them with MerkleProof2019.  Thus, cert-issuer v3 will _not_ be backward compatible - v2 Blockcerts will not issue from v3 cert-issuer.  
+
 ## Web resources
 For development or testing using web requests, check out the documentation at [docs/web_resources.md](./docs/web_resources.md).
 
