@@ -47,7 +47,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         if hasattr(app_config, 'etherscan_api_token'):
             etherscan_api_token = app_config.etherscan_api_token
         eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api', etherscan_api_token))
-        eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth'))
+        eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth', None))
         self.connectors[Chain.ethereum_mainnet] = eth_provider_list
 
         # Configure Ethereum Ropsten testnet connectors
@@ -56,7 +56,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
             self.ropsten_rpc_url = app_config.ropsten_rpc_url
             rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
         rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api', etherscan_api_token))
-        rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop'))
+        rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop', None))
         self.connectors[Chain.ethereum_ropsten] = rop_provider_list
 
     def get_providers_for_chain(self, chain, local_node=False):
