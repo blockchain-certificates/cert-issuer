@@ -61,7 +61,7 @@ def instantiate_blockchain_handlers(app_config):
     # ethereum chains
     elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
         cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
-        connector = EthereumServiceProviderConnector(chain, app_config.api_token)
+        connector = EthereumServiceProviderConnector(chain, app_config)
         transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 

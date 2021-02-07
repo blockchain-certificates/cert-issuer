@@ -9,7 +9,6 @@ from cert_issuer.models import CertificateHandler, BatchHandler
 
 from cert_issuer.signer import FinalizableSigner
 
-
 class CertificateV2Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
@@ -44,11 +43,16 @@ class CertificateWebV2Handler(CertificateHandler):
         :param merkle_proof:
         :return:
         """
-        return merkle_proof
+        certificate_json['signature'] = merkle_proof
+        return certificate_json
 
 class CertificateBatchWebHandler(BatchHandler):
     def finish_batch(self, tx_id, chain):
-        self.proof = next(self.merkle_tree.get_proof_generator(tx_id, chain))
+        self.proof = []
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
+        for metadata in self.certificates_to_issue:
+            proof = next(proof_generator)
+            self.proof.append(self.certificate_handler.add_proof(metadata, proof))
 
     def get_certificate_generator(self):
         """
@@ -117,7 +121,7 @@ class CertificateBatchHandler(BatchHandler):
 
     def finish_batch(self, tx_id, chain):
         proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
-        for uid, metadata in self.certificates_to_issue.items():
+        for _, metadata in self.certificates_to_issue.items():
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)
 
