@@ -81,6 +81,9 @@ def add_arguments(p):
                    help='The URL of an Ethereum Ropsten RPC node - useful in the case of third-party full node vendors.',
                    env_var='ROPSTEN_RPC_URL')
 
+    p.add_argument('--blockcypher_api_token', default=None, type=str,
+                   help='the API token of the blockcypher broadcaster', env_var='BLOCKCYPHER_API_TOKEN')
+
 
 def get_config():
     configure_logger()
