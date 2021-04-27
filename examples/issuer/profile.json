@@ -8,7 +8,7 @@
   "name": "University of Learning",
   "url": "https://www.issuer.org",
   "introductionURL": "https://www.issuer.org/intro/",
-  "revocationList": "",
+  "revocationList": "https://raw.githubusercontent.com/blockchain-certificates/cert-issuer/master/examples/issuer/revocation-list.json",
   "publicKey": [
     {
       "id": "ecdsa-koblitz-pubkey:n2h5AGW1xtnSFeXNr6SCSwXty6kP42Pri4",
