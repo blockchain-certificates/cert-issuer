@@ -4,7 +4,7 @@
     "https://w3id.org/blockcerts/v2"
   ],
   "type": "Profile",
-  "id": "https://www.blockcerts.org/samples/2.0/issuer-eth.json",
+  "id": "https://raw.githubusercontent.com/blockchain-certificates/cert-issuer/master/examples/issuer/profile.json",
   "name": "University of Learning",
   "url": "https://www.issuer.org",
   "introductionURL": "https://www.issuer.org/intro/",
