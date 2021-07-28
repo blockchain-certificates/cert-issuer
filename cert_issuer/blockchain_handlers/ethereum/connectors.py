@@ -36,15 +36,15 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 
         # Configure Ethereum mainnet connectors
         eth_provider_list = []
-        if hasattr(app_config, 'ethereum_rpc_url'):
+        if hasattr(app_config, 'ethereum_rpc_url') and app_config.ethereum_rpc_url is not None:
             self.ethereum_rpc_url = app_config.ethereum_rpc_url
             eth_provider_list.append(EthereumRPCProvider(self.ethereum_rpc_url))
 
         etherscan_api_token = None
-        if hasattr(app_config, 'api_token'):
+        if hasattr(app_config, 'api_token') and app_config.api_token is not None:
             logging.warning('The api_token config property is deprecated in favor of the etherscan_api_token property.  It still works, but please switch over soon.')
             etherscan_api_token = app_config.etherscan_api_token
-        if hasattr(app_config, 'etherscan_api_token'):
+        if hasattr(app_config, 'etherscan_api_token') and app_config.etherscan_api_token is not None:
             etherscan_api_token = app_config.etherscan_api_token
         eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api', etherscan_api_token))
         # eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth', None))
@@ -52,7 +52,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 
         # Configure Ethereum Ropsten testnet connectors
         rop_provider_list = []
-        if hasattr(app_config, 'ropsten_rpc_url'):
+        if hasattr(app_config, 'ropsten_rpc_url') and app_config.ropsten_rpc_url is not None:
             self.ropsten_rpc_url = app_config.ropsten_rpc_url
             rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
         rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api', etherscan_api_token))
