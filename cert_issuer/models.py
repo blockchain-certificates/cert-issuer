@@ -7,13 +7,17 @@ from cert_issuer.config import ESTIMATE_NUM_INPUTS
 def validate_RFC3339_date (date):
     return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', date)
 
-def validate_url (url):
-    parsed_url = urlparse(url)
-    is_valid_url = (not (parsed_url.path.__contains__(' ')
-        or parsed_url.netloc.__contains__(' '))
-        and url.__contains__(':'))
+def is_valid_url (url):
+    try:
+        parsed_url = urlparse(url)
+    except:
+        return False
+    return (not (parsed_url.path.__contains__(' ')
+       or parsed_url.netloc.__contains__(' '))
+       and url.__contains__(':'))
 
-    if not is_valid_url:
+def validate_url (url):
+    if not is_valid_url (parsed_url):
         raise ValueError('Invalid URL: {}'.format(url))
     pass
 
@@ -43,10 +47,8 @@ def validate_credential_subject (credential_subject):
     pass
 
 def validate_issuer (certificate_issuer):
-    try:
-        validate_url(certificate_issuer)
-    except:
-        raise ValueError('`issuer` property must be a URL string')
+    if not is_valid_url(certificate_issuer) and not is_valid_url(certificate_issuer['id']):
+        raise ValueError('`issuer` property must be a URL string or an object with an `id` property containing a URL string')
     pass
 
 def validate_date_RFC3339_string_format (date, property_name):
