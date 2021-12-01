@@ -55,7 +55,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         if hasattr(app_config, 'ropsten_rpc_url'):
             self.ropsten_rpc_url = app_config.ropsten_rpc_url
             rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
-        rop_provider_list.append(EtherscanBroadcaster('https://ropsten.etherscan.io/api', etherscan_api_token))
+        rop_provider_list.append(EtherscanBroadcaster('https://api-ropsten.etherscan.io/api', etherscan_api_token))
         # rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop', None))
         self.connectors[Chain.ethereum_ropsten] = rop_provider_list
 
@@ -137,8 +137,8 @@ class EthereumRPCProvider(object):
         """
         Returns the balance in Wei.
         """
-        logging.info('Getting balance with EthereumRPCProvider')
         response = self.w3.eth.getBalance(account=address, block_identifier="latest")
+        logging.info('Getting balance with EthereumRPCProvider: %s', response)
         return response
 
     def get_address_nonce(self, address):
@@ -156,13 +156,20 @@ class EtherscanBroadcaster(object):
         self.base_url = base_url
         self.api_token = api_token
 
+    def send_request(self, method, url, data=None):
+        headers = {
+            'User-Agent': 'Python-urllib/3.8'
+        }
+        response = requests.request(method, url, data=data, headers=headers)
+        return response
+
     def broadcast_tx(self, tx):
         tx_hex = tx
 
         broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
         if self.api_token:
             broadcast_url += '&apikey=%s' % self.api_token
-        response = requests.post(broadcast_url, data={'hex': tx_hex})
+        response = self.send_request('POST', broadcast_url, {'hex': tx_hex})
         if 'error' in response.json():
             logging.error("Etherscan returned an error: %s", response.json()['error'])
             raise BroadcastError(response.json()['error'])
@@ -185,7 +192,7 @@ class EtherscanBroadcaster(object):
         broadcast_url += '&tag=pending'
         if self.api_token:
             broadcast_url += '&apikey=%s' % self.api_token
-        response = requests.get(broadcast_url)
+        response = self.send_request('GET', broadcast_url)
         if int(response.status_code) == 200:
             if response.json().get('message', None) == 'NOTOK':
                 raise BroadcastError(response.json().get('result', None))
@@ -204,7 +211,7 @@ class EtherscanBroadcaster(object):
         broadcast_url += '&tag=pending' # Valid tags are 'earliest', 'latest', and 'pending', the last of which includes both pending and committed transactions.
         if self.api_token:
             broadcast_url += '&apikey=%s' % self.api_token
-        response = requests.get(broadcast_url, )
+        response = self.send_request('GET', broadcast_url)
         if int(response.status_code) == 200:
             if response.json().get('message', None) == 'NOTOK':
                 raise BroadcastError(response.json().get('result', None))
