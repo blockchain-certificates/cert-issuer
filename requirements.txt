@@ -1,5 +1,5 @@
 cert-core>=3.0.0b1
-cert-schema>=3.0.0b4
+cert-schema>=3.0.0
 merkletools==1.0.3
 configargparse==0.12.0
 glob2==0.6
