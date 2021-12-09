@@ -1,13 +1,14 @@
-cert-core>=2.1.10
-cert-schema>=3.0.0a9
+cert-core>=3.0.0b1
+cert-schema>=3.0.2
 merkletools==1.0.3
 configargparse==0.12.0
 glob2==0.6
 mock==2.0.0
 requests[security]>=2.18.4
 pycoin==0.80
-pyld>=1.0.3
+pyld==1.0.5
 pysha3>=1.0.2
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
 jsonschema<3.0.0
+lds-merkle-proof-2019>=0.0.2

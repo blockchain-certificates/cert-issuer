@@ -1,0 +1,37 @@
+import unittest
+
+from cert_issuer.models import validate_issuer
+
+class UnitValidationV3 (unittest.TestCase):
+    def test_validate_issuer_invalid_url (self):
+        candidate = 'VerifiablePresentation'
+        try:
+            validate_issuer(candidate)
+        except:
+            assert True
+            return
+
+        assert True
+
+    def test_validate_issuer_invalid_url_with_space (self):
+        candidate = 'https:// invalid.url'
+        try:
+            validate_issuer(candidate)
+        except:
+            assert True
+            return
+
+        assert False
+
+    def test_validate_issuer_valid_url (self):
+        candidate = 'https://valid.url'
+        try:
+            validate_issuer(candidate)
+        except:
+            assert False
+            return
+
+        assert True
+
+if __name__ == '__main__':
+    unittest.main()

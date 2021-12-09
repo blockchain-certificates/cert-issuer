@@ -9,7 +9,7 @@ from cert_issuer.models import CertificateHandler, BatchHandler
 
 from cert_issuer.signer import FinalizableSigner
 
-class CertificateV2Handler(CertificateHandler):
+class CertificateV3Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
@@ -22,7 +22,7 @@ class CertificateV2Handler(CertificateHandler):
         :return:
         """
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        certificate_json['signature'] = merkle_proof
+        certificate_json['proof'] = merkle_proof
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
             out_file.write(json.dumps(certificate_json))
@@ -32,7 +32,7 @@ class CertificateV2Handler(CertificateHandler):
             certificate_json = json.load(unsigned_cert_file)
         return certificate_json
 
-class CertificateWebV2Handler(CertificateHandler):
+class CertificateWebV3Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_json):
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
         return normalized.encode('utf-8')
@@ -49,7 +49,7 @@ class CertificateWebV2Handler(CertificateHandler):
 class CertificateBatchWebHandler(BatchHandler):
     def finish_batch(self, tx_id, chain):
         self.proof = []
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.verification_method, chain)
         for metadata in self.certificates_to_issue:
             proof = next(proof_generator)
             self.proof.append(self.certificate_handler.add_proof(metadata, proof))
@@ -99,7 +99,8 @@ class CertificateBatchHandler(BatchHandler):
 
         # validate batch
         for _, metadata in self.certificates_to_issue.items():
-            self.certificate_handler.validate_certificate(metadata)
+            certificate_json = self.certificate_handler._get_certificate_to_issue(metadata)
+            self.certificate_handler.validate_certificate(certificate_json)
 
         # sign batch
         with FinalizableSigner(self.secret_manager) as signer:
@@ -120,7 +121,7 @@ class CertificateBatchHandler(BatchHandler):
             yield data_to_issue
 
     def finish_batch(self, tx_id, chain):
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.verification_method, chain)
         for _, metadata in self.certificates_to_issue.items():
             proof = next(proof_generator)
             self.certificate_handler.add_proof(metadata, proof)

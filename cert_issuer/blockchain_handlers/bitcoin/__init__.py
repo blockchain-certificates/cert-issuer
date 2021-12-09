@@ -7,7 +7,7 @@ from cert_core import Chain, UnknownChainError
 from cert_issuer.blockchain_handlers.bitcoin.connectors import BitcoinServiceProviderConnector, MockServiceProviderConnector
 from cert_issuer.blockchain_handlers.bitcoin.signer import BitcoinSigner
 from cert_issuer.blockchain_handlers.bitcoin.transaction_handlers import BitcoinTransactionHandler
-from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV2Handler, CertificateBatchWebHandler, CertificateWebV2Handler
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler, CertificateBatchWebHandler, CertificateWebV3Handler
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
 from cert_issuer.signer import FileSecretManager
@@ -50,12 +50,14 @@ def instantiate_blockchain_handlers(app_config, file_mode=True):
 
     if file_mode:
         certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
-                                                            certificate_handler=CertificateV2Handler(),
-                                                            merkle_tree=MerkleTreeGenerator())
+                                                            certificate_handler=CertificateV3Handler(),
+                                                            merkle_tree=MerkleTreeGenerator(),
+                                                            config=app_config)
     else:
         certificate_batch_handler = CertificateBatchWebHandler(secret_manager=secret_manager,
-                                                        certificate_handler=CertificateWebV2Handler(),
-                                                        merkle_tree=MerkleTreeGenerator())
+                                                               certificate_handler=CertificateWebV3Handler(),
+                                                               merkle_tree=MerkleTreeGenerator(),
+                                                               config=app_config)
     if chain == Chain.mockchain:
         transaction_handler = MockTransactionHandler()
         connector = MockServiceProviderConnector()

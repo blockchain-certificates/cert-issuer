@@ -4,6 +4,8 @@ from cert_core import Chain
 from pycoin.serialize import b2h
 
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
+from cert_issuer import helpers
+from lds_merkle_proof_2019.merkle_proof_2019 import MerkleProof2019
 
 
 def get_test_data_generator():
@@ -39,26 +41,54 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         merkle_tree_generator.populate(get_test_data_generator())
         _ = merkle_tree_generator.get_blockchain_data()
         gen = merkle_tree_generator.get_proof_generator(
-            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', chain)
+            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', 'http://example.com', chain)
         p1 = next(gen)
         _ = next(gen)
         p3 = next(gen)
-        p1_expected = {'type': ['MerkleProof2017', 'Extension'],
-                       'merkleRoot': '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044',
-                       'targetHash': '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
-                       'proof': [{'right': 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35'},
-                                 {'right': '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce'}],
-                       'anchors': [
-                           {'sourceId': '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582',
-                            'type': type,
-                            'chain': display_chain}]}
-        p3_expected = {'type': ['MerkleProof2017', 'Extension'],
-                       'merkleRoot': '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044',
-                       'targetHash': '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce',
-                       'proof': [{'left': '4295f72eeb1e3507b8461e240e3b8d18c1e7bd2f1122b11fc9ec40a65894031a'}],
-                       'anchors': [{'sourceId': '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582',
-                                    'type': type,
-                                    'chain': display_chain}]}
+
+        p1_json_proof = {
+            'path': [
+                    {'right': 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35'},
+                    {'right': '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce'}
+                ],
+            'merkleRoot': '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044',
+            'targetHash': '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
+            'anchors': [
+                helpers.tx_to_blink(chain, '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582')
+            ]
+        }
+        mp2019 = MerkleProof2019()
+        proof_value = mp2019.encode(p1_json_proof)
+
+        p1_expected = {
+                "type": "MerkleProof2019",
+                "created": p1['created'],
+                "proofValue": proof_value.decode('utf8'),
+                "proofPurpose": "assertionMethod",
+                "verificationMethod": "http://example.com"
+            }
+
+        p3_json_proof = {
+            'path': [
+                {'left': '4295f72eeb1e3507b8461e240e3b8d18c1e7bd2f1122b11fc9ec40a65894031a'}
+            ],
+            'merkleRoot': '0932f1d2e98219f7d7452801e2b64ebd9e5c005539db12d9b1ddabe7834d9044',
+            'targetHash': '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce',
+            'anchors': [
+                helpers.tx_to_blink(chain, '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582')
+            ]
+        }
+        mp2019 = MerkleProof2019()
+        proof_value = mp2019.encode(p3_json_proof)
+
+        p3_expected = {
+            "type": "MerkleProof2019",
+            "created": p3['created'],
+            "proofValue": proof_value.decode('utf8'),
+            "proofPurpose": "assertionMethod",
+            "verificationMethod": "http://example.com"
+        }
+
         self.assertEqual(p1, p1_expected)
         self.assertEqual(p3, p3_expected)
 
