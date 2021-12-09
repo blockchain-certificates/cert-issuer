@@ -5,9 +5,12 @@
 # cert-issuer
 
 The cert-issuer project issues blockchain certificates by creating a transaction from the issuing institution to the
-recipient on the Bitcoin blockchain that includes the hash of the certificate itself.
+recipient on the Bitcoin or Ethereum blockchains. That transaction includes the hash of the certificate itself.
 
-Note: Work on Blockcerts v3 is underway.  It will handle Blockcerts using the Verifiable Credentials standard, and sign them with MerkleProof2019.  Thus, cert-issuer v3 will _not_ be backward compatible - v2 Blockcerts will not issue from v3 cert-issuer.  
+Blockcerts v3 is released. This new version of the standard leverages the [W3C Verifiable Credentials specification](https://www.w3.org/TR/vc-data-model/), and documents are signed with [MerkleProof2019 LD signature](https://w3c-ccg.github.io/lds-merkle-proof-2019/). Use of [DIDs (Decentralized Identifiers)](https://www.w3.org/TR/did-core/) is also possible to provide more cryptographic proof of the ownership of the issuing address. See [section](#working-with-dids) down below
+
+Cert-issuer v3 is _not_ backwards compatible and does not support Blockcerts v2 issuances. If you need to work with v2, you need to install cert-issuer v2 or use the [v2](https://github.com/blockchain-certificates/cert-issuer/tree/v2) branch of this repo.
+You may expect little to no maintenance to the v2 code at this point.
 
 ## Web resources
 For development or testing using web requests, check out the documentation at [docs/web_resources.md](./docs/web_resources.md).
@@ -124,7 +127,7 @@ Suppose the batch contains `n` certificates, and certificate `i` contains recipi
 
 The root of the Merkle tree, which is a 256-bit hash, is issued on the Bitcoin blockchain. The complete Bitcoin transaction outputs are described in 'Transaction structure'.
 
-The Blockchain Certificate given to recipient `i` contains a [2017 Merkle Proof Signature Suite](https://w3c-ccg.github.io/lds-merkleproof2017/)-formatted signature, proving that certificate `i` is contained in the Merkle tree.
+The Blockchain Certificate given to recipient `i` contains a [2019 Merkle Proof Signature Suite](https://w3c-ccg.github.io/lds-merkleproof2019/)-formatted proof, proving that certificate `i` is contained in the Merkle tree.
 
 ![](img/blockchain_certificate_components.png)
 
@@ -145,7 +148,7 @@ These steps establish that the certificate has not been tampered with since it w
 
 ## Hashing a certificate
 
-The Blockchain Certificate JSON contents without the `signature` node is the certificate that the issuer created. This is the value needed to hash for comparison against the receipt. Because there are no guarantees about ordering or formatting of JSON, first canonicalize the certificate (without the `signature`) against the JSON LD schema. This allows us to obtain a deterministic hash across platforms.
+The Blockchain Certificate JSON contents without the `proof` node is the certificate that the issuer created. This is the value needed to hash for comparison against the receipt. Because there are no guarantees about ordering or formatting of JSON, first canonicalize the certificate (without the `proof`) against the JSON LD schema. This allows us to obtain a deterministic hash across platforms.
 
 The detailed steps are described in the [verification process](https://github.com/blockchain-certificates/cert-verifier-js#verification-process).
 
@@ -188,7 +191,7 @@ These steps walk you through issuing in testnet and mainnet mode. Note that the 
 
 ## Prerequisites
 
-Decide which chain (Bitcoin or Ethereum) to issue to and follow the steps. The bitcoin chain is currently best supported by the Blockcerts libraries. Follow the steps for the chosen chain.
+Decide which chain (Bitcoin or Ethereum) to issue to and follow the steps. Follow the steps for the chosen chain.
 
 ### Install cert-issuer
 
@@ -208,10 +211,10 @@ python setup.py experimental --blockchain=ethereum
 
 See the docs here for helpful tips on creating / funding blockchain addresses: [docs/testnet_mainnet_addresses](./docs/testnet_mainnet_addresses.md)
 
-
 ## Configuring cert-issuer 
 
-Edit your conf.ini file (the config file for this application).
+Edit your conf.ini file (the config file for this application). See [here](./docs/ethereum_configuration.md) for more details on Ethereum configuration.
+The private key for bitcoin should be the WIF format.
 
 ```
 issuing_address = <issuing-address>
@@ -236,7 +239,38 @@ no_safe_mode
 
 Notes:
   - The `bitcoind` option is technically not required in `regtest` mode. `regtest` mode _only_ works with a local bitcoin node. The quick start in docker brushed over this detail by installing a regtest-configured bitcoin node in the docker container.
-  - The Ethereum option does not support a local (test)node currently. The issuer will broadcast the transaction via the Etherscan API.
+  - The Ethereum option does not support a local (test)node currently. The issuer will broadcast the transaction via the Etherscan API or an RPC of their choice.
+
+## Working with DIDs
+To issue and verify a Blockcerts document bound to a DID you need to:
+- generate a DID document referencing the public key source of the issuing address. The verification supports all the DID methods from the [DIF universal resolver](https://resolver.identity.foundation/), but it is recommended you provide your own resolver to the verification library.
+- it is also expected that the DID document contains a `service` property configured similarly to as follows:
+  ```
+    "service": [
+      {
+        "id": "#service-1",
+        "type": "IssuerProfile",
+        "serviceEndpoint": "https://www.blockcerts.org/samples/3.0/issuer-blockcerts.json"
+      }
+    ]
+  ```
+- reference the DID through the `issuer` property of the document to be issued as Blockcerts. Either directly as a string or as the `id` property of an object:
+  ```
+    "issuer": "did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ",
+  ```
+  or
+  ```
+    "issuer": {
+      "id": "did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ",
+      ... /* more custom data here. Note that the data from the distant Issuer Profile has display preference in Blockcerts Verifier */
+    }
+  ```
+- finally add to your `conf.ini` file the `verification_method` property pointing to the public key matching the issuing address:
+    ```
+    verification_method=did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ#key-1 
+    ```
+  
+You may try to see the full example DID document by looking up `did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ` in the [DIF universal resolver](https://resolver.identity.foundation/). 
 
 ## Issuing
 
