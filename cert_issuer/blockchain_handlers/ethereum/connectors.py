@@ -235,7 +235,7 @@ class MyEtherWalletBroadcaster(object):
             "params": ["0x" + tx],
             "id": 1
         }
-        response = requests.post(self.base_url, json=data)
+        response = requests.post(self.base_url, json=data, headers={'user-agent':'cert-issuer'})
         if 'error' in response.json():
             logging.error("MyEtherWallet returned an error: %s", response.json()['error'])
             raise BroadcastError(response.json()['error'])
@@ -257,7 +257,7 @@ class MyEtherWalletBroadcaster(object):
             "params": [address, "latest"],
             "id": 1
         }
-        response = requests.post(self.base_url, json=data)
+        response = requests.post(self.base_url, json=data, headers={'user-agent':'cert-issuer'})
         if int(response.status_code) == 200:
             logging.info('Balance check response: %s', response.json())
             balance = int(response.json().get('result', None), 0)
@@ -278,7 +278,7 @@ class MyEtherWalletBroadcaster(object):
             "params": [address, "pending"],
             "id": 1
         }
-        response = requests.post(self.base_url, json=data)
+        response = requests.post(self.base_url, json=data, headers={'user-agent':'cert-issuer'})
         if int(response.status_code) == 200:
             # the int(res, 0) transforms the hex nonce to int
             nonce = int(response.json().get('result', None), 0)

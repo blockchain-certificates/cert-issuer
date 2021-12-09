@@ -12,6 +12,8 @@ RUN apk add --update \
         gmp-dev \
         libffi-dev \
         libressl-dev \
+        libxml2-dev \
+        libxslt-dev \
         linux-headers \
         make \
         musl-dev \
@@ -21,16 +23,19 @@ RUN apk add --update \
         tar \
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
+    && pip3 install Cython \
+    && pip3 install wheel \
     && mkdir -p /etc/cert-issuer/data/unsigned_certificates \
     && mkdir /etc/cert-issuer/data/blockchain_certificates \
     && mkdir ~/.bitcoin \
     && echo $'rpcuser=foo\nrpcpassword=bar\nrpcport=8332\nregtest=1\nrelaypriority=0\nrpcallowip=127.0.0.1\nrpcconnect=127.0.0.1\n' > /root/.bitcoin/bitcoin.conf \
     && pip3 install /cert-issuer/. \
+    && pip3 install -r /cert-issuer/ethereum_requirements.txt \
     && rm -r /usr/lib/python*/ensurepip \
     && rm -rf /var/cache/apk/* \
-    && rm -rf /root/.cache \
-    && sed -i.bak s/==1\.0b1/\>=1\.0\.2/g /usr/lib/python3.*/site-packages/merkletools-1.0.2-py3.*.egg-info/requires.txt
+    && rm -rf /root/.cache
 
 
 ENTRYPOINT bitcoind -daemon && bash
+
 
