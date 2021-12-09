@@ -1,4 +1,5 @@
-web3==5.11.0
+web3<=4.4.1
 coincurve==7.1.0
 ethereum==2.3.1
 rlp<1
+eth-account<=0.3.0
