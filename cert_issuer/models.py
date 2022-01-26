@@ -17,7 +17,7 @@ def is_valid_url (url):
        and url.__contains__(':'))
 
 def validate_url (url):
-    if not is_valid_url (parsed_url):
+    if not is_valid_url (url):
         raise ValueError('Invalid URL: {}'.format(url))
     pass
 
@@ -33,6 +33,14 @@ def validate_type (certificate_type):
 
 def validate_context (context, type):
     vc_context_url = 'https://www.w3.org/2018/credentials/v1'
+    blockcerts_valid_context_url = [
+        'https://www.blockcerts.org/schema/3.0/context.json',
+        'https://blockcerts.org/schema/3.0/context.json',
+        'https://www.w3id.org/blockcerts/schema/3.0/context.json',
+        'https://w3id.org/blockcerts/schema/3.0/context.json',
+        'https://www.w3id.org/blockcerts/v3',
+        'https://w3id.org/blockcerts/v3'
+    ]
 
     if not isinstance(context, list):
         raise ValueError('`@context` property must be an array')
@@ -40,6 +48,8 @@ def validate_context (context, type):
         raise ValueError('First @context declared must be {}, was given {}'.format(vc_context_url, context[0]))
     if len(type) > 1 and len(context) == 1:
         raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
+    if context[-1] not in blockcerts_valid_context_url:
+        raise ValueError('Last @context declared must be one of valid blockcerts context url, preferably {}, was given {}'.format(blockcerts_valid_context_url[-1]), context[-1])
 
     pass
 

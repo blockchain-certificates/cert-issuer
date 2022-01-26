@@ -6,8 +6,8 @@ from cert_issuer.models import verify_credential
 credential_example = {
    "@context": [
      "https://www.w3.org/2018/credentials/v1",
-     "https://www.blockcerts.org/schema/3.0-alpha/context.json",
      "https://www.w3.org/2018/credentials/examples/v1"
+     "https://www.blockcerts.org/schema/3.0/context.json",
    ],
    "id": "urn:uuid:bbba8553-8ec1-445f-82c9-a57251dd731c",
    "type": [
