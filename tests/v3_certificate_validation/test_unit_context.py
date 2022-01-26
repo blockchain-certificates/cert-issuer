@@ -36,8 +36,74 @@ class UnitValidationV3 (unittest.TestCase):
 
         assert False
 
-    def test_validate_context_valid (self):
-        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://www.w3id.org/blockcerts/v3.0-alpha']
+    def test_validate_context_invalid_last_context (self):
+        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://www.w3id.org/blockcerts/v3', 'link.to.another.context']
+        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
+        try:
+            validate_context(candidate_context_url, candidate_type)
+        except:
+            assert True
+            return
+
+        assert False
+
+    def test_validate_context_valid_wwww3idcanon (self):
+        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://www.w3id.org/blockcerts/v3']
+        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
+        try:
+            validate_context(candidate_context_url, candidate_type)
+        except:
+            assert False
+            return
+
+        assert True
+
+    def test_validate_context_valid_w3idcanon (self):
+        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://w3id.org/blockcerts/v3']
+        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
+        try:
+            validate_context(candidate_context_url, candidate_type)
+        except:
+            assert False
+            return
+
+        assert True
+
+    def test_validate_context_valid_wwwblockcerts (self):
+        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://www.blockcerts.org/schema/3.0/context.json']
+        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
+        try:
+            validate_context(candidate_context_url, candidate_type)
+        except:
+            assert False
+            return
+
+        assert True
+
+    def test_validate_context_valid_blockcerts (self):
+        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://blockcerts.org/schema/3.0/context.json']
+        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
+        try:
+            validate_context(candidate_context_url, candidate_type)
+        except:
+            assert False
+            return
+
+        assert True
+
+    def test_validate_context_valid_wwww3id (self):
+        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://www.w3id.org/blockcerts/schema/3.0/context.json']
+        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
+        try:
+            validate_context(candidate_context_url, candidate_type)
+        except:
+            assert False
+            return
+
+        assert True
+
+    def test_validate_context_valid_w3id (self):
+        candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://w3id.org/blockcerts/schema/3.0/context.json']
         candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
         try:
             validate_context(candidate_context_url, candidate_type)

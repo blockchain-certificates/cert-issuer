@@ -7,7 +7,8 @@ from cert_issuer.models import CertificateHandler
 
 presentation_example = {
     "@context": [
-        "https://www.w3.org/2018/credentials/v1"
+        "https://www.w3.org/2018/credentials/v1",
+        "https://www.blockcerts.org/schema/3.0/context.json"
     ],
     "type": [
         "VerifiablePresentation"
@@ -16,26 +17,8 @@ presentation_example = {
          {
            "@context": [
              "https://www.w3.org/2018/credentials/v1",
-             "https://www.blockcerts.org/schema/3.0-alpha/context.json",
              "https://www.w3.org/2018/credentials/examples/v1",
-             {
-               "metadataJson": {
-                 "@id": "https://schemas.learningmachine.com/2017/blockcerts/metadata",
-                 "@type": "https://schemas.learningmachine.com/2017/types/text/json"
-               },
-               "displayHtml": {
-                 "@id": "https://schemas.learningmachine.com/2017/blockcerts/displayHtml",
-                 "@type": "https://schemas.learningmachine.com/2017/types/text/html"
-               },
-               "nonce": {
-                 "@id": "https://schemas.learningmachine.com/2017/blockcerts/nonce",
-                 "@type": "https://schema.org/Text"
-               },
-               "universalIdentifier": {
-                 "@id": "https://schemas.learningmachine.com/2017/blockcerts/identifier",
-                 "@type": "https://schema.org/Text"
-               }
-             }
+             "https://www.blockcerts.org/schema/3.0/context.json"
            ],
            "id": "urn:uuid:bbba8553-8ec1-445f-82c9-a57251dd731c",
            "metadataJson": "{\"schema\":{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"displayOrder\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"certificate\":{\"order\":[],\"type\":\"object\",\"properties\":{\"issuingInstitution\":{\"title\":\"Issuing Institution\",\"type\":\"string\",\"default\":\"Learning Machine Technologies, Inc.\"}}},\"recipient\":{}}},\"certificate\":{\"issuingInstitution\":\"Learning Machine Technologies, Inc.\"},\"recipient\":{},\"displayOrder\":[\"certificate.issuingInstitution\"]}",
