@@ -35,10 +35,6 @@ def validate_context (context, type):
     vc_context_url = 'https://www.w3.org/2018/credentials/v1'
     blockcerts_valid_context_url = [
         'https://www.blockcerts.org/schema/3.0/context.json',
-        'https://blockcerts.org/schema/3.0/context.json',
-        'https://www.w3id.org/blockcerts/schema/3.0/context.json',
-        'https://w3id.org/blockcerts/schema/3.0/context.json',
-        'https://www.w3id.org/blockcerts/v3',
         'https://w3id.org/blockcerts/v3'
     ]
 
