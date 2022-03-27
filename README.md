@@ -71,7 +71,7 @@ Ensure your docker image is running and bitcoind process is started
     bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/pk_issuer.txt
     ```
 
-2. Don't forget to save snapshots so you don't lose your work (see step 3 of client setup)
+2. Don't forget to save snapshots so you don't lose your work (see step 4 of client setup)
 
 ## Issuing certificates
 
