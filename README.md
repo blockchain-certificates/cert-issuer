@@ -129,7 +129,7 @@ Ensure your docker image is running and bitcoind process is started
     cert-issuer -c /etc/cert-issuer/conf.ini
     ```
 
-    **Optional:** add `--verification_method` with issuer's URL or DID
+    **Optional:** add `--verification_method` with issuer's DID (learn more about Decentralized Identifiers [here](https://www.w3.org/TR/did-core/))
 
     ```
     cert-issuer -c /etc/cert-issuer/conf.ini --verification_method "<issuer's URL/DID>"
