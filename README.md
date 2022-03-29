@@ -94,11 +94,15 @@ Ensure your docker image is running and bitcoind process is started
 
 1.  Add your certificate to `/etc/cert-issuer/data/unsigned_certificates/`:
 
-    ```
-    # To use a sample unsigned certificate as follows:
-    cp /cert-issuer/examples/data-testnet/unsigned_certificates/verifiable-credential.json /etc/cert-issuer/data/unsigned_certificates/
+    To use a sample unsigned certificate as follows:
 
-    # If you created your own unsigned certificate using cert-tools (assuming you placed it under data/unsigned_certificates):
+    ```
+    cp /cert-issuer/examples/data-testnet/unsigned_certificates/verifiable-credential.json /etc/cert-issuer/data/unsigned_certificates/
+    ```
+
+    If you created your own unsigned certificate using cert-tools (assuming you placed it under data/unsigned_certificates):
+
+    ```
     cp <cert-issuer-home>/data/unsigned_certificates/<your-cert-guid>.json /etc/cert-issuer/data/unsigned_certificates/
     ```
 
@@ -106,16 +110,25 @@ Ensure your docker image is running and bitcoind process is started
 
     ```
     bitcoin-cli -generate 101
+    ```
+
+    ```
     bitcoin-cli getbalance
     ```
 
-3.  Allow fallback fee in your `bitcoin.conf` (use Vim as the text editor). Add this line to `bitcoin.conf`: `fallbackfee=0.00001`
+3.  **(Optional)** If you see this error:
+
+    ```
+    Fee estimation failed. Fallbackfee is disabled. Wait a few blocks or enable -fallbackfee.
+    ```
+
+    You might have to allow fallback fee in your `bitcoin.conf` (use Vim as the text editor). Add this line to `bitcoin.conf`: `fallbackfee=0.00001`
 
     ```
     vi /root/.bitcoin/bitcoin.conf
     ```
 
-    You might have to kill bitcoind daemon using `ps aux` and `kill <pid>` , then start it again with `bitcoind -daemon=<path to bitcoin conf file>`
+    You have to kill bitcoind daemon using `ps aux` and `kill <pid>` , then start it again with `bitcoind -daemon=<path to bitcoin conf file>` to apply new changes.
 
 4.  Send the money to your issuing address. Note that bitcoin-cli's standard denomination is bitcoins not satoshis! (In our app, the standard unit is satoshis.) This command sends 5 bitcoins to the address:
 
@@ -123,16 +136,22 @@ Ensure your docker image is running and bitcoind process is started
     bitcoin-cli sendtoaddress $issuer 5
     ```
 
-5.  Issue the certificates on the blockchain:
-
-    ```
-    cert-issuer -c /etc/cert-issuer/conf.ini
-    ```
-
-    **Optional:** add `--verification_method` with issuer's DID (learn more about Decentralized Identifiers [here](https://www.w3.org/TR/did-core/))
+5.  Issue the certificates on the blockchain. Add `--verification_method` with issuer's DID (learn more about Decentralized Identifiers [here](https://www.w3.org/TR/did-core/) and how to work with them [here](https://github.com/blockchain-certificates/cert-issuer/#working-with-dids))
 
     ```
     cert-issuer -c /etc/cert-issuer/conf.ini --verification_method "<issuer's URL/DID>"
+    ```
+
+    Or, you can add `verification_method=<issuer's URL/DID>` in `/etc/cert-issuer/conf.ini`:
+
+    ```
+    vi /etc/cert-issuer/conf.ini
+    ```
+
+    Then run:
+
+    ```
+      cert-issuer -c /etc/cert-issuer/conf.ini
     ```
 
 6.  Your Blockchain certificates are located in `/etc/cert-issuer/data/blockchain_certificates`. Copy these to your local machine, and add them to cert-viewer's `cert_data` folder to see your certificates in the Certificate Viewer.
