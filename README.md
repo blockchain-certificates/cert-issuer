@@ -151,7 +151,7 @@ Ensure your docker image is running and bitcoind process is started
     Then run:
 
     ```
-      cert-issuer -c /etc/cert-issuer/conf.ini
+    cert-issuer -c /etc/cert-issuer/conf.ini
     ```
 
 6.  Your Blockchain certificates are located in `/etc/cert-issuer/data/blockchain_certificates`. Copy these to your local machine, and add them to cert-viewer's `cert_data` folder to see your certificates in the Certificate Viewer.
