@@ -105,7 +105,7 @@ Ensure your docker image is running and bitcoind process is started
 2.  Make sure you have enough BTC in your issuing address. You're using bitcoind in regtest mode, so you can print money. This should give you 50 (fake) BTC:
 
     ```
-    bitcoin-cli generate 101
+    bitcoin-cli -generate 101
     bitcoin-cli getbalance
     ```
 
