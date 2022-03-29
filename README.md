@@ -82,7 +82,13 @@ Ensure your docker image is running and bitcoind process is started
 
    ```
    issuer=`bitcoin-cli getnewaddress`
+   ```
+
+   ```
    sed -i.bak "s/<issuing-address>/$issuer/g" /etc/cert-issuer/conf.ini
+   ```
+
+   ```
    bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/pk_issuer.txt
    ```
 
