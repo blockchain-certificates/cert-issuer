@@ -334,7 +334,7 @@ python cert-issuer -c conf.ini
 
 - The Blockchain Certificates will be located in data/blockchain_certificates.
 - If you ran in the mainnet or testnet mode, you can also see your transaction on a live blockchain explorer.
-  - For Bitcoin, Blockr.io has explorers for both [testnet](https://tbtc.blockr.io/) and [mainnet](https://blockr.io/).
+  - For Bitcoin, Blockr.io has explorers for both [testnet](https://www.blockchain.com/explorer?view=btc-testnet) and [mainnet](https://www.blockchain.com/explorer?view=btc).
   - For Ethereum, Etherscan has explorers for [ropsten](https://ropsten.etherscan.io/) and [mainnet](https://etherscan.io/)
   - The transaction id is located in the Blockchain Certificate under `signature.anchors[0].sourceId`
 
