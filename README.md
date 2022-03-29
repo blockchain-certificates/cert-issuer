@@ -100,7 +100,7 @@ Ensure your docker image is running and bitcoind process is started
     cp /cert-issuer/examples/data-testnet/unsigned_certificates/verifiable-credential.json /etc/cert-issuer/data/unsigned_certificates/
     ```
 
-    If you created your own unsigned certificate using cert-tools (assuming you placed it under data/unsigned_certificates):
+    If you created your own unsigned certificate using cert-tools (assuming you placed it under `data/unsigned_certificates`):
 
     ```
     cp <cert-issuer-home>/data/unsigned_certificates/<your-cert-guid>.json /etc/cert-issuer/data/unsigned_certificates/
