@@ -82,7 +82,13 @@ Ensure your docker image is running and bitcoind process is started
 
    ```
    issuer=`bitcoin-cli getnewaddress`
+   ```
+
+   ```
    sed -i.bak "s/<issuing-address>/$issuer/g" /etc/cert-issuer/conf.ini
+   ```
+
+   ```
    bitcoin-cli dumpprivkey $issuer > /etc/cert-issuer/pk_issuer.txt
    ```
 
@@ -151,7 +157,7 @@ Ensure your docker image is running and bitcoind process is started
     Then run:
 
     ```
-      cert-issuer -c /etc/cert-issuer/conf.ini
+    cert-issuer -c /etc/cert-issuer/conf.ini
     ```
 
 6.  Your Blockchain certificates are located in `/etc/cert-issuer/data/blockchain_certificates`. Copy these to your local machine, and add them to cert-viewer's `cert_data` folder to see your certificates in the Certificate Viewer.
@@ -334,7 +340,7 @@ python cert-issuer -c conf.ini
 
 - The Blockchain Certificates will be located in data/blockchain_certificates.
 - If you ran in the mainnet or testnet mode, you can also see your transaction on a live blockchain explorer.
-  - For Bitcoin, Blockr.io has explorers for both [testnet](https://tbtc.blockr.io/) and [mainnet](https://blockr.io/).
+  - For Bitcoin, Blockchain.com has explorers for both [testnet](https://www.blockchain.com/explorer?view=btc-testnet) and [mainnet](https://www.blockchain.com/explorer?view=btc).
   - For Ethereum, Etherscan has explorers for [ropsten](https://ropsten.etherscan.io/) and [mainnet](https://etherscan.io/)
   - The transaction id is located in the Blockchain Certificate under `signature.anchors[0].sourceId`
 
