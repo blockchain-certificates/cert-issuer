@@ -2,8 +2,10 @@ import re
 from urllib.parse import urlparse
 from abc import abstractmethod
 
+from cert_schema import ContextUrls
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
+# TODO: move the v3 checks to cert-schema
 def validate_RFC3339_date (date):
     return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', date)
 
@@ -32,11 +34,9 @@ def validate_type (certificate_type):
     pass
 
 def validate_context (context, type):
-    vc_context_url = 'https://www.w3.org/2018/credentials/v1'
-    blockcerts_valid_context_url = [
-        'https://www.blockcerts.org/schema/3.0/context.json',
-        'https://w3id.org/blockcerts/v3'
-    ]
+    ContextUrlsInstance = ContextUrls()
+    vc_context_url = ContextUrlsInstance.verifiable_credential()
+    blockcerts_valid_context_url = ContextUrlsInstance.v3_all()
 
     if not isinstance(context, list):
         raise ValueError('`@context` property must be an array')

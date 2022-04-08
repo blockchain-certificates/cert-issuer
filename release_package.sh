@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-python setup.py register -r pypi
-python setup.py sdist upload -r pypi
+rm -rf dist
+python3 setup.py sdist bdist_wheel
+twine upload dist/*
