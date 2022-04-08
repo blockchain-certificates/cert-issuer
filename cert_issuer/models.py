@@ -34,7 +34,7 @@ def validate_type (certificate_type):
     pass
 
 def validate_context (context, type):
-    ContextUrlsInstance = ContextUrls
+    ContextUrlsInstance = ContextUrls()
     vc_context_url = ContextUrlsInstance.verifiable_credential()
     blockcerts_valid_context_url = ContextUrlsInstance.v3_all()
 
