@@ -4,6 +4,7 @@ import logging
 from cert_schema import normalize_jsonld
 from cert_schema import validate_v2
 from cert_issuer import helpers
+from cert_issuer.chained_proof_2021 import ChainedProof2021
 from pycoin.serialize import b2h
 from cert_issuer.models import CertificateHandler, BatchHandler
 
@@ -22,7 +23,12 @@ class CertificateV3Handler(CertificateHandler):
         :return:
         """
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        certificate_json['proof'] = merkle_proof
+        if 'proof' in certificate_json:
+            initial_proof = certificate_json['proof']
+            certificate_json['proof'] = [initial_proof, ChainedProof2021(initial_proof, merkle_proof).toJsonObject()]
+        else:
+            certificate_json['proof'] = merkle_proof
+        print(certificate_json['proof'])
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
             out_file.write(json.dumps(certificate_json))
@@ -69,7 +75,7 @@ class CertificateBatchWebHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
-
+        logging.info('We are Batch WEB Handler')
         for cert in self.certificates_to_issue:
             self.certificate_handler.validate_certificate(cert)
 
@@ -96,6 +102,8 @@ class CertificateBatchHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
+
+        logging.info('We are Batch Handler')
 
         # validate batch
         for _, metadata in self.certificates_to_issue.items():
