@@ -188,7 +188,7 @@ class TestCertificateHandler(unittest.TestCase):
         certificate_json = {'kek': 'kek'}
 
         return_cert = handler.add_proof(certificate_json, proof)
-        self.assertEqual(return_cert, {'kek':'kek', 'signature': {'a': 'merkel'}})
+        self.assertEqual(return_cert, {'kek':'kek', 'proof': {'a': 'merkel'}})
 
 class DummyCertificateHandler(CertificateHandler):
     def __init__(self):
