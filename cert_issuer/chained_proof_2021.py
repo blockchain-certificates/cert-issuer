@@ -1,3 +1,4 @@
+import copy
 CHAINED_PROOF_TYPE = 'ChainedProof2021'
 
 class ChainedProof2021:
@@ -23,7 +24,7 @@ class ChainedProof2021:
 
     def set_previous_proof(self, previous_proof):
         if previous_proof['type'] == CHAINED_PROOF_TYPE:
-            previous_proof_to_store = previous_proof
+            previous_proof_to_store = copy.deepcopy(previous_proof)
             previous_proof_to_store['type'] = previous_proof['chainedProofType']
             del previous_proof_to_store['chainedProofType']
             del previous_proof_to_store['previousProof']
