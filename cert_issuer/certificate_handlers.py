@@ -64,7 +64,7 @@ class CertificateBatchWebHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
-        logging.info('We are Batch WEB Handler')
+
         for cert in self.certificates_to_issue:
             self.certificate_handler.validate_certificate(cert)
 
@@ -91,8 +91,6 @@ class CertificateBatchHandler(BatchHandler):
         Propagates exception on failure
         :return: byte array to put on the blockchain
         """
-
-        logging.info('We are Batch Handler')
 
         # validate batch
         for _, metadata in self.certificates_to_issue.items():
