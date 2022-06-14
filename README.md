@@ -297,7 +297,7 @@ Notes:
 
 To issue and verify a Blockcerts document bound to a DID you need to:
 
-- generate a DID document referencing the public key source of the issuing address. The verification supports all the DID methods from the [DIF universal resolver](https://resolver.identity.foundation/), but it is recommended you provide your own resolver to the verification library.
+- generate a DID document referencing the public key source of the issuing address. The verification supports all the DID methods from the [DIF universal resolver](https://uniresolver.io/), but it is recommended you provide your own resolver to the verification library.
 - it is also expected that the DID document contains a `service` property configured similarly to as follows:
   ```
     "service": [
@@ -324,7 +324,7 @@ To issue and verify a Blockcerts document bound to a DID you need to:
   verification_method=did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ#key-1
   ```
 
-You may try to see the full example DID document by looking up `did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ` in the [DIF universal resolver](https://resolver.identity.foundation/).
+You may try to see the full example DID document by looking up `did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ` in the [DIF universal resolver](https://uniresolver.io/).
 
 ## Issuing
 
