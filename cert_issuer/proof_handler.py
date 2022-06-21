@@ -3,7 +3,10 @@ from cert_schema import ContextUrls
 from cert_issuer.utils import array_intersect
 
 class ProofHandler:
-    def add_proof (self, certificate_json, merkle_proof):
+    def __init__(self):
+        self.contextUrls = ContextUrls()
+
+    def add_proof(self, certificate_json, merkle_proof):
         if 'proof' in certificate_json:
             if not isinstance(certificate_json['proof'], list):
                 # convert proof to list
@@ -14,20 +17,26 @@ class ProofHandler:
             self.update_context_for_chained_proof(certificate_json)
         else:
             certificate_json['proof'] = merkle_proof
+            self.update_context_for_single_proof(certificate_json)
         return certificate_json
 
-    def update_context_for_chained_proof (self, certificate_json):
+    def update_context_for_chained_proof(self, certificate_json):
         context = certificate_json['@context']
-        contextUrlsInstance = ContextUrls()
-        if contextUrlsInstance.merkle_proof_2019() not in context:
-            context.append(contextUrlsInstance.merkle_proof_2019())
+        if self.contextUrls.merkle_proof_2019() not in context:
+            context.append(self.contextUrls.merkle_proof_2019())
 
-        if contextUrlsInstance.chained_proof_2021() not in context:
-            context.append(contextUrlsInstance.chained_proof_2021())
+        if self.contextUrls.chained_proof_2021() not in context:
+            context.append(self.contextUrls.chained_proof_2021())
 
-        if array_intersect(contextUrlsInstance.v3_all(), context):
-            for v3_context in contextUrlsInstance.v3_all():
+        if array_intersect(self.contextUrls.v3_all(), context):
+            for v3_context in self.contextUrls.v3_all():
                 if v3_context in context:
                     index = context.index(v3_context)
                     del context[index]
-            context.append(contextUrlsInstance.v3_1_canonical())
+            context.append(self.contextUrls.v3_1_canonical())
+
+    def update_context_for_single_proof(self, certificate_json):
+        context = certificate_json['@context']
+        if array_intersect(self.contextUrls.v3_1_all(), context):
+            if self.contextUrls.merkle_proof_2019() not in context:
+                context.append(self.contextUrls.merkle_proof_2019())

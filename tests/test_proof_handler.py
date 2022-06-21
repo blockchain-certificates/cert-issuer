@@ -25,6 +25,24 @@ class TestProofHandler(unittest.TestCase):
         output = self.handler.add_proof(fixture_certificate_json, fixture_proof)
         self.assertEqual(output['proof'], fixture_proof)
 
+    def test_single_signature_3_1_update_context_merkle_proof_2019(self):
+        fixture_certificate_json = {
+            '@context': [
+                'https://www.w3.org/2018/credentials/v1',
+                'https://w3id.org/blockcerts/v3.1'
+            ],
+            'kek': 'kek'
+        }
+        fixture_proof = {
+            'type': 'MerkleProof2019',
+            'created': '2022-05-05T08:05:14.912828',
+            'proofValue': 'zMcm4LfQFUZkWZyLJp1bqtXF8vkZZwp79x7Nvt5BmN2XV4usLLtDoeqiq3et923mcWfXde4a3m4f57yUZcATCbBXV1byb5AXbV8EzT6E8B9JKf3scvxxZCBVePtV4SrhYysAiLNJ9N2R8LgnpJ47wnQHkaTB1AMxrcLEHUTxm4zJTtQqf9orDLf3L4VoLzmST7ZzsDjuX9cw2hZ3Aazhhjy7swG44xfF1PC73SyCv77pDnJ6BSHm3azmbVG6BXv1EPtwF4J1YRqwojBEWk9nDgduACR7b9qNhQ46ND4B5vL8p3LkqTh',
+            'proofPurpose': 'assertionMethod',
+            'verificationMethod': 'did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ#key-1'
+        }
+        output = self.handler.add_proof(fixture_certificate_json, fixture_proof)
+        self.assertIn(self.contextUrls.merkle_proof_2019(), output['@context'])
+
     def test_multiple_two_chained_signature(self):
         fixture_initial_proof = {
           'type': 'Ed25519Signature2020',
