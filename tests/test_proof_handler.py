@@ -40,7 +40,7 @@ class TestProofHandler(unittest.TestCase):
         })
 
     def test_multiple_three_chained_signature(self):
-        handler = ProofHandler();
+        handler = ProofHandler()
         fixture_initial_proof = {
           'type': 'Ed25519Signature2020',
           'created': '2022-05-02T16:36:22.933Z',
