@@ -14,8 +14,9 @@ class JSONLDHandler:
 
     @staticmethod
     def preload_contexts():
-        print(CONFIG.context_urls, CONFIG.context_file_paths, os.getcwd())
-        with open(os.path.join(os.getcwd(), CONFIG.context_file_paths)) as context_file:
-            context_data = json.load(context_file)
-            print(context_data)
-            extend_preloaded_context(CONFIG.context_urls, context_data)
+        if CONFIG.context_urls is None or CONFIG.context_file_paths is None:
+            return
+        for (url, path) in zip(CONFIG.context_urls, CONFIG.context_file_paths):
+            with open(os.path.join(os.getcwd(), path)) as context_file:
+                context_data = json.load(context_file)
+                extend_preloaded_context(url, context_data)

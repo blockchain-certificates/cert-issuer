@@ -90,17 +90,19 @@ def add_arguments(p):
                    type=str,
                    help='When trying to sign a document with an unsupported context, ' +
                         'provide the url and the path to the local context file.' +
-                        'Comma separated list, must be used in conjunction with the `--context_file_paths` property.',
-                   env_var='CONTEXT_URLS'
+                        'Space separated list, must be used in conjunction with the `--context_file_paths` property.',
+                   env_var='CONTEXT_URLS',
+                   nargs='+'
                    )
     p.add_argument('--context_file_paths',
                    default=None,
                    type=str,
                    help='When trying to sign a document with an unsupported context, ' +
                         'provide the url and the path to the local context file. ' +
-                        'Comma separated list, must be used in conjunction with the `--context_urls` property. ' +
-                        'Path should be relative to CWD',
-                   env_var='CONTEXT_FILE_PATHS'
+                        'Space separated list, must be used in conjunction with the `--context_urls` property. ' +
+                        'Path should be relative to CWD, order should match `--context_urls` order.',
+                   env_var='CONTEXT_FILE_PATHS',
+                   nargs='+'
                    )
 
 
