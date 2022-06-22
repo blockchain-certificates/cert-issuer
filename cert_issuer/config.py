@@ -85,6 +85,24 @@ def add_arguments(p):
     p.add_argument('--blockcypher_api_token', default=None, type=str,
                    help='the API token of the blockcypher broadcaster', env_var='BLOCKCYPHER_API_TOKEN')
 
+    p.add_argument('--context_urls',
+                   default=None,
+                   type=str,
+                   help='When trying to sign a document with an unsupported context, ' +
+                        'provide the url and the path to the local context file.' +
+                        'Comma separated list, must be used in conjunction with the `--context_file_paths` property.',
+                   env_var='CONTEXT_URLS'
+                   )
+    p.add_argument('--context_file_paths',
+                   default=None,
+                   type=str,
+                   help='When trying to sign a document with an unsupported context, ' +
+                        'provide the url and the path to the local context file. ' +
+                        'Comma separated list, must be used in conjunction with the `--context_urls` property. ' +
+                        'Path should be relative to CWD',
+                   env_var='CONTEXT_FILE_PATHS'
+                   )
+
 
 def get_config():
     configure_logger()
