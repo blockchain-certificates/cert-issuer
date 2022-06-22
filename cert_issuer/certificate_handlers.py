@@ -1,19 +1,19 @@
 import json
 import logging
 
-from cert_schema import normalize_jsonld
 from cert_issuer import helpers
 from cert_issuer.proof_handler import ProofHandler
 from pycoin.serialize import b2h
+from cert_issuer.normalization_handler import JSONLDHandler
 from cert_issuer.models import CertificateHandler, BatchHandler
 
 from cert_issuer.signer import FinalizableSigner
 
+
 class CertificateV3Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
-        return normalized.encode('utf-8')
+        return JSONLDHandler.normalize_to_utf8(certificate_json)
 
     def add_proof(self, certificate_metadata, merkle_proof):
         """
@@ -34,8 +34,7 @@ class CertificateV3Handler(CertificateHandler):
 
 class CertificateWebV3Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_json):
-        normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
-        return normalized.encode('utf-8')
+        return JSONLDHandler.normalize_to_utf8(certificate_json)
 
     def add_proof(self, certificate_json, merkle_proof):
         certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof)
