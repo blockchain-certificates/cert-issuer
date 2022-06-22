@@ -326,6 +326,45 @@ To issue and verify a Blockcerts document bound to a DID you need to:
 
 You may try to see the full example DID document by looking up `did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ` in the [DIF universal resolver](https://uniresolver.io/).
 
+## Multiple Signatures
+Blockcerts implements ChainedProof2021 draft proposal (https://hackmd.io/@RYgJMHAGSlaLMaQzwYjvsQ/SJoDWwTdK).
+This means that cert-issuer can be used to sign with MerkleProof2019 a document that was already signed.
+
+Currently, only ordered proofs are supported, which means that the next MerkleProof2019 proof hashes the content of the document
+up until the previous proof.
+
+Depending on the nature of the initial proof, consumers might find themselves confronted to a 
+JSONLD dereferencing error when the context is not preloaded by Blockcerts ecosystem.
+
+Please note that this may happen with context documents that are not proof context.
+
+In order to circumvent this issue, this library offers a way to specify specific context to be preloaded
+before issuance.
+
+Consumers will need to use both `--context_urls` and `--context_file_paths` properties at the same time, and values need to be specified in matching order.
+
+The path to the directory where consumers store directory is left at the discretion of said consumer, 
+but you should know that it will be looked up relative to the execution path (CWD).
+
+### CLI example
+```
+ python -m cert_issuer -c conf.ini --context_urls https://w3id.org/security/suites/ed25519-2020/v1 https://w3id.org/security/suites/multikey-2021/v1 --context_file_paths data/context/ed25519.v1.json data/context/multikey2021.v1.json
+```
+
+### conf.ini example
+Define in your conf.ini file something like this:
+
+```
+context_urls=[https://w3id.org/security/suites/ed25519-2020/v1, https://w3id.org/security/suites/multikey-2021/v1]
+context_file_paths=[data/context/ed25519.v1.json, data/context/multikey2021.v1.json]
+```
+
+### HINT
+You can create local copies of context file with the following command:
+```
+curl https://w3id.org/security/suites/ed25519-2020/v1 -L >> data/context/ed25519.v1.json
+```
+
 ## Issuing
 
 1. Add your certificates to data/unsigned_certs/

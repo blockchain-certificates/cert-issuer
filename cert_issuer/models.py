@@ -7,7 +7,7 @@ from cert_issuer.config import ESTIMATE_NUM_INPUTS
 
 # TODO: move the v3 checks to cert-schema
 def validate_RFC3339_date (date):
-    return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]$', date)
+    return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt\s]\d{2}:\d{2}:\d{2}(?:\.\d{3})?((?:[+-]\d{2}:\d{2})|[Zz])$', date)
 
 def is_valid_url (url):
     try:
@@ -58,11 +58,13 @@ def validate_issuer (certificate_issuer):
     pass
 
 def validate_date_RFC3339_string_format (date, property_name):
-    error_message = '`{}` property must be a valid RFC3339 string'.format(property_name)
+    error_message = '`{}` property must be a valid RFC3339 string.'.format(property_name)
     if not isinstance(date, str):
+        error_message += ' `{}` value is not a string'.format(date)
         raise ValueError(error_message)
 
     if not validate_RFC3339_date(date):
+        error_message += ' Value received: `{}`'.format(date)
         raise ValueError(error_message)
     pass
 

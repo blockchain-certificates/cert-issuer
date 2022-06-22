@@ -1,19 +1,19 @@
 import json
 import logging
 
-from cert_schema import normalize_jsonld
-from cert_schema import validate_v2
 from cert_issuer import helpers
+from cert_issuer.proof_handler import ProofHandler
 from pycoin.serialize import b2h
+from cert_issuer.normalization_handler import JSONLDHandler
 from cert_issuer.models import CertificateHandler, BatchHandler
 
 from cert_issuer.signer import FinalizableSigner
 
+
 class CertificateV3Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
-        return normalized.encode('utf-8')
+        return JSONLDHandler.normalize_to_utf8(certificate_json)
 
     def add_proof(self, certificate_metadata, merkle_proof):
         """
@@ -22,7 +22,7 @@ class CertificateV3Handler(CertificateHandler):
         :return:
         """
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        certificate_json['proof'] = merkle_proof
+        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof)
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
             out_file.write(json.dumps(certificate_json))
@@ -34,16 +34,10 @@ class CertificateV3Handler(CertificateHandler):
 
 class CertificateWebV3Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_json):
-        normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
-        return normalized.encode('utf-8')
+        return JSONLDHandler.normalize_to_utf8(certificate_json)
 
     def add_proof(self, certificate_json, merkle_proof):
-        """
-        :param certificate_metadata:
-        :param merkle_proof:
-        :return:
-        """
-        certificate_json['signature'] = merkle_proof
+        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof)
         return certificate_json
 
 class CertificateBatchWebHandler(BatchHandler):
