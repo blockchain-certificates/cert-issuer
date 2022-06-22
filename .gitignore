@@ -22,6 +22,8 @@ dist/*
 build/*
 node_modules/*
 
+!data/context
+
 requirements.txt
 .idea/*
 *.ini*
