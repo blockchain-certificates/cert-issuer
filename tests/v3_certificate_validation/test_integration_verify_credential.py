@@ -136,7 +136,7 @@ class TestIssuanceBatchValidation (unittest.TestCase):
         try:
             handler.prepare_batch()
         except Exception as e:
-            self.assertEqual(str(e), '`expirationDate` property must be a valid RFC3339 string')
+            self.assertEqual(str(e), '`expirationDate` property must be a valid RFC3339 string. Value received: `20200909`')
             return
 
         assert False
