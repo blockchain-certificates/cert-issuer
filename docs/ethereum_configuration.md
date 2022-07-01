@@ -8,5 +8,7 @@ This should hold the Hex string of the BIP32 derived private key, generated from
 ## conf.ini
 ```
 issuing_address=0xYOUR_ADDRESS # matching with the private key above
-chain=ethereum_ropsten # one of ['ethereum_ropsten', 'ethereum_mainnet']
+chain=ethereum_goerli # one of ['ethereum_goerli', 'ethereum_sepolia', 'ethereum_ropsten', 'ethereum_mainnet']
 ```
+
+`ethereum_ropsten` is DEPRECATED because the Ropsten has been announced to close in Q4 2022.

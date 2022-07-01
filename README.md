@@ -273,7 +273,7 @@ issuing_address = <issuing-address>
 # issuer URL / DID
 verification_method = <verification-method>
 
-chain=<bitcoin_regtest|bitcoin_testnet|bitcoin_mainnet|ethereum_ropsten|ethereum_mainnet|mockchain>
+chain=<bitcoin_regtest|bitcoin_testnet|bitcoin_mainnet|ethereum_goerli|ethereum_sepolia|ethereum_ropsten|ethereum_mainnet|mockchain>
 
 usb_name = </Volumes/path-to-usb/>
 key_file = <file-you-saved-pk-to>
@@ -380,7 +380,7 @@ python cert-issuer -c conf.ini
 - The Blockchain Certificates will be located in data/blockchain_certificates.
 - If you ran in the mainnet or testnet mode, you can also see your transaction on a live blockchain explorer.
   - For Bitcoin, Blockchain.com has explorers for both [testnet](https://www.blockchain.com/explorer?view=btc-testnet) and [mainnet](https://www.blockchain.com/explorer?view=btc).
-  - For Ethereum, Etherscan has explorers for [ropsten](https://ropsten.etherscan.io/) and [mainnet](https://etherscan.io/)
+  - For Ethereum, Etherscan has explorers for [goerli](https://goerli.etherscan.io/), [sepolia](https://sepolia.etherscan.io/), [ropsten](https://ropsten.etherscan.io/) and [mainnet](https://etherscan.io/)
   - The transaction id is located in the Blockchain Certificate under `signature.anchors[0].sourceId`
 
 # Contributing
@@ -409,6 +409,8 @@ For an Ethereum transaction, you'll need to use a different explorer, which migh
 output. To view a transaction in a web browser, you might try something like this:
 
 - Ethereum Mainnet: https://etherscan.io/tx/0xf537d81667c8011e34e1f450e18fd1c5a8a10c770cd0acdc91a79746696f36a3
+- Ethereum Goerli (testnet): https://goerli.etherscan.io/tx/0xfb593f186a274f58f861e5186150bc692ed533c7af50efb094f756ccb81c7023
+- Ethereum Sepolia (testnet): https://sepolia.etherscan.io/tx/0xa5484369839ba54cd3be71271155fc1a76b52499607dcddbf682ee04534a3f95
 - Ethereum Ropsten (testnet): https://ropsten.etherscan.io/tx/0xf537d81667c8011e34e1f450e18fd1c5a8a10c770cd0acdc91a79746696f36a3
 
 ## Mac scrypt problems
