@@ -28,7 +28,7 @@ class MetadataValidationTestSuite(unittest.TestCase):
     def test_json_schema_validation_display_order(self):
         spy = SpyAgency()
         spy.spy_on(logging.warning)
-        metadata_string = "{\"schema\":{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"displayOrder\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"certificate\":{\"order\":[],\"type\":\"object\",\"properties\":{\"issuingInstitution\":{\"title\":\"Issuing Institution\",\"type\":\"string\",\"default\":\"Learning Machine Technologies, Inc.\"}}},\"recipient\":{}}},\"certificate\":{\"issuingInstitution\":\"Learning Machine Technologies, Inc.\"},\"recipient\":{},\"displayOrder\":[\"certificate.issuingInstitution\", \"recipient.name\", \"class.year\"]}"
+        metadata_string = "{\"schema\":{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"displayOrder\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"certificate\":{\"order\":[],\"type\":\"object\",\"properties\":{\"issuingInstitution\":{\"title\":\"Issuing Institution\",\"type\":\"string\",\"default\":\"Learning Machine Technologies, Inc.\"}}},\"recipient\":{}}},\"certificate\":{\"issuingInstitution\":\"Learning Machine Technologies, Inc.\"},\"recipient\":{},\"displayOrder\":[\"certificate.issuingInstitution\", \"recipient.name\", \"class.year\", \"class.professor\", \"recipient.email\"]}"
         try:
             validate_metadata_structure(json.loads(metadata_string))
         except Exception as e:
@@ -49,4 +49,12 @@ class MetadataValidationTestSuite(unittest.TestCase):
                 'class'
             )
         )
+        self.assertTrue(
+            logging.warning.calls[2].called_with(
+                '`metadata.displayOrder` property references a property named: \x1b[1m%s\x1b[0m which does not exist in group: \x1b[1m%s\x1b[0m.',
+                'name',
+                'email'
+            )
+        )
+        assert False
         logging.warning.unspy()

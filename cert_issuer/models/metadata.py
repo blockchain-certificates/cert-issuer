@@ -29,15 +29,18 @@ def validate_metadata_structure(metadata):
 
 
 def verify_display_order_properties(display_order, metadata):
+    checked_groups = []
     for item in display_order:
         path = item.split('.')
         group = path[0]
         if not group in metadata:
-            # \033[1m%s\033[0m: display property name in bold
-            logging.warning(
-                "`metadata.displayOrder` property references a group named: \033[1m%s\033[0m which does not exist in metadata object.",
-                group
-            )
+            if not group in checked_groups:
+                # \033[1m%s\033[0m: display property name in bold
+                logging.warning(
+                    "`metadata.displayOrder` property references a group named: \033[1m%s\033[0m which does not exist in metadata object.",
+                    group
+                )
+                checked_groups.append(group)
         else:
             property = path[1]
             if not property in metadata[group]:
