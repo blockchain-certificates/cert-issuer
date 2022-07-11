@@ -14,7 +14,7 @@ def validate_metadata_structure(metadata):
             print(e)
             raise Exception('Certificate.metadata object does not match its provided schema')
     else:
-       logging.warning("""
+        logging.warning("""
             The metadata object provided with the certificate does not include a `schema` property.
             Not defining such property will result in errors in the rendering of the metadata property in the UI projects. 
             """)
@@ -24,6 +24,7 @@ def validate_metadata_structure(metadata):
            The metadata object provided with the certificate does not include a `displayOrder` property.
            Not defining such property will result in errors in the rendering of the metadata property in the UI projects. 
            """)
+        return
     else:
         verify_display_order_properties(metadata['displayOrder'], metadata)
 
