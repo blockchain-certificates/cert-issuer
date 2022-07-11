@@ -1,6 +1,8 @@
+import json
 from abc import abstractmethod
 from cert_issuer.config import ESTIMATE_NUM_INPUTS
 from cert_issuer.models.verifiable_credential import verify_credential, verify_presentation, validate_type, validate_context
+from cert_issuer.models.metadata import validate_metadata_structure
 
 class BatchHandler(object):
     def __init__(self, secret_manager, certificate_handler, merkle_tree, config):
@@ -26,6 +28,9 @@ class CertificateHandler(object):
     def validate_certificate(self, certificate_metadata):
         validate_type(certificate_metadata['type'])
         validate_context(certificate_metadata['@context'], certificate_metadata['type'])
+
+        if 'metadata' in certificate_metadata:
+            validate_metadata_structure(json.loads(certificate_metadata['metadata']))
 
         if (certificate_metadata['type'][0] == 'VerifiableCredential'):
             verify_credential(certificate_metadata)

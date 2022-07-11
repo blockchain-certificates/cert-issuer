@@ -52,9 +52,8 @@ class MetadataValidationTestSuite(unittest.TestCase):
         self.assertTrue(
             logging.warning.calls[2].called_with(
                 '`metadata.displayOrder` property references a property named: \x1b[1m%s\x1b[0m which does not exist in group: \x1b[1m%s\x1b[0m.',
-                'name',
-                'email'
+                'email',
+                'recipient'
             )
         )
-        assert False
         logging.warning.unspy()
