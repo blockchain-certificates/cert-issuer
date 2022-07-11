@@ -1,6 +1,6 @@
 import unittest
 
-from cert_issuer.models import validate_issuance_date
+from cert_issuer.models.verifiable_credential import validate_issuance_date
 
 class UnitValidationV3 (unittest.TestCase):
     def test_validate_issuance_date_invalid_RFC3339 (self):

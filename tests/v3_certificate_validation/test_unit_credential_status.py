@@ -1,7 +1,6 @@
 import unittest
-import json
 
-from cert_issuer.models import validate_credential_status
+from cert_issuer.models.verifiable_credential import validate_credential_status
 
 class UnitValidationV3 (unittest.TestCase):
     def test_validate_credential_status_undefined_id (self):

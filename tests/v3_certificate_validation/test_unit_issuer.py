@@ -1,6 +1,6 @@
 import unittest
 
-from cert_issuer.models import validate_issuer
+from cert_issuer.models.verifiable_credential import validate_issuer
 
 class UnitValidationV3 (unittest.TestCase):
     def test_validate_issuer_invalid_url (self):
