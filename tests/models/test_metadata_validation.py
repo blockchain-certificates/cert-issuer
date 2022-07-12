@@ -99,3 +99,23 @@ class MetadataValidationTestSuite(unittest.TestCase):
             )
         )
         logging.warning.unspy()
+
+    def test_json_schema_validation_property_title(self):
+        spy = SpyAgency()
+        spy.spy_on(logging.warning)
+        metadata_string = "{\"schema\":{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"displayOrder\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"certificate\":{\"order\":[],\"type\":\"object\",\"properties\":{\"dean\":{\"type\":\"string\"},\"issuingInstitution\":{\"title\":\"Issuing Institution\",\"type\":\"string\",\"default\":\"Learning Machine Technologies, Inc.\"}}},\"recipient\":{}}},\"certificate\":{\"issuingInstitution\":\"Learning Machine Technologies, Inc.\",\"dean\":\"John Rambo\"},\"recipient\":{},\"displayOrder\":[\"certificate.issuingInstitution\", \"certificate.dean\"]}"
+        try:
+            validate_metadata_structure(json.loads(metadata_string))
+        except Exception as e:
+            print(e)
+            logging.warning.unspy()
+            assert False
+            return
+
+        print(logging.warning.calls[0].args)
+        self.assertTrue(
+            logging.warning.calls[0].called_with(
+                """No title has been defined for property: \x1b[1mdean\x1b[0m in group: \x1b[1mcertificate\x1b[0m.\n            Title should be defined under path `schema.properties.certificate.properties.dean.title`"""
+            )
+        )
+        logging.warning.unspy()
