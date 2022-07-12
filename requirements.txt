@@ -1,4 +1,4 @@
-cert-core>=3.0.0b1
+cert-core>=3.0.0
 cert-schema>=3.2.1
 merkletools==1.0.3
 configargparse==0.12.0
@@ -11,4 +11,4 @@ pysha3>=1.0.2
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
 jsonschema<3.0.0
-lds-merkle-proof-2019>=0.0.2
+lds-merkle-proof-2019>=0.1.0
