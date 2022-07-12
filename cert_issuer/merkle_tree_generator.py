@@ -86,7 +86,7 @@ class MerkleTreeGenerator(object):
 
 
 def to_source_id(txid, chain):
-    if chain == Chain.bitcoin_mainnet or Chain.bitcoin_testnet or Chain.ethereum_mainnet or Chain.ethereum_ropsten:
+    if chain.is_bitcoin_type() or chain.is_ethereum_type():
         return txid
     else:
         return 'This has not been issued on a blockchain and is for testing only'

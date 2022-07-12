@@ -1,8 +1,6 @@
 import logging
 import sys
 
-from cert_core import Chain
-
 from cert_issuer.issuer import Issuer
 
 if sys.version_info.major < 3:
@@ -27,7 +25,7 @@ def issue(app_config, certificate_batch_handler, transaction_handler):
 
 def main(app_config):
     chain = app_config.chain
-    if chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
+    if chain.is_ethereum_type():
         from cert_issuer.blockchain_handlers import ethereum
         certificate_batch_handler, transaction_handler, connector = ethereum.instantiate_blockchain_handlers(app_config)
     else:

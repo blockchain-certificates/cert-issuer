@@ -1,8 +1,7 @@
 import logging
 import os
 
-from cert_core import BlockchainType
-from cert_core import Chain, UnknownChainError
+from cert_core import UnknownChainError
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler
 from cert_issuer.blockchain_handlers.ethereum.connectors import EthereumServiceProviderConnector
@@ -38,9 +37,9 @@ class EthereumTransactionCostConstants(object):
 def initialize_signer(app_config):
     path_to_secret = os.path.join(app_config.usb_name, app_config.key_file)
 
-    if app_config.chain.blockchain_type == BlockchainType.ethereum:
+    if app_config.chain.is_ethereum_type():
         signer = EthereumSigner(ethereum_chain=app_config.chain)
-    elif app_config.chain == Chain.mockchain:
+    elif app_config.is_mock_type():
         signer = None
     else:
         raise UnknownChainError(app_config.chain)
@@ -57,10 +56,10 @@ def instantiate_blockchain_handlers(app_config):
                                                         certificate_handler=CertificateV3Handler(),
                                                         merkle_tree=MerkleTreeGenerator(),
                                                         config=app_config)
-    if chain == Chain.mockchain:
+    if chain.is_mock_type():
         transaction_handler = MockTransactionHandler()
     # ethereum chains
-    elif chain == Chain.ethereum_mainnet or chain == Chain.ethereum_ropsten:
+    elif chain.is_ethereum_type():
         cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
         connector = EthereumServiceProviderConnector(chain, app_config)
         transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager,

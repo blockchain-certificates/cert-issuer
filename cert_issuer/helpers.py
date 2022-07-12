@@ -111,6 +111,10 @@ def tx_to_blink(chain, tx_id):
         blink += 'btc:mainnet:'
     elif chain == Chain.ethereum_ropsten:
         blink += 'eth:ropsten:'
+    elif chain == Chain.ethereum_goerli:
+        blink += 'eth:goerli:'
+    elif chain == Chain.ethereum_sepolia:
+        blink += 'eth:sepolia:'
     elif chain == Chain.ethereum_mainnet:
         blink += 'eth:mainnet:'
     elif chain == Chain.mockchain:
