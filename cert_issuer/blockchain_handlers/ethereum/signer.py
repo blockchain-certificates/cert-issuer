@@ -1,6 +1,5 @@
-import rlp
-from ethereum import transactions
-from ethereum.utils import encode_hex
+import web3
+from eth_utils import to_hex
 
 from cert_issuer.errors import UnableToSignTxError
 from cert_issuer.models import Signer
@@ -28,12 +27,13 @@ class EthereumSigner(Signer):
     def sign_transaction(self, wif, transaction_to_sign):
         ##try to sign the transaction.
 
-        if isinstance(transaction_to_sign, transactions.Transaction):
+        if isinstance(transaction_to_sign, dict):
             try:
-                raw_tx = rlp.encode(transaction_to_sign.sign(wif, self.netcode))
-                raw_tx_hex = encode_hex(raw_tx)
+                transaction_to_sign['chainId'] = self.netcode
+                raw_tx = web3.Account.sign_transaction(transaction_to_sign, wif)['rawTransaction']
+                raw_tx_hex = to_hex(raw_tx)
                 return raw_tx_hex
             except Exception as msg:
                 return {'error': True, 'message': msg}
         else:
-            raise UnableToSignTxError('You are trying to sign a non transaction type')
+            raise UnableToSignTxError('sign_transaction expects a dict')

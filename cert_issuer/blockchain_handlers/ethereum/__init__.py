@@ -11,13 +11,18 @@ from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer.models import MockTransactionHandler
 from cert_issuer.signer import FileSecretManager
 
+ONE_BILLION = 1000000000
+
 
 class EthereumTransactionCostConstants(object):
-    def __init__(self, recommended_gas_price=20000000000, recommended_gas_limit=25000):
+    def __init__(self, max_priority_fee_per_gas, recommended_gas_price, recommended_gas_limit):
+        self.max_priority_fee_per_gas = max_priority_fee_per_gas
         self.recommended_gas_price = recommended_gas_price
         self.recommended_gas_limit = recommended_gas_limit
-        logging.info('Set cost constants to recommended_gas_price=%f, recommended_gas_limit=%f',
-                     self.recommended_gas_price, self.recommended_gas_limit)
+        logging.info('Set cost constants to recommended_gas_price=%f Gwei, recommended_gas_limit=%d gas',
+            self.recommended_gas_price / ONE_BILLION, self.recommended_gas_limit)
+        if self.max_priority_fee_per_gas:
+            logging.info('and max_priority_fee_per_gas=%f Gwei', self.max_priority_fee_per_gas / ONE_BILLION)
 
     """
     The below methods currently only use the supplied gasprice/limit.
@@ -26,6 +31,9 @@ class EthereumTransactionCostConstants(object):
 
     def get_recommended_max_cost(self):
         return self.recommended_gas_price * self.recommended_gas_limit
+
+    def get_max_priority_fee_per_gas(self):
+        return self.max_priority_fee_per_gas
 
     def get_gas_price(self):
         return self.recommended_gas_price
@@ -60,9 +68,11 @@ def instantiate_blockchain_handlers(app_config):
         transaction_handler = MockTransactionHandler()
     # ethereum chains
     elif chain.is_ethereum_type():
-        cost_constants = EthereumTransactionCostConstants(app_config.gas_price, app_config.gas_limit)
+        nonce = app_config.nonce
+        cost_constants = EthereumTransactionCostConstants(app_config.max_priority_fee_per_gas, 
+                                                          app_config.gas_price, app_config.gas_limit)
         connector = EthereumServiceProviderConnector(chain, app_config)
-        transaction_handler = EthereumTransactionHandler(connector, cost_constants, secret_manager,
+        transaction_handler = EthereumTransactionHandler(connector, nonce, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 
     return certificate_batch_handler, transaction_handler, connector
