@@ -36,4 +36,4 @@ class EthereumSigner(Signer):
             except Exception as msg:
                 return {'error': True, 'message': msg}
         else:
-            raise UnableToSignTxError('sign_transaction expects a dict')
+            raise UnableToSignTxError('"sign_transaction()" expects a dict representing an unsigned transaction with fields such as "gas", "to", "data", etc. run "$ python cert_issuer -h" for more information on transaction configuration.')

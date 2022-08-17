@@ -72,10 +72,9 @@ class EthereumTransactionHandler(TransactionHandler):
             logging.info("NONCE IS %d", nonce)
             # Transactions in the first iteration will be send to burn address
             toaddress = Web3.toChecksumAddress('0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddead')
-            tx = self.transaction_creator.create_transaction(self.tx_cost_constants, self.issuing_address, nonce,
+            prepared_tx = self.transaction_creator.create_transaction(self.tx_cost_constants, self.issuing_address, nonce,
                                                              toaddress, blockchain_bytes)
 
-            prepared_tx = tx
             return prepared_tx
         else:
             raise InsufficientFundsError('Not sufficient ether to spend at: %s', self.issuing_address)
