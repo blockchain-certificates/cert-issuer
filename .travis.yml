@@ -6,4 +6,6 @@ install: pip install tox-travis
 script: tox
 after_success:
   - pip install python-semantic-release
+  - git config user.name botcerts
+  - git config user.email botcerts@learningmachine.com
   - semantic-release publish --noop --verbosity=DEBUG
