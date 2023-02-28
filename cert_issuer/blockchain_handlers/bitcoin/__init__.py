@@ -49,12 +49,12 @@ def instantiate_blockchain_handlers(app_config, file_mode=True):
 
     if file_mode:
         certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
-                                                            certificate_handler=CertificateV3Handler(),
+                                                            certificate_handler=CertificateV3Handler(app_config),
                                                             merkle_tree=MerkleTreeGenerator(),
                                                             config=app_config)
     else:
         certificate_batch_handler = CertificateBatchWebHandler(secret_manager=secret_manager,
-                                                               certificate_handler=CertificateWebV3Handler(),
+                                                               certificate_handler=CertificateWebV3Handler(app_config),
                                                                merkle_tree=MerkleTreeGenerator(),
                                                                config=app_config)
     if chain.is_mock_type():

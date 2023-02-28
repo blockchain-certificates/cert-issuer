@@ -110,6 +110,18 @@ def add_arguments(p):
                    env_var='CONTEXT_FILE_PATHS',
                    nargs='+'
                    )
+    p.add_argument('--multiple_proofs',
+                   default='chained',
+                   type=str,
+                   choices=['chained', 'concurrent'],
+                   help='How to handle a document that was previously signed by another party. \n' +
+                        'If the document has not been signed yet, a single proof will be added. \n' +
+                        '"chained": Chained proof also sign the previous proof(s) of the document, making them ' +
+                        'untemperable with in the final document, ie: a notary signs over the signatures of the buyer ' +
+                        'and the seller in a real estate transaction. \n' +
+                        '"concurrent": Concurrent proofs mean the parties independently sign the document without ' +
+                        'the other parties\' signatures. Defaults to chained proofs.'
+    )
 
 
 def get_config():

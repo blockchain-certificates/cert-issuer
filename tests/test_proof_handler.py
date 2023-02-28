@@ -66,7 +66,10 @@ class TestProofHandler(unittest.TestCase):
             'proofPurpose': 'assertionMethod',
             'verificationMethod': 'did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ#key-1'
         }
-        output = self.handler.add_proof(fixture_certificate_json, fixture_proof, False)
+        class MockConfig:
+            multiple_proofs = 'concurrent'
+
+        output = self.handler.add_proof(fixture_certificate_json, fixture_proof, MockConfig())
         self.assertEqual(output['proof'], [
             fixture_initial_proof,
             fixture_proof
