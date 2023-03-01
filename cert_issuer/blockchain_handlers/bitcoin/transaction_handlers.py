@@ -55,10 +55,10 @@ class BitcoinTransactionHandler(TransactionHandler):
         prepared_tx = self.create_transaction(blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
         self.verify_transaction(signed_tx, op_return_value)
-        txid = self.broadcast_transaction(signed_tx)
+        # txid = self.broadcast_transaction(signed_tx)
         # this logging is already done in issuer
         # logging.info('Broadcast transaction with txid %s', txid)
-        return txid
+        return 'txid'
 
     def create_transaction(self, op_return_bytes):
         if self.prepared_inputs:
