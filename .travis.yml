@@ -11,7 +11,9 @@ after_success:
   - semantic-release publish
 after_script:
   - echo "chain=mockchain" >> conf.ini
-  - cat conf.ini
+  - python3 --version
+  - which python3
+  - which python
   - pip install -r requirements.txt
   - npm ci
   - npm run test:vc-compliance
