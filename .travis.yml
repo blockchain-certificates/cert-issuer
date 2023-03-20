@@ -10,7 +10,6 @@ after_success:
   - git config user.email botcerts@learningmachine.com
   - semantic-release publish
 after_script:
-  - pwd
-  - ls -la
+  - pip install
   - npm ci
   - npm run test:vc-compliance
