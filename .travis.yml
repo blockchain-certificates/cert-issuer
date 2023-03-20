@@ -4,9 +4,11 @@ python:
   - "3.6"
 install: pip install tox-travis
 script: tox
-after_script: npm run test:vc-compliance
 after_success:
   - pip install python-semantic-release
   - git config user.name botcerts
   - git config user.email botcerts@learningmachine.com
   - semantic-release publish
+after_script:
+  - npm ci
+  - npm run test:vc-compliance
