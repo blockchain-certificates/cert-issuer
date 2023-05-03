@@ -10,7 +10,7 @@ after_success:
   - git config user.email botcerts@learningmachine.com
   - semantic-release publish
 after_script:
-  - sh prepare-compliance-tests-config.sh
+  - sh prepare-vc-compliance-tests-config.sh
   - python3 --version
   - which python3
   - which python
