@@ -146,7 +146,7 @@ class EthereumRPCProvider(object):
 
     def broadcast_tx(self, tx):
         logging.info('Broadcasting transaction with EthereumRPCProvider')
-        response = self.w3.eth.sendRawTransaction("0x" + tx).hex()
+        response = self.w3.eth.sendRawTransaction(tx).hex()
         return response
 
     def get_balance(self, address):

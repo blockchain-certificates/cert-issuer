@@ -79,19 +79,23 @@ def validate_expiration_date (certificate_expiration_date):
     pass
 
 def validate_credential_status (certificate_credential_status):
-    try:
-        validate_url(certificate_credential_status['id'])
-    except KeyError:
-        raise ValueError('credentialStatus.id must be defined')
-    except ValueError:
-        raise ValueError('credentialStatus.id must be a valid URL')
+    if not isinstance(certificate_credential_status, list):
+        certificate_credential_status = [certificate_credential_status]
 
-    try:
-        isinstance(certificate_credential_status['type'], str)
-    except KeyError:
-        raise ValueError('credentialStatus.type must be defined')
-    except:
-        raise ValueError('credentialStatus.type must be a string')
+    for status in certificate_credential_status:
+        try:
+            validate_url(status['id'])
+        except KeyError:
+            raise ValueError('credentialStatus.id must be defined')
+        except ValueError:
+            raise ValueError('credentialStatus.id must be a valid URL')
+
+        try:
+            isinstance(status['type'], str)
+        except KeyError:
+            raise ValueError('credentialStatus.type must be defined')
+        except:
+            raise ValueError('credentialStatus.type must be a string')
     pass
 
 def verify_credential(certificate_metadata):
