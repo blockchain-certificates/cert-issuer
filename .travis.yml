@@ -14,10 +14,6 @@ after_script:
   - python3 --version
   - which python3
   - which python
-  - pip install -r requirements.txt
+  - python3 setup.py install
   - npm ci
-  - pwd
-  - ls -la
-  - cat /home/travis/build/blockchain-certificates/cert-issuer/conf.ini
-  - ls -la /home/travis/build/blockchain-certificates/cert-issuer/cert_issuer
   - npm run test:vc-compliance
