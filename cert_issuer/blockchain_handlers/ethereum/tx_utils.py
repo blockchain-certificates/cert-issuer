@@ -3,12 +3,20 @@ import logging
 from cert_issuer.errors import UnverifiedTransactionError
 
 
-def create_ethereum_trx(issuing_address, nonce, to_address, blockchain_bytes, gasprice, gaslimit):
+def create_ethereum_trx(nonce, to_address, blockchain_bytes, max_priority_fee_per_gas, gasprice, gaslimit):
     # the actual value transfer is 0 in the Ethereum implementation
-    from ethereum.transactions import Transaction
     value = 0
-    tx = Transaction(nonce=nonce, gasprice=gasprice, startgas=gaslimit, to=to_address, value=value,
-                     data=blockchain_bytes)
+    tx = dict(
+        nonce=nonce,
+        gas=gaslimit,
+        to=to_address,
+        value=value,
+        data=blockchain_bytes)
+    if max_priority_fee_per_gas:
+        tx['maxFeePerGas'] = gasprice
+        tx['maxPriorityFeePerGas'] = max_priority_fee_per_gas
+    else:
+        tx['gasPrice'] = gasprice
     return tx
 
 

@@ -69,8 +69,12 @@ def add_arguments(p):
     p.add_argument('--no_bitcoind', dest='bitcoind', default=True, action='store_false',
                    help='Default; do not use bitcoind connectors; use APIs instead', env_var='NO_BITCOIND')
     # ethereum arguments
+    p.add_argument('--nonce', default=0, type=int,
+                   help='sets nonce of ETH transaction. useful if you run your own transaction management system.', env_var='NONCE')
+    p.add_argument('--max_priority_fee_per_gas', default=0, type=int,
+                   help='decide the priority fee per gas spent for EIP-1559-compliant transactions (in wei, the smallest ETH unit)', env_var='MAX_PRIORITY_FEE_PER_GAS')
     p.add_argument('--gas_price', default=20000000000, type=int,
-                   help='decide the price per gas spent (in wei (smallest ETH unit))', env_var='GAS_PRICE')
+                   help='decide the price per gas spent. sets max_fee_per_gas for EIP-1559-compliant transactions.', env_var='GAS_PRICE')
     p.add_argument('--gas_limit', default=25000, type=int,
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient', env_var='GAS_LIMIT')
     p.add_argument('--etherscan_api_token', default=None, type=str,
