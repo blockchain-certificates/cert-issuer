@@ -33,10 +33,10 @@ def configure_logger():
 def add_arguments(p):
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
-    p.add_argument('--issuing_address', required=True, help='issuing address', env_var='ISSUING_ADDRESS')
-    p.add_argument('--verification_method', required=True, help='Verification method for the Linked Data Proof', env_var='VERIFICATION_METHOD')
-    p.add_argument('--usb_name', required=True, help='usb path to key_file', env_var='USB_NAME')
-    p.add_argument('--key_file', required=True,
+    p.add_argument('--issuing_address', required=False, help='issuing address', env_var='ISSUING_ADDRESS')
+    p.add_argument('--verification_method', required=False, help='Verification method for the Linked Data Proof', env_var='VERIFICATION_METHOD')
+    p.add_argument('--usb_name', required=False, help='usb path to key_file', env_var='USB_NAME')
+    p.add_argument('--key_file', required=False,
                    help='name of file on USB containing private key', env_var='KEY_FILE')
     p.add_argument('--unsigned_certificates_dir', default=os.path.join(DATA_PATH, 'unsigned_certificates'),
                    help='Default path to data directory storing unsigned certs', env_var='UNSIGNED_CERTIFICATES_DIR')
