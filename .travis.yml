@@ -18,4 +18,6 @@ after_script:
   - npm ci
   - pwd
   - ls -la
+  - cat /home/travis/build/blockchain-certificates/cert-issuer/conf.ini
+  - ls -la /home/travis/build/blockchain-certificates/cert-issuer/cert_issuer
   - npm run test:vc-compliance
