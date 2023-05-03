@@ -15,6 +15,6 @@ after_script:
   - which python3
   - which python
   - python3 setup.py install
-  - npm ci
+  - npm i
   - cat node_modules/vc-test-suite/node_modules/cert-issuer-node-wrapper/middlewares/issue.js
   - npm run test:vc-compliance
