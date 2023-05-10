@@ -15,6 +15,7 @@ after_script:
   - which node
   - npm -v
   - which npm
+  - which python3
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
   - npm i --force
