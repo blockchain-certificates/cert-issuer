@@ -11,6 +11,8 @@ after_success:
   - git config user.email botcerts@learningmachine.com
   - semantic-release publish
 after_script:
+  - node -v
+  - npm -v
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
   - npm i --force
