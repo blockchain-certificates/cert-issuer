@@ -1,7 +1,8 @@
 sudo: false
 language: python
+dist: focal
 python:
-  - "3.10.11"
+  - "3.10"
 install: pip install tox-travis
 script: tox
 after_success:
@@ -11,10 +12,7 @@ after_success:
   - semantic-release publish
 after_script:
   - sh prepare-vc-compliance-tests-config.sh
-  - python3 --version
-  - which python3
-  - which python
   - python3 setup.py install
-  - npm i --force
+  - npm ci
   - cat node_modules/vc-test-suite/node_modules/cert-issuer-node-wrapper/middlewares/issue.js
   - npm run test:vc-compliance
