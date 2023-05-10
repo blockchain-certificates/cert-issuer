@@ -13,6 +13,5 @@ after_success:
 after_script:
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
-  - npm ci
-  - cat node_modules/vc-test-suite/node_modules/cert-issuer-node-wrapper/middlewares/issue.js
+  - npm i --force
   - npm run test:vc-compliance
