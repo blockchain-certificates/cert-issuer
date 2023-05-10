@@ -12,7 +12,9 @@ after_success:
   - semantic-release publish
 after_script:
   - node -v
+  - which node
   - npm -v
+  - which npm
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
   - npm i --force
