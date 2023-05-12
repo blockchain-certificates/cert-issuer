@@ -19,5 +19,5 @@ after_script:
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
   - npm i --force
-  - npm run test:vc-compliance
-#  - strace -f -s 1024 npm run test:vc-compliance
+#  - npm run test:vc-compliance
+  - strace -f -s 1024 npm run test:vc-compliance
