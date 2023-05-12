@@ -20,5 +20,6 @@ after_script:
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
   - npm i --force
+  - cat node_modules/vc-test-suite/node_modules/cert-issuer-node-wrapper/middlewares/issue.js
   - npm run test:vc-compliance
 #  - strace -f -s 1024 npm run test:vc-compliance
