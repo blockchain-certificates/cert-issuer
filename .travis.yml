@@ -2,7 +2,7 @@ sudo: false
 language: python
 dist: focal
 python:
-  - "3.11"
+  - "3.10"
 install: pip install tox-travis
 script: tox
 after_success:
