@@ -1,6 +1,6 @@
 import json
 import os
-from cert_schema import normalize_jsonld, extend_preloaded_context
+from cert_schema import normalize_jsonld, extend_preloaded_context, preloaded_context_document_loader
 
 from cert_issuer.config import CONFIG
 
@@ -10,7 +10,10 @@ class JSONLDHandler:
     def normalize_to_utf8(certificate_json):
         JSONLDHandler.preload_contexts()
         for contextUrl in certificate_json['@context']:
+            print("context URL:")
             print(contextUrl)
+            print("context data:")
+            print(preloaded_context_document_loader(contextUrl))
         normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
         return normalized.encode('utf-8')
 
