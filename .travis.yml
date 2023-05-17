@@ -20,8 +20,8 @@ after_script:
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
   - cp ./examples/data-testnet/unsigned_certificates/verifiable-credential.json ./data/unsigned_certificates
-  - python3 cert_issuer -c conf.ini
-#  - npm i --force
+#  - python3 cert_issuer -c conf.ini
+  - npm ci
 #  - cat node_modules/vc-test-suite/node_modules/cert-issuer-node-wrapper/middlewares/issue.js
-#  - npm run test:vc-compliance
+  - npm run test:vc-compliance
 #  - strace -f -s 1024 npm run test:vc-compliance
