@@ -12,12 +12,9 @@ after_success:
   - semantic-release publish
 after_script:
   - nvm install 16
-  - node -v
-  - which node
-  - npm -v
-  - which npm
-  - which python3
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
   - npm ci
   - npm run test:vc-compliance
+#  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sh publish-vc-compliance-result.sh; fi' # if no changes (aka npm release), no commit then no PR
+  - sh publish-vc-compliance-result.sh
