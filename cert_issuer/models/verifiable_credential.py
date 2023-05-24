@@ -55,7 +55,7 @@ def validate_credential_subject (credential_subject):
     pass
 
 def validate_issuer (certificate_issuer):
-    if not is_valid_url(certificate_issuer) and not is_valid_url(certificate_issuer['id']):
+    if isinstance(certificate_issuer, str) and not is_valid_url(certificate_issuer) or isinstance(certificate_issuer, dict) and not is_valid_url(certificate_issuer['id']):
         raise ValueError('`issuer` property must be a URL string or an object with an `id` property containing a URL string')
     pass
 
