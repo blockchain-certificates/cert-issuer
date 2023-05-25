@@ -1,4 +1,5 @@
 cp node_modules/vc-test-suite/implementations/index.html ./vc-compliance-report.html
+git checkout $TRAVIS_BRANCH
 git status
 git add vc-compliance-report.html
 git commit -m "chore(Compliance): update compliance report"
