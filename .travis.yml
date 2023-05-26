@@ -16,4 +16,5 @@ after_script:
   - python3 setup.py install
   - npm ci
   - npm run test:vc-compliance
-  - 'if [ "$TRAVIS_BRANCH" = "master" ]; then sh publish-vc-compliance-result.sh; fi' # if no changes, no commit
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sh publish-vc-compliance-result.sh; fi' # if no changes, no commit
+  - sh publish-vc-compliance-result.sh
