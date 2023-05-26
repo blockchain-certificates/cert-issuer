@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Verifiable Credentials Data Model Implementation Report 1.0</title>
+    <meta http-equiv='Content-Type' content='text/html;charset=utf-8'/>
+    <!--
+      === NOTA BENE ===
+      For the three scripts below, if your spec resides on dev.w3 you can check them
+      out in the same tree and use relative links so that they'll work offline,
+     -->
+    <script src='https://www.w3.org/Tools/respec/respec-w3c-common' class='remove'></script>
+    <script type="text/javascript" class="remove">
+      var respecConfig = {
+        // specification status (e.g., WD, LCWD, NOTE, etc.). If in doubt use ED.
+        specStatus: "ED",
+
+        // the specification's short name, as in http://www.w3.org/TR/short-name/
+        shortName: "vc-data-model-implementation-report",
+
+        // subtitle for the spec
+        subtitle: "Implementation Report for the Verifiable Credentials Data Model",
+
+        // if you wish the publication date to be other than today, set this
+        //publishDate:  "2017-08-03",
+
+        // if there is a previously published draft, uncomment this and set its YYYY-MM-DD date
+        // and its maturity status
+        // previousPublishDate:  "1977-03-15",
+        // previousMaturity:  "WD",
+
+        // extend the bibliography entries
+        doJsonLd: true,
+
+        github: "https://github.com/w3c/vc-test-suite/",
+        includePermalinks: false,
+
+        // if there a publicly available Editor's Draft, this is the link
+        edDraftURI: "https://w3c.github.io/vc-test-suite/implementations/",
+
+        // if this is a LCWD, uncomment and set the end of its review period
+        // lcEnd: "2009-08-05",
+
+        // editors, add as many as you like
+        // only "name" is required
+        editors:  [
+          { name: "Manu Sporny", url: "http://manu.sporny.org/",
+            company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" }
+        ],
+        // authors, add as many as you like.
+        // This is optional, uncomment if you have authors as well as editors.
+        // only "name" is required. Same format as editors.
+        authors:
+        [
+          { name: "Manu Sporny", url: "http://digitalbazaar.com/",
+            company: "Digital Bazaar", companyURL: "http://digitalbazaar.com/" }
+        ],
+        // name of the WG
+        wg:           "Verifiable Claims Working Group",
+
+        // URI of the public WG page
+        wgURI:        "https://www.w3.org/2017/vc/",
+
+        // name (with the @w3c.org) of the public mailing to which comments are due
+        wgPublicList: "public-vc-comments",
+
+        // URI of the patent status for this WG, for Rec-track documents
+        // !!!! IMPORTANT !!!!
+        // This is important for Rec-track documents, do not copy a patent URI from a random
+        // document unless you know what you're doing. If in doubt ask your friendly neighbourhood
+        // Team Contact.
+        wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/98922/status",
+        maxTocLevel: 2,
+        inlineCSS: true
+      };
+    </script>
+    <style>
+.success {
+  font-weight: bold;
+  background-color: lightgreen;
+  text-align: center;
+}
+.failure {
+  font-weight: bold;
+  background-color: pink;
+  text-align: center;
+}
+.unimplemented {
+  font-weight: bold;
+  background-color: lightyellow;
+  text-align: center;
+}
+    </style>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+This is the most recent implementation report for the
+<a href="">Verifiable Credentials Data Model</a> specification.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+Comments regarding this document are welcome. Please file issues
+directly on <a href="https://github.com/w3c/vc-data-model/issues/">GitHub</a>,
+or send them to
+<a href="mailto:public-vc-comments@w3.org">public-vc-comments@w3.org</a>
+(<a href="mailto:public-vc-comments-request@w3.org?subject=subscribe">subscribe</a>,
+<a href="https://lists.w3.org/Archives/Public/public-vc-comments/">archives</a>).
+      </p>
+
+    </section>
+
+    <section class="informative">
+      <h1>Introduction</h1>
+
+      <p>
+The purpose of this document is to demonstrate that there are at least two
+interoperable implementations of processors that are capable of generating
+output that is conformant to the Verifiable Credentials Data Model.
+      </p>
+
+      <section class="informative">
+        <h2>Testing Methodology</h2>
+
+        <p>
+The testing framework for the Verifiable Credentials Data Model executes the
+following process for every conformance statement in the Verifiable Credentials
+Data Model:
+        </p>
+
+        <ol class="algorithm">
+          <li>
+Take an input file template that exercises the feature and feed it to a
+developer provided Verifiable Credentials Data Model generator.
+          </li>
+          <li>
+If the input is valid, generate a Verifiable Credential that is conformant
+to the data model.
+          </li>
+          <li>
+The test suite then ensures that the generated Verifiable Credential is
+conformant to the feature being tested.
+          </li>
+        </ol>
+
+      </section>
+
+    </section>
+
+    <section class="informative">
+      <h1>Conformance Testing Results</h1>
+
+      <h3>Key</h3>
+
+      <ul>
+        <li>✓ - Success</li>
+        <li>❌ - Error</li>
+        <li>no support - Implementation explicitly does not support this feature</li>
+        <li>untested - This test is new, implementation has not been run on it yet</li>
+      </ul>
+
+      <p>
+The results of the conformance testing are shown below:
+      </p>
+
+      
+<h2>Basic Documents</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+    <tr>
+      <td>@context MUST be one or more URIs</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>@context first value MUST be https://www.w3.org/2018/credentials/v1</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>@context subsequent items can be objects that express context information</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`id` properties MUST be a single URI</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`type` properties MUST be one or more URIs</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`type` properties for Credential MUST be `VerifiableCredential` plus specific type</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`credentialSubject` property MUST be present</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`credentialSubject` property MUST be present, may be a set of objects</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuer` property MUST be present</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuer` property MUST be a single URI</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuanceDate` property MUST be present</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuanceDate` property MUST be an RFC3339 datetime</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`expirationDate` property MUST be an RFC3339 datetime</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>Presentations MUST be of type `VerifiablePresentation`</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>Presentations MUST include `verifiableCredential` and `proof`</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>@context MUST be one or more URIs (negative)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>@context first value MUST be https://www.w3.org/2018/credentials/v1 (negative)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`id` properties MUST be a single URI (negative)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`type` properties MUST be one or more URIs (negative)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`type` properties for Credential MUST be `VerifiableCredential` plus specific type (negative)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`credentialSubject` property MUST be present (negative - credentialSubject missing)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuer` property MUST be present (negative - missing issuer)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuer` property MUST be a single URI (negative - not URI)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuer` property MUST be a single URI (negative - Array)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuanceDate` property MUST be present (negative - missing issuanceDate)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuanceDate` property MUST be an RFC3339 datetime (negative - RFC3339)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`issuanceDate` property MUST be an RFC3339 datetime (negative - Array)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`expirationDate` property MUST be an RFC3339 datetime (negative - RFC3339)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+    <tr>
+      <td>`expirationDate` property MUST be an RFC3339 datetime (negative - Array)</td>
+  
+      <td class="success" aria-label="success">✓</td>
+    
+    </tr>
+  
+  </tbody>
+</table>
+
+<h2>Credential Status (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<h2>Linked Data Proofs (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<h2>Credential Schema (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<h2>Refresh Service (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<h2>Terms of Use (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<h2>Evidence (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<h2>JWT (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<h2>Zero-Knowledge Proofs (optional)</h2>
+
+<table class="simple">
+  <thead>
+    <th width="80%">Test</th>
+<th>blockcerts</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+
+    </section>
+  </body>
+</html>

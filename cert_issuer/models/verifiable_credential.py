@@ -1,4 +1,5 @@
 import re
+import logging
 from urllib.parse import urlparse
 from cert_schema import ContextUrls
 
@@ -42,7 +43,11 @@ def validate_context (context, type):
     if len(type) > 1 and len(context) == 1:
         raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
     if context[-1] not in blockcerts_valid_context_url:
-        raise ValueError('Last @context declared must be one of valid blockcerts context url, preferably {}, was given {}'.format(blockcerts_valid_context_url[-1]), context[-1])
+        logging.warning("""
+           Last `@context` is not blockcerts' context. It is not a critical issue but some issues have come up at times
+           because of some properties of a different context overwriting blockcerts' taxonomy. Check this property
+           again in case of verification issue.
+           """)
 
     pass
 
@@ -50,7 +55,17 @@ def validate_credential_subject (credential_subject):
     pass
 
 def validate_issuer (certificate_issuer):
-    if not is_valid_url(certificate_issuer) and not is_valid_url(certificate_issuer['id']):
+    has_error = False
+    if isinstance(certificate_issuer, str) and not is_valid_url(certificate_issuer):
+        has_error = True
+
+    if isinstance(certificate_issuer, dict) and not is_valid_url(certificate_issuer['id']):
+        has_error = True
+
+    if isinstance(certificate_issuer, list):
+        has_error = True
+        
+    if has_error:
         raise ValueError('`issuer` property must be a URL string or an object with an `id` property containing a URL string')
     pass
 

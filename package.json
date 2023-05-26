@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "prepare:vc-compliance": "vc-test-suite set-config generatorOptions \"--issuer_path ${PWD}\"",
+    "test:vc-compliance": "npm run prepare:vc-compliance && vc-test-suite report:blockcerts"
+  },
+  "dependencies": {
+    "vc-test-suite": "github:blockchain-certificates/vc-test-suite#blockcerts-work"
+  }
+}

@@ -1,7 +1,11 @@
 sudo: false
 language: python
+dist: focal
+branches:
+  only:
+    - master
 python:
-  - "3.6"
+  - "3.10"
 install: pip install tox-travis
 script: tox
 after_success:
@@ -9,3 +13,10 @@ after_success:
   - git config user.name botcerts
   - git config user.email botcerts@learningmachine.com
   - semantic-release publish
+after_script:
+  - nvm install 16
+  - sh prepare-vc-compliance-tests-config.sh
+  - python3 setup.py install
+  - npm ci
+  - npm run test:vc-compliance
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sh publish-vc-compliance-result.sh; fi' # if no changes, no commit
