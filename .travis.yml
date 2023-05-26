@@ -1,6 +1,9 @@
 sudo: false
 language: python
 dist: focal
+branches:
+  only:
+    - master
 python:
   - "3.10"
 install: pip install tox-travis
