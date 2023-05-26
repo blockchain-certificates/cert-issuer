@@ -2,11 +2,11 @@ cp node_modules/vc-test-suite/implementations/index.html ./vc-compliance-report.
 
 COMPLIANCE_RESULT=$( cat node_modules/vc-test-suite/implementations/test-status.txt )
 echo $COMPLIANCE_RESULT
-echo ($COMPLIANCE_RESULT == "compliant")
 if [ $COMPLIANCE_RESULT == "compliant" ];
   then BADGE_COLOR="green";
   else BADGE_COLOR="red";
 fi
+echo $BADGE_COLOR
 ## replace first line of README with new badge value - couldn't get sed to work properly
 echo "[![Verifiable Credential Compliance result](https://badgen.net/badge/Verifiable%20Credentials%20v1/$COMPLIANCE_RESULT/$BADGE_COLOR?icon=https://www.w3.org/Icons/WWW/w3c_home_nb-v.svg)](https://github.com/blockchain-certificates/cert-issuer/vc-compliance-report.html)" >> /tmp/cert-issuer-readme
 tail -n +2 README.md >> /tmp/cert-issuer-readme
