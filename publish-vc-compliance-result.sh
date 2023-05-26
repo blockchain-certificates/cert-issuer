@@ -2,7 +2,7 @@ cp node_modules/vc-test-suite/implementations/index.html ./vc-compliance-report.
 
 COMPLIANCE_RESULT=$( cat node_modules/vc-test-suite/implementations/test-status.txt )
 echo $COMPLIANCE_RESULT
-if [ $COMPLIANCE_RESULT == "compliant" ];
+if [[ $COMPLIANCE_RESULT == "compliant" ]];
   then BADGE_COLOR="green";
   else BADGE_COLOR="red";
 fi
