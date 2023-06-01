@@ -33,8 +33,8 @@ def configure_logger():
 def add_arguments(p):
     p.add('-c', '--my-config', required=False, env_var='CONFIG_FILE',
           is_config_file=True, help='config file path')
-    p.add_argument('--issuing_address', required=True, help='issuing address', env_var='ISSUING_ADDRESS')
-    p.add_argument('--verification_method', required=True, help='Verification method for the Linked Data Proof', env_var='VERIFICATION_METHOD')
+    p.add_argument('--issuing_address', required=False, help='issuing address', env_var='ISSUING_ADDRESS')
+    p.add_argument('--verification_method', required=False, help='Verification method for the Linked Data Proof', env_var='VERIFICATION_METHOD')
     p.add_argument('--usb_name', required=True, help='usb path to key_file', env_var='USB_NAME')
     p.add_argument('--key_file', required=True,
                    help='name of file on USB containing private key', env_var='KEY_FILE')
@@ -69,8 +69,12 @@ def add_arguments(p):
     p.add_argument('--no_bitcoind', dest='bitcoind', default=True, action='store_false',
                    help='Default; do not use bitcoind connectors; use APIs instead', env_var='NO_BITCOIND')
     # ethereum arguments
+    p.add_argument('--nonce', default=0, type=int,
+                   help='sets nonce of ETH transaction. useful if you run your own transaction management system.', env_var='NONCE')
+    p.add_argument('--max_priority_fee_per_gas', default=0, type=int,
+                   help='decide the priority fee per gas spent for EIP-1559-compliant transactions (in wei, the smallest ETH unit)', env_var='MAX_PRIORITY_FEE_PER_GAS')
     p.add_argument('--gas_price', default=20000000000, type=int,
-                   help='decide the price per gas spent (in wei (smallest ETH unit))', env_var='GAS_PRICE')
+                   help='decide the price per gas spent. sets max_fee_per_gas for EIP-1559-compliant transactions.', env_var='GAS_PRICE')
     p.add_argument('--gas_limit', default=25000, type=int,
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient', env_var='GAS_LIMIT')
     p.add_argument('--etherscan_api_token', default=None, type=str,
