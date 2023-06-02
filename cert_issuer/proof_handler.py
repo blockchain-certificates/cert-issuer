@@ -1,4 +1,4 @@
-from cert_issuer.chained_proof_2023 import ChainedProof2023
+from cert_issuer.chained_proof_2021 import ChainedProof2021
 from cert_schema import ContextUrls
 from cert_issuer.utils import array_intersect
 
@@ -12,7 +12,6 @@ class ProofHandler:
                 # convert proof to list
                 initial_proof = certificate_json['proof']
                 certificate_json['proof'] = [initial_proof]
-
             if self.is_multiple_proof_config_chained(app_config):
                 self.add_chained_proof(certificate_json, merkle_proof)
             else:
@@ -28,7 +27,8 @@ class ProofHandler:
         return app_config.multiple_proofs == 'chained'
 
     def add_chained_proof(self, certificate_json, merkle_proof):
-        certificate_json['proof'].append(ChainedProof2023(certificate_json['proof'], merkle_proof).to_json_object())
+        previous_proof = certificate_json['proof'][-1]
+        certificate_json['proof'].append(ChainedProof2021(previous_proof, merkle_proof).to_json_object())
         self.update_context_for_chained_proof(certificate_json)
 
     def update_context_for_chained_proof(self, certificate_json):

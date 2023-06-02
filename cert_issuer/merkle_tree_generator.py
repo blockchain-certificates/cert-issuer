@@ -44,13 +44,6 @@ class MerkleTreeGenerator(object):
         merkle_root = self.tree.get_merkle_root()
         return h2b(ensure_string(merkle_root))
 
-    def get_proofs(self):
-        node_count = len(self.tree.leaves)
-        proofs = []
-        for index in range(0, node_count):
-            proofs.append(self.tree.get_proof(index))
-        return proofs
-
     def get_proof_generator(self, tx_id, verification_method, chain=Chain.bitcoin_mainnet):
         """
         Returns a generator (1-time iterator) of proofs in insertion order.
