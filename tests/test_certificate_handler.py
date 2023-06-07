@@ -189,7 +189,7 @@ class TestCertificateHandler(unittest.TestCase):
         assert file_call in call_strings
 
     def test_web_add_proof(self):
-        handler = CertificateWebV3Handler()
+        handler = CertificateWebV3Handler(None)
         proof = {'a': 'merkel'}
         chain = mock.Mock()
         certificate_json = {

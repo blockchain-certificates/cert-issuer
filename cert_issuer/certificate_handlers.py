@@ -11,6 +11,9 @@ from cert_issuer.signer import FinalizableSigner
 
 
 class CertificateV3Handler(CertificateHandler):
+    def __init__(self, app_config):
+        self.app_config = app_config
+
     def get_byte_array_to_issue(self, certificate_metadata):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
         return JSONLDHandler.normalize_to_utf8(certificate_json)
@@ -22,7 +25,7 @@ class CertificateV3Handler(CertificateHandler):
         :return:
         """
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof)
+        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof, self.app_config)
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
             out_file.write(json.dumps(certificate_json))
@@ -33,11 +36,14 @@ class CertificateV3Handler(CertificateHandler):
         return certificate_json
 
 class CertificateWebV3Handler(CertificateHandler):
+    def __init__(self, app_config):
+        self.app_config = app_config
+
     def get_byte_array_to_issue(self, certificate_json):
         return JSONLDHandler.normalize_to_utf8(certificate_json)
 
     def add_proof(self, certificate_json, merkle_proof):
-        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof)
+        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof, self.app_config)
         return certificate_json
 
 class CertificateBatchWebHandler(BatchHandler):

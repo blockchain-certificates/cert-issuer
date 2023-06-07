@@ -6,19 +6,30 @@ class ProofHandler:
     def __init__(self):
         self.contextUrls = ContextUrls()
 
-    def add_proof(self, certificate_json, merkle_proof):
+    def add_proof(self, certificate_json, merkle_proof, app_config=None):
         if 'proof' in certificate_json:
             if not isinstance(certificate_json['proof'], list):
                 # convert proof to list
                 initial_proof = certificate_json['proof']
                 certificate_json['proof'] = [initial_proof]
-            previous_proof = certificate_json['proof'][-1]
-            certificate_json['proof'].append(ChainedProof2021(previous_proof, merkle_proof).to_json_object())
-            self.update_context_for_chained_proof(certificate_json)
+            if self.is_multiple_proof_config_chained(app_config):
+                self.add_chained_proof(certificate_json, merkle_proof)
+            else:
+                certificate_json['proof'].append(merkle_proof)
         else:
             certificate_json['proof'] = merkle_proof
             self.update_context_for_single_proof(certificate_json)
         return certificate_json
+
+    def is_multiple_proof_config_chained(self, app_config):
+        if app_config is None:
+            return True
+        return app_config.multiple_proofs == 'chained'
+
+    def add_chained_proof(self, certificate_json, merkle_proof):
+        previous_proof = certificate_json['proof'][-1]
+        certificate_json['proof'].append(ChainedProof2021(previous_proof, merkle_proof).to_json_object())
+        self.update_context_for_chained_proof(certificate_json)
 
     def update_context_for_chained_proof(self, certificate_json):
         context = certificate_json['@context']
