@@ -1,6 +1,7 @@
 import logging
 
-from pycoin.serialize import b2h
+from web3 import Web3
+from eth_utils import to_hex, remove_0x_prefix
 
 from cert_issuer.errors import InsufficientFundsError
 from cert_issuer.blockchain_handlers.ethereum import tx_utils
@@ -55,7 +56,7 @@ class EthereumTransactionHandler(TransactionHandler):
             raise InsufficientFundsError(error_message)
 
     def issue_transaction(self, blockchain_bytes):
-        eth_data_field = b2h(blockchain_bytes)
+        eth_data_field = remove_0x_prefix(to_hex(blockchain_bytes))
         prepared_tx = self.create_transaction(blockchain_bytes)
         signed_tx = self.sign_transaction(prepared_tx)
         self.verify_transaction(signed_tx, eth_data_field)
