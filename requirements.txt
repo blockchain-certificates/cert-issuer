@@ -1,5 +1,5 @@
-cert-core>=2.1.10
-cert-schema>=3.0.0a9
+cert-core==2.1.10
+cert-schema==3.0.0a9
 merkletools==1.0.3
 configargparse==0.12.0
 glob2==0.6
@@ -10,4 +10,4 @@ pyld>=1.0.3
 pysha3>=1.0.2
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
-jsonschema<3.0.0
+jsonschema==4.18.4

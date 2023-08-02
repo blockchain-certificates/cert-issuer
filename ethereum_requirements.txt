@@ -1,2 +1,2 @@
-web3>=5.28.0
-eth-utils<2
+web3>=6.7.0
+eth-utils>=2
