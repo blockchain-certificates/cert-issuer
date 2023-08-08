@@ -1,14 +1,18 @@
 import logging
-
+from web3 import Web3
 from cert_issuer.errors import UnverifiedTransactionError
 
 
 def create_ethereum_trx(issuing_address, nonce, to_address, blockchain_bytes, gasprice, gaslimit):
     # the actual value transfer is 0 in the Ethereum implementation
-    from ethereum.transactions import Transaction
     value = 0
-    tx = Transaction(nonce=nonce, gasprice=gasprice, startgas=gaslimit, to=to_address, value=value,
-                     data=blockchain_bytes)
+    tx = dict(
+        nonce=nonce,
+        gasPrice=gasprice,
+        gas=gaslimit,
+        to=Web3.to_checksum_address(to_address),
+        value=value,
+        data=blockchain_bytes)
     return tx
 
 
