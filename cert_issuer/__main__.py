@@ -5,7 +5,7 @@ import sys
 
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-if __package__ is None and not hasattr(sys, 'frozen'):
+if (__package__ is None or __package__ == '') and not hasattr(sys, 'frozen'):
     path = os.path.realpath(os.path.abspath(__file__))
     sys.path.insert(0, os.path.dirname(os.path.dirname(path)))
 

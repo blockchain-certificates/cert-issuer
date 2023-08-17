@@ -130,7 +130,7 @@ class EthereumRPCProvider(object):
 
     def broadcast_tx(self, tx):
         logging.info('Broadcasting transaction with EthereumRPCProvider')
-        response = self.w3.eth.sendRawTransaction("0x" + tx).hex()
+        response = self.w3.eth.send_raw_transaction("0x" + tx).hex()
         return response
 
     def get_balance(self, address):
@@ -138,7 +138,7 @@ class EthereumRPCProvider(object):
         Returns the balance in Wei.
         """
         logging.info('Getting balance with EthereumRPCProvider')
-        response = self.w3.eth.getBalance(account=address, block_identifier="latest")
+        response = self.w3.eth.get_balance(account=address, block_identifier="latest")
         return response
 
     def get_address_nonce(self, address):
@@ -147,7 +147,7 @@ class EthereumRPCProvider(object):
         Necessary for the transaction creation.
         """
         logging.info('Fetching nonce with EthereumRPCProvider')
-        response = self.w3.eth.getTransactionCount(address, "pending")
+        response = self.w3.eth.get_transaction_count(address, "pending")
         return response
 
 
