@@ -80,7 +80,7 @@ class EthereumTransactionHandler(TransactionHandler):
     def sign_transaction(self, prepared_tx):
         # stubbed from BitcoinTransactionHandler
         with FinalizableSigner(self.secret_manager) as signer:
-            signed_tx = signer.sign_transaction(prepared_tx)
+            signed_tx = remove_0x_prefix(signer.sign_transaction(prepared_tx))
 
         logging.info('signed Ethereum trx = %s', signed_tx)
         return signed_tx
