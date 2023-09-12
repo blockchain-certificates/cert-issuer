@@ -1,7 +1,7 @@
 import hashlib
 
 from cert_core import Chain
-from merkletools import MerkleTools
+from blockcerts_merkletools import MerkleTools
 from pycoin.serialize import h2b
 
 

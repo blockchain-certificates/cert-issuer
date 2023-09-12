@@ -60,12 +60,12 @@ class TestConnectors(unittest.TestCase):
         SelectParams('testnet')
         bc = BitcoindConnector('testnet')
         spendables = bc.spendables_for_address('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
-        self.assertEquals(len(spendables), 3)
-        self.assertEquals(b2h(spendables[0].tx_hash),
+        self.assertEqual(len(spendables), 3)
+        self.assertEqual(b2h(spendables[0].tx_hash),
                           '08f6528ac70c828e1633babc8f0d49ecb11649fd7451f76923821a0dbc81eb34')
-        self.assertEquals(spendables[0].coin_value, 49000000)
-        self.assertEquals(spendables[1].coin_value, 2750)
-        self.assertEquals(spendables[2].coin_value, 2750)
+        self.assertEqual(spendables[0].coin_value, 49000000)
+        self.assertEqual(spendables[1].coin_value, 2750)
+        self.assertEqual(spendables[2].coin_value, 2750)
 
         # TODO: this test isn't calling the bitcoin RPC proxy because of the changed configuration. This will most likely
         # need to be different in the open source. Fix this test and connectors.
@@ -73,7 +73,7 @@ class TestConnectors(unittest.TestCase):
         #    bitcoin.SelectParams('testnet')
         #    connector = ServiceProviderConnector('XTN', 'na')
         #    balance = connector.get_balance('mz7poFND7hVGRtPWjiZizcCnjf6wEDWjjT')
-        #    self.assertEquals(balance, 49005500)
+        #    self.assertEqual(balance, 49005500)
 
 
 if __name__ == '__main__':
