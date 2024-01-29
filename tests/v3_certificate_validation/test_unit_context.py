@@ -47,6 +47,17 @@ class UnitValidationV3 (unittest.TestCase):
 
         assert True
 
+    def test_validate_context_valid_v2_w3idcanon (self):
+        candidate_context_url = ['https://www.w3.org/ns/credentials/v2', 'https://w3id.org/blockcerts/v3']
+        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
+        try:
+            validate_context(candidate_context_url, candidate_type)
+        except:
+            assert False
+            return
+
+        assert True
+
     def test_validate_context_valid_blockcerts (self):
         candidate_context_url = ['https://www.w3.org/2018/credentials/v1', 'https://www.blockcerts.org/schema/3.0/context.json']
         candidate_type = ['VerifiableCredential', 'BlockcertsCredential']

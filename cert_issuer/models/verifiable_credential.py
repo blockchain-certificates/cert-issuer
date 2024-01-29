@@ -33,12 +33,12 @@ def validate_type (certificate_type):
 
 def validate_context (context, type):
     ContextUrlsInstance = ContextUrls()
-    vc_context_url = ContextUrlsInstance.verifiable_credential()
+    vc_context_url = [ContextUrlsInstance.verifiable_credential_v1(), ContextUrlsInstance.verifiable_credential_v2()]
     blockcerts_valid_context_url = ContextUrlsInstance.v3_all()
 
     if not isinstance(context, list):
         raise ValueError('`@context` property must be an array')
-    if context[0] != vc_context_url:
+    if context[0] not in vc_context_url:
         raise ValueError('First @context declared must be {}, was given {}'.format(vc_context_url, context[0]))
     if len(type) > 1 and len(context) == 1:
         raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
