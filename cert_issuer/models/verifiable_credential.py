@@ -40,6 +40,8 @@ def validate_context (context, type):
         raise ValueError('`@context` property must be an array')
     if context[0] not in vc_context_url:
         raise ValueError('First @context declared must be {}, was given {}'.format(vc_context_url, context[0]))
+    if ContextUrlsInstance.verifiable_credential_v1() in context and ContextUrlsInstance.verifiable_credential_v2() in context:
+        raise ValueError('Cannot have both v1 and v2 Verifiable Credentials contexts defined in the context array');
     if len(type) > 1 and len(context) == 1:
         raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
     if context[-1] not in blockcerts_valid_context_url:
