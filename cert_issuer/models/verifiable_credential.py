@@ -107,6 +107,11 @@ def validate_valid_until_date (certificate_valid_until_date):
     validate_date_RFC3339_string_format(certificate_valid_until_date, 'validUntil')
     pass
 
+def validate_date_set_after_other_date(second_date, first_date, second_date_key, first_date_key):
+    if not second_date > first_date:
+        raise ValueError('`{}` property must be a date set after `{}`'.format(second_date_key, first_date_key))
+    pass
+
 def validate_credential_status (certificate_credential_status):
     if not isinstance(certificate_credential_status, list):
         certificate_credential_status = [certificate_credential_status]
@@ -151,14 +156,21 @@ def verify_credential(certificate_metadata):
         except ValueError as err:
             raise ValueError(err)
 
-        try:
-            # if undefined will throw KeyError
-            validate_expiration_date(certificate_metadata['expirationDate'])
-        except KeyError:
-            # optional property
-            pass
-        except ValueError as err:
-            raise ValueError(err)
+        if 'expirationDate' in certificate_metadata:
+            try:
+                # if undefined will throw KeyError
+                validate_expiration_date(certificate_metadata['expirationDate'])
+                validate_date_set_after_other_date(
+                    certificate_metadata['expirationDate'],
+                    certificate_metadata['issuanceDate'],
+                    'expirationDate',
+                    'issuanceDate'
+                )
+            except KeyError:
+                # optional property
+                pass
+            except ValueError as err:
+                raise ValueError(err)
 
     if is_V2_verifiable_credential(certificate_metadata['@context']):
         try:
@@ -170,14 +182,22 @@ def verify_credential(certificate_metadata):
         except ValueError as err:
             raise ValueError(err)
 
-        try:
-            # if undefined will throw KeyError
-            validate_valid_until_date(certificate_metadata['validUntil'])
-        except KeyError:
-            # optional property
-            pass
-        except ValueError as err:
-            raise ValueError(err)
+        if 'validUntil' in certificate_metadata:
+            try:
+                # if undefined will throw KeyError
+                validate_valid_until_date(certificate_metadata['validUntil'])
+                if 'validFrom' in certificate_metadata:
+                    validate_date_set_after_other_date(
+                        certificate_metadata['validUntil'],
+                        certificate_metadata['validFrom'],
+                        'validUntil',
+                        'validFrom'
+                    )
+            except KeyError:
+                # optional property
+                pass
+            except ValueError as err:
+                raise ValueError(err)
 
     try:
         # if undefined will throw KeyError

@@ -60,6 +60,25 @@ class TestIssuanceBatchValidation (unittest.TestCase):
 
         assert False
 
+    def test_verify_valid_until_before_validFrom_invalid (self):
+        candidate = copy.deepcopy(credential_example)
+        candidate['validUntil'] = '2024-01-01T19:33:24Z'
+        handler = CertificateBatchHandler(
+            secret_manager=mock.Mock(),
+            certificate_handler=MockCertificateV3Handler(candidate),
+            merkle_tree=mock.Mock(),
+            config=mock.Mock()
+        )
+        handler.certificates_to_issue = {'metadata': mock.Mock()}
+
+        try:
+            handler.prepare_batch()
+        except Exception as e:
+            self.assertEqual(str(e), '`validUntil` property must be a date set after `validFrom`')
+            return
+
+        assert False
+
 class MockCertificateV3Handler(CertificateV3Handler):
     def __init__(self, test_certificate):
         self.test_certificate = test_certificate

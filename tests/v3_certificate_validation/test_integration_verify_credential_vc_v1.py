@@ -16,7 +16,7 @@ credential_example = {
      "BlockcertsCredential"
    ],
    "issuer": "https://raw.githubusercontent.com/AnthonyRonning/https-github.com-labnol-files/master/issuer-eth.json",
-   "issuanceDate": "2010-01-01T19:33:24Z",
+   "issuanceDate": "2024-01-01T19:33:24Z",
    "credentialSubject": {
      "id": "did:key:z6Mkq3L1jEDDZ5R7eT523FMLxC4k6MCpzqD7ff1CrkWpoJwM",
      "alumniOf": {
@@ -136,6 +136,25 @@ class TestIssuanceBatchValidation (unittest.TestCase):
             handler.prepare_batch()
         except Exception as e:
             self.assertEqual(str(e), '`expirationDate` property must be a valid RFC3339 string. Value received: `20200909`')
+            return
+
+        assert False
+
+    def test_verify_expiration_date_before_issuance_date_invalid (self):
+        candidate = copy.deepcopy(credential_example)
+        candidate['expirationDate'] = '2023-01-01T19:33:24Z'
+        handler = CertificateBatchHandler(
+            secret_manager=mock.Mock(),
+            certificate_handler=MockCertificateV3Handler(candidate),
+            merkle_tree=mock.Mock(),
+            config=mock.Mock()
+        )
+        handler.certificates_to_issue = {'metadata': mock.Mock()}
+
+        try:
+            handler.prepare_batch()
+        except Exception as e:
+            self.assertEqual(str(e), '`expirationDate` property must be a date set after `issuanceDate`')
             return
 
         assert False
