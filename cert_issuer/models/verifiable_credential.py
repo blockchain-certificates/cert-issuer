@@ -16,6 +16,15 @@ def is_valid_url (url):
        or parsed_url.netloc.__contains__(' '))
        and url.__contains__(':'))
 
+def is_V1_verifiable_credential (context):
+    ContextUrlsInstance = ContextUrls()
+    return ContextUrlsInstance.verifiable_credential_v1() in context
+
+def is_V2_verifiable_credential (context):
+    ContextUrlsInstance = ContextUrls()
+    return ContextUrlsInstance.verifiable_credential_v2() in context
+
+
 def validate_url (url):
     if not is_valid_url (url):
         raise ValueError('Invalid URL: {}'.format(url))
@@ -39,9 +48,9 @@ def validate_context (context, type):
     if not isinstance(context, list):
         raise ValueError('`@context` property must be an array')
     if context[0] not in vc_context_url:
-        raise ValueError('First @context declared must be {}, was given {}'.format(vc_context_url, context[0]))
-    if ContextUrlsInstance.verifiable_credential_v1() in context and ContextUrlsInstance.verifiable_credential_v2() in context:
-        raise ValueError('Cannot have both v1 and v2 Verifiable Credentials contexts defined in the context array');
+        raise ValueError('First @context declared must be one of {}, was given {}'.format(vc_context_url, context[0]))
+    if is_V1_verifiable_credential(context) and is_V2_verifiable_credential(context):
+        raise ValueError('Cannot have both v1 and v2 Verifiable Credentials contexts defined in the context array')
     if len(type) > 1 and len(context) == 1:
         raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
     if context[-1] not in blockcerts_valid_context_url:
@@ -90,6 +99,14 @@ def validate_expiration_date (certificate_expiration_date):
     validate_date_RFC3339_string_format(certificate_expiration_date, 'expirationDate')
     pass
 
+def validate_valid_from_date (certificate_valid_from_date):
+    validate_date_RFC3339_string_format(certificate_valid_from_date, 'validFrom')
+    pass
+
+def validate_valid_until_date (certificate_valid_until_date):
+    validate_date_RFC3339_string_format(certificate_valid_until_date, 'validUntil')
+    pass
+
 def validate_credential_status (certificate_credential_status):
     if not isinstance(certificate_credential_status, list):
         certificate_credential_status = [certificate_credential_status]
@@ -125,22 +142,42 @@ def verify_credential(certificate_metadata):
     except ValueError as err:
         raise ValueError(err)
 
-    try:
-        # if undefined will throw KeyError
-        validate_issuance_date(certificate_metadata['issuanceDate'])
-    except KeyError:
-        raise ValueError('`issuanceDate` property must be defined')
-    except ValueError as err:
-        raise ValueError(err)
+    if is_V1_verifiable_credential(certificate_metadata['@context']):
+        try:
+            # if undefined will throw KeyError
+            validate_issuance_date(certificate_metadata['issuanceDate'])
+        except KeyError:
+            raise ValueError('`issuanceDate` property must be defined')
+        except ValueError as err:
+            raise ValueError(err)
 
-    try:
-        # if undefined will throw KeyError
-        validate_expiration_date(certificate_metadata['expirationDate'])
-    except KeyError:
-        # optional property
-        pass
-    except ValueError as err:
-        raise ValueError(err)
+        try:
+            # if undefined will throw KeyError
+            validate_expiration_date(certificate_metadata['expirationDate'])
+        except KeyError:
+            # optional property
+            pass
+        except ValueError as err:
+            raise ValueError(err)
+
+    if is_V2_verifiable_credential(certificate_metadata['@context']):
+        try:
+            # if undefined will throw KeyError
+            validate_valid_from_date(certificate_metadata['validFrom'])
+        except KeyError:
+            # optional property
+            pass
+        except ValueError as err:
+            raise ValueError(err)
+
+        try:
+            # if undefined will throw KeyError
+            validate_valid_until_date(certificate_metadata['validUntil'])
+        except KeyError:
+            # optional property
+            pass
+        except ValueError as err:
+            raise ValueError(err)
 
     try:
         # if undefined will throw KeyError

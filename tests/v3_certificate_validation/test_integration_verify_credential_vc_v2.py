@@ -1,12 +1,12 @@
 import unittest
 import mock
+import copy
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler
 
 credential_example = {
    "@context": [
-     "https://www.w3.org/2018/credentials/v1",
-     "https://www.w3.org/2018/credentials/examples/v1",
+     "https://www.w3.org/ns/credentials/v2",
      "https://www.blockcerts.org/schema/3.0/context.json"
    ],
    "id": "urn:uuid:bbba8553-8ec1-445f-82c9-a57251dd731c",
@@ -15,21 +15,19 @@ credential_example = {
      "BlockcertsCredential"
    ],
    "issuer": "https://raw.githubusercontent.com/AnthonyRonning/https-github.com-labnol-files/master/issuer-eth.json",
-   "issuanceDate": "2010-01-01T19:33:24Z",
-   "metadata": "{\"schema\":{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"displayOrder\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"certificate\":{\"order\":[],\"type\":\"object\",\"properties\":{\"issuingInstitution\":{\"title\":\"Issuing Institution\",\"type\":\"string\",\"default\":\"Learning Machine Technologies, Inc.\"}}},\"recipient\":{}}},\"certificate\":{\"issuingInstitution\":\"Learning Machine Technologies, Inc.\"},\"recipient\":{},\"displayOrder\":{\"certificate.issuingInstitution\":1}}",
+   "validFrom": "2024-01-29T19:33:24Z",
    "credentialSubject": {
      "id": "did:key:z6Mkq3L1jEDDZ5R7eT523FMLxC4k6MCpzqD7ff1CrkWpoJwM",
-     "alumniOf": {
-       "id": "did:example:c276e12ec21ebfeb1f712ebc6f1"
-     }
    }
 }
 
-class TestIntegrationCredentialMetadata (unittest.TestCase):
-    def test_verify_metadata_invalid (self):
+class TestIssuanceBatchValidation (unittest.TestCase):
+    def test_verify_valid_from (self):
+        candidate = copy.deepcopy(credential_example)
+        candidate['validFrom'] = '20240130'
         handler = CertificateBatchHandler(
             secret_manager=mock.Mock(),
-            certificate_handler=MockCertificateV3Handler(credential_example),
+            certificate_handler=MockCertificateV3Handler(candidate),
             merkle_tree=mock.Mock(),
             config=mock.Mock()
         )
@@ -38,7 +36,26 @@ class TestIntegrationCredentialMetadata (unittest.TestCase):
         try:
             handler.prepare_batch()
         except Exception as e:
-            self.assertEqual(str(e), 'Certificate.metadata object does not match its provided schema')
+            self.assertEqual(str(e), '`validFrom` property must be a valid RFC3339 string. Value received: `20240130`')
+            return
+
+        assert False
+
+    def test_verify_valid_until (self):
+        candidate = copy.deepcopy(credential_example)
+        candidate['validUntil'] = '20200909'
+        handler = CertificateBatchHandler(
+            secret_manager=mock.Mock(),
+            certificate_handler=MockCertificateV3Handler(candidate),
+            merkle_tree=mock.Mock(),
+            config=mock.Mock()
+        )
+        handler.certificates_to_issue = {'metadata': mock.Mock()}
+
+        try:
+            handler.prepare_batch()
+        except Exception as e:
+            self.assertEqual(str(e), '`validUntil` property must be a valid RFC3339 string. Value received: `20200909`')
             return
 
         assert False

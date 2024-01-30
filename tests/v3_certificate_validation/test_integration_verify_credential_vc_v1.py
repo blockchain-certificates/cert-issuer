@@ -3,7 +3,6 @@ import mock
 import copy
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler
-from cert_issuer.models import CertificateHandler
 
 credential_example = {
    "@context": [
