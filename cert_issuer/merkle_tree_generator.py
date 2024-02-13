@@ -7,7 +7,6 @@ from merkletools import MerkleTools
 from pycoin.serialize import h2b
 from lds_merkle_proof_2019.merkle_proof_2019 import MerkleProof2019
 from cert_issuer import helpers
-from cert_issuer.proof_suites.merkle_proof_2019 import MerkleProof2019Suite
 
 
 def hash_byte_array(data):
@@ -45,7 +44,7 @@ class MerkleTreeGenerator(object):
         merkle_root = self.tree.get_merkle_root()
         return h2b(ensure_string(merkle_root))
 
-    def get_proof_generator(self, tx_id, verification_method, chain=Chain.bitcoin_mainnet):
+    def get_proof_generator(self, tx_id, chain=Chain.bitcoin_mainnet):
         """
         Returns a generator (1-time iterator) of proofs in insertion order.
 
@@ -76,8 +75,7 @@ class MerkleTreeGenerator(object):
             logging.info('merkle_json: %s', str(merkle_json))
 
             proof_value = mp2019.encode(merkle_json)
-            merkle_proof = MerkleProof2019Suite(proof_value, verification_method)
-            yield merkle_proof.to_json_object()
+            yield proof_value
 
 
 def to_source_id(txid, chain):

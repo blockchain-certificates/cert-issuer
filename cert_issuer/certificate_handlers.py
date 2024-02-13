@@ -18,14 +18,14 @@ class CertificateV3Handler(CertificateHandler):
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
         return JSONLDHandler.normalize_to_utf8(certificate_json)
 
-    def add_proof(self, certificate_metadata, merkle_proof):
+    def add_proof(self, certificate_metadata, merkle_proof_value):
         """
         :param certificate_metadata:
         :param merkle_proof:
         :return:
         """
         certificate_json = self._get_certificate_to_issue(certificate_metadata)
-        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof, self.app_config)
+        certificate_json = ProofHandler().add_merkle_proof_2019(certificate_json, merkle_proof_value, self.app_config)
 
         with open(certificate_metadata.blockchain_cert_file_name, 'w') as out_file:
             out_file.write(json.dumps(certificate_json))
@@ -42,17 +42,17 @@ class CertificateWebV3Handler(CertificateHandler):
     def get_byte_array_to_issue(self, certificate_json):
         return JSONLDHandler.normalize_to_utf8(certificate_json)
 
-    def add_proof(self, certificate_json, merkle_proof):
-        certificate_json = ProofHandler().add_proof(certificate_json, merkle_proof, self.app_config)
+    def add_proof(self, certificate_json, merkle_proof_value):
+        certificate_json = ProofHandler().add_merkle_proof_2019(certificate_json, merkle_proof_value, self.app_config)
         return certificate_json
 
 class CertificateBatchWebHandler(BatchHandler):
     def finish_batch(self, tx_id, chain):
         self.proof = []
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.verification_method, chain)
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
         for metadata in self.certificates_to_issue:
-            proof = next(proof_generator)
-            self.proof.append(self.certificate_handler.add_proof(metadata, proof))
+            proof_value = next(proof_generator)
+            self.proof.append(self.certificate_handler.add_proof(metadata, proof_value))
 
     def get_certificate_generator(self):
         """
@@ -121,10 +121,10 @@ class CertificateBatchHandler(BatchHandler):
             yield data_to_issue
 
     def finish_batch(self, tx_id, chain):
-        proof_generator = self.merkle_tree.get_proof_generator(tx_id, self.config.verification_method, chain)
+        proof_generator = self.merkle_tree.get_proof_generator(tx_id, chain)
         for _, metadata in self.certificates_to_issue.items():
-            proof = next(proof_generator)
-            self.certificate_handler.add_proof(metadata, proof)
+            proof_value = next(proof_generator)
+            self.certificate_handler.add_proof(metadata, proof_value)
 
     def _process_directories(self, config):
         unsigned_certs_dir = config.unsigned_certificates_dir

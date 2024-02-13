@@ -14,15 +14,24 @@ from mock import ANY
 class TestCertificateHandler(unittest.TestCase):
     def _proof_helper(self):
         proof = {
-                    'type': 'DataIntegrityProof',
-                    'cryptosuite': 'merkle-proof-2019',
-                    'id': ANY,
-                    'created': ANY,
-                    'proofValue': ANY,
-                    'proofPurpose': 'assertionMethod',
-                    'verificationMethod': ANY
-                }
+            'type': 'DataIntegrityProof',
+            'cryptosuite': 'merkle-proof-2019',
+            'id': ANY,
+            'created': ANY,
+            'proofValue': self._proof_value_helper().decode('utf8'),
+            'proofPurpose': 'assertionMethod',
+            'verificationMethod': ANY
+        }
         return proof
+    def _proof_value_helper(self):
+        return b'z4zvrPUULnHmaio2juYMLWMw5zzq3fyi21CkE9TRNRBALhTDyg63rd1btnpRtCNBieaX1BcVxi4yS62Zj2fthi4N9frUgCZBq6EwAVv7cAFgZcHPKxRvEuKPbg3qnxByUE1aB49QvnYYi7qYJWPBbB5s3xtUn4EBE1SMwcEe6yxCgp6GJ16FiYGazEtZKXGdws8s8uWuQjxrqJBDEBdzLstyXspD9Uw4FuwfuDZAr8jkwAvTPe9uCcANS5PG7a1hATTxEhgNNYabHhwSfyVGG9v1eKGvmM7dQhcGyJafoipfFpwrc7Zw9rgCQsDHVSQEaR8rRWUFGbRXQecHTZ1TWuqxR95oiyo8U4U8E7md7UGjhTSeC3rNQMP9fYjpNc9aAw781rizXeVsvhS4e47'
+
+    def _mock_app_config(self):
+        class Mock_App_Config:
+            def __init__(self):
+                self.verification_method = 'did:example:1234'
+
+        return Mock_App_Config()
 
     def _helper_mock_call(self, *args):
         helper_mock = mock.MagicMock()
@@ -95,14 +104,15 @@ class TestCertificateHandler(unittest.TestCase):
         result = certificate_batch_handler.prepare_batch()
 
         chain = Chain.bitcoin_mainnet
-        proof = self._proof_helper()
+        proof_value = self._proof_value_helper()
 
         with patch.object(DummyCertificateHandler, 'add_proof', return_value= {"cert": "cert"} ) as mock_method:
             result = certificate_batch_handler.finish_batch(
                         '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain
                         )
         self.assertEqual(certificate_batch_handler.proof, [{'cert': 'cert'}, {'cert': 'cert'}, {'cert': 'cert'}])
-        mock_method.assert_any_call(ANY, proof)
+
+        mock_method.assert_any_call(ANY, proof_value)
 
     def test_batch_handler_finish_batch(self):
         certificate_batch_handler, certificates_to_issue = self._get_certificate_batch_handler()
@@ -111,7 +121,7 @@ class TestCertificateHandler(unittest.TestCase):
         result = certificate_batch_handler.prepare_batch()
 
         chain = Chain.bitcoin_mainnet
-        proof = self._proof_helper()
+        proof_value = self._proof_value_helper()
 
         config = mock.Mock()
         config.issuing_address = "http://example.com"
@@ -121,7 +131,7 @@ class TestCertificateHandler(unittest.TestCase):
                     '5604f0c442922b5db54b69f8f363b3eac67835d36a006b98e8727f83b6a830c0', chain
                     )
 
-        mock_method.assert_any_call(ANY, proof)
+        mock_method.assert_any_call(ANY, proof_value)
 
     def test_pre_batch_actions(self):
         self.directory_count = 1
@@ -191,8 +201,8 @@ class TestCertificateHandler(unittest.TestCase):
         assert file_call in call_strings
 
     def test_web_add_proof(self):
-        handler = CertificateWebV3Handler(None)
-        proof = {'a': 'merkel'}
+        handler = CertificateWebV3Handler(self._mock_app_config())
+        proof_value = self._proof_value_helper()
         certificate_json = {
             '@context': [
                 'https://www.w3.org/2018/credentials/v1'
@@ -200,13 +210,13 @@ class TestCertificateHandler(unittest.TestCase):
             'kek': 'kek'
         }
 
-        return_cert = handler.add_proof(certificate_json, proof)
+        return_cert = handler.add_proof(certificate_json, proof_value)
         self.assertEqual(return_cert, {
             '@context': [
                 'https://www.w3.org/2018/credentials/v1'
             ],
             'kek': 'kek',
-            'proof': {'a': 'merkel'}
+            'proof': self._proof_helper()
         })
 
 class DummyCertificateHandler(CertificateHandler):

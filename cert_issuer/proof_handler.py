@@ -1,4 +1,5 @@
 from cert_issuer.proof_suites.chained_proof_2021 import ChainedProof2021
+from cert_issuer.proof_suites.merkle_proof_2019 import MerkleProof2019Suite
 from cert_schema import ContextUrls
 from cert_issuer.utils import array_intersect
 
@@ -19,6 +20,11 @@ class ProofHandler:
         else:
             certificate_json['proof'] = merkle_proof
             self.update_context_for_single_proof(certificate_json)
+        return certificate_json
+
+    def add_merkle_proof_2019(self, certificate_json, proof_value, app_config=None):
+        merkle_proof = MerkleProof2019Suite(proof_value, app_config.verification_method)
+        certificate_json = self.add_proof(certificate_json, merkle_proof.to_json_object(), app_config)
         return certificate_json
 
     def is_multiple_proof_config_chained(self, app_config):
