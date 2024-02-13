@@ -6,6 +6,7 @@ from pycoin.serialize import b2h
 from cert_issuer.merkle_tree_generator import MerkleTreeGenerator
 from cert_issuer import helpers
 from lds_merkle_proof_2019.merkle_proof_2019 import MerkleProof2019
+from mock import ANY
 
 
 def get_test_data_generator():
@@ -63,6 +64,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         p1_expected = {
                 "type": "DataIntegrityProof",
                 "cryptosuite": "merkle-proof-2019",
+                "id": ANY,
                 "created": p1['created'],
                 "proofValue": proof_value.decode('utf8'),
                 "proofPurpose": "assertionMethod",
@@ -85,6 +87,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         p3_expected = {
             "type": "DataIntegrityProof",
             "cryptosuite": "merkle-proof-2019",
+            "id": ANY,
             "created": p3['created'],
             "proofValue": proof_value.decode('utf8'),
             "proofPurpose": "assertionMethod",

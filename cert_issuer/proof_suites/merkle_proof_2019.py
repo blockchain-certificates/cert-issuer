@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 DATA_INTEGRITY_PROOF_TYPE = 'DataIntegrityProof'
@@ -12,6 +13,7 @@ class MerkleProof2019Suite:
     proofValue = ''
 
     def __init__(self, proof_value, verificationMethod):
+        self.id = 'urn:uuid:' + str(uuid.uuid4())
         self.type = DATA_INTEGRITY_PROOF_TYPE
         self.cryptosuite = MERKLE_PROOF_2019_TYPE
         self.proofPurpose = 'assertionMethod'

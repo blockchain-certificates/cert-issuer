@@ -16,6 +16,7 @@ class TestCertificateHandler(unittest.TestCase):
         proof = {
                     'type': 'DataIntegrityProof',
                     'cryptosuite': 'merkle-proof-2019',
+                    'id': ANY,
                     'created': ANY,
                     'proofValue': ANY,
                     'proofPurpose': 'assertionMethod',
