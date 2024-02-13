@@ -61,7 +61,8 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         proof_value = mp2019.encode(p1_json_proof)
 
         p1_expected = {
-                "type": "MerkleProof2019",
+                "type": "DataIntegrityProof",
+                "cryptosuite": "merkle-proof-2019",
                 "created": p1['created'],
                 "proofValue": proof_value.decode('utf8'),
                 "proofPurpose": "assertionMethod",
@@ -82,7 +83,8 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         proof_value = mp2019.encode(p3_json_proof)
 
         p3_expected = {
-            "type": "MerkleProof2019",
+            "type": "DataIntegrityProof",
+            "cryptosuite": "merkle-proof-2019",
             "created": p3['created'],
             "proofValue": proof_value.decode('utf8'),
             "proofPurpose": "assertionMethod",

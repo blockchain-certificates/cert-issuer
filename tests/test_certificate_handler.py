@@ -12,9 +12,10 @@ from cert_core import Chain
 from mock import ANY
 
 class TestCertificateHandler(unittest.TestCase):
-    def _proof_helper(self, chain):
+    def _proof_helper(self):
         proof = {
-                    'type': 'MerkleProof2019',
+                    'type': 'DataIntegrityProof',
+                    'cryptosuite': 'merkle-proof-2019',
                     'created': ANY,
                     'proofValue': ANY,
                     'proofPurpose': 'assertionMethod',
@@ -93,7 +94,7 @@ class TestCertificateHandler(unittest.TestCase):
         result = certificate_batch_handler.prepare_batch()
 
         chain = Chain.bitcoin_mainnet
-        proof = self._proof_helper(chain)
+        proof = self._proof_helper()
 
         with patch.object(DummyCertificateHandler, 'add_proof', return_value= {"cert": "cert"} ) as mock_method:
             result = certificate_batch_handler.finish_batch(
@@ -109,7 +110,7 @@ class TestCertificateHandler(unittest.TestCase):
         result = certificate_batch_handler.prepare_batch()
 
         chain = Chain.bitcoin_mainnet
-        proof = self._proof_helper(chain)
+        proof = self._proof_helper()
 
         config = mock.Mock()
         config.issuing_address = "http://example.com"
@@ -191,7 +192,6 @@ class TestCertificateHandler(unittest.TestCase):
     def test_web_add_proof(self):
         handler = CertificateWebV3Handler(None)
         proof = {'a': 'merkel'}
-        chain = mock.Mock()
         certificate_json = {
             '@context': [
                 'https://www.w3.org/2018/credentials/v1'

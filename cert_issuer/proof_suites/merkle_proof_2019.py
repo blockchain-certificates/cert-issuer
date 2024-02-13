@@ -1,8 +1,10 @@
 from datetime import datetime
 
-MERKLE_PROOF_2019_TYPE = 'MerkleProof2019'
+DATA_INTEGRITY_PROOF_TYPE = 'DataIntegrityProof'
+MERKLE_PROOF_2019_TYPE = 'merkle-proof-2019'
 class MerkleProof2019Suite:
     type = ''
+    cryptosuite = ''
     verificationMethod = ''
     created = ''
     proofPurpose = ''
@@ -10,7 +12,8 @@ class MerkleProof2019Suite:
     proofValue = ''
 
     def __init__(self, proof_value, verificationMethod):
-        self.type = MERKLE_PROOF_2019_TYPE
+        self.type = DATA_INTEGRITY_PROOF_TYPE
+        self.cryptosuite = MERKLE_PROOF_2019_TYPE
         self.proofPurpose = 'assertionMethod'
         self.created = self.get_creation_time()
         self.proofValue = proof_value.decode('utf-8')
