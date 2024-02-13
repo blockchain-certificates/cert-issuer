@@ -7,6 +7,7 @@ from merkletools import MerkleTools
 from pycoin.serialize import h2b
 from lds_merkle_proof_2019.merkle_proof_2019 import MerkleProof2019
 from cert_issuer import helpers
+from cert_issuer.proof_suites.merkle_proof_2019 import MerkleProof2019Suite
 
 
 def hash_byte_array(data):
@@ -75,14 +76,8 @@ class MerkleTreeGenerator(object):
             logging.info('merkle_json: %s', str(merkle_json))
 
             proof_value = mp2019.encode(merkle_json)
-            merkle_proof = {
-                "type": "MerkleProof2019",
-                "created": datetime.now().isoformat(),
-                "proofValue": proof_value.decode('utf8'),
-                "proofPurpose": "assertionMethod",
-                "verificationMethod": verification_method
-            }
-            yield merkle_proof
+            merkle_proof = MerkleProof2019Suite(proof_value, verification_method)
+            yield merkle_proof.to_json_object()
 
 
 def to_source_id(txid, chain):

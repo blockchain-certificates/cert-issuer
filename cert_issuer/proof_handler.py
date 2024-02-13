@@ -1,4 +1,4 @@
-from cert_issuer.chained_proof_2021 import ChainedProof2021
+from cert_issuer.proof_suites.chained_proof_2021 import ChainedProof2021
 from cert_schema import ContextUrls
 from cert_issuer.utils import array_intersect
 
