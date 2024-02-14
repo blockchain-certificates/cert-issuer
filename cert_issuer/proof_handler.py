@@ -1,4 +1,3 @@
-from cert_issuer.proof_suites.chained_proof_2021 import ChainedProof2021
 from cert_issuer.proof_suites.merkle_proof_2019 import MerkleProof2019Suite
 from cert_schema import ContextUrls
 from cert_issuer.utils import array_intersect
@@ -34,7 +33,8 @@ class ProofHandler:
 
     def add_chained_proof(self, certificate_json, merkle_proof):
         previous_proof = certificate_json['proof'][-1]
-        certificate_json['proof'].append(ChainedProof2021(previous_proof, merkle_proof).to_json_object())
+        merkle_proof['previousProof'] = previous_proof['id']
+        certificate_json['proof'].append(merkle_proof)
         self.update_context_for_chained_proof(certificate_json)
 
     def update_context_for_chained_proof(self, certificate_json):
