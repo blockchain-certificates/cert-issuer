@@ -1,12 +1,12 @@
 cert-core>=3.0.0
-cert-schema>=3.2.1
+cert-schema>=3.5.1
 merkletools==1.0.3
 configargparse==0.13.0
 glob2==0.6
 mock==2.0.0
 requests[security]>=2.18.4
 pycoin==0.80
-pyld==1.0.5
+pyld==2.0.3
 pysha3>=1.0.2
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
