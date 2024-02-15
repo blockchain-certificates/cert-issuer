@@ -28,7 +28,7 @@ class TestProofHandler(unittest.TestCase):
         output = self.handler.add_proof(fixture_certificate_json, fixture_proof)
         self.assertEqual(output['proof'], fixture_proof)
 
-    def test_single_signature_3_1_update_context_merkle_proof_2019(self):
+    def test_single_signature_3_1_update_context_data_integrity_proof(self):
         fixture_certificate_json = {
             '@context': [
                 'https://www.w3.org/2018/credentials/v1',
@@ -44,7 +44,7 @@ class TestProofHandler(unittest.TestCase):
             'verificationMethod': 'did:ion:EiA_Z6LQILbB2zj_eVrqfQ2xDm4HNqeJUw5Kj2Z7bFOOeQ#key-1'
         }
         output = self.handler.add_proof(fixture_certificate_json, fixture_proof)
-        self.assertIn(self.contextUrls.merkle_proof_2019(), output['@context'])
+        self.assertIn(self.contextUrls.data_integrity_proof_v2(), output['@context'])
 
     def test_multiple_non_chained_signature(self):
         fixture_initial_proof = {
@@ -172,7 +172,7 @@ class TestProofHandler(unittest.TestCase):
             }
         ])
 
-    def test_adds_merkle_proof_context(self):
+    def test_adds_date_integrity_proof_context(self):
         fixture_initial_proof = {
             'type': 'Ed25519Signature2020',
             'id': 'urn:uuid:1de8149b-fff1-4908-8d69-89b56358fd31',
@@ -200,9 +200,9 @@ class TestProofHandler(unittest.TestCase):
             'verificationMethod': 'did:example:ebfeb1f712ebc6f1c276e12ec21#assertion'
         }
         output = self.handler.add_proof(fixture_certificate_json, fixture_proof)
-        self.assertIn(self.contextUrls.merkle_proof_2019(), output['@context'])
+        self.assertIn(self.contextUrls.data_integrity_proof_v2(), output['@context'])
 
-    def test_adds_chained_proof_context(self):
+    def test_adds_data_integrity_proof_context(self):
         fixture_initial_proof = {
             'type': 'Ed25519Signature2020',
             'id': 'urn:uuid:1de8149b-fff1-4908-8d69-89b56358fd31',
@@ -230,7 +230,7 @@ class TestProofHandler(unittest.TestCase):
             'verificationMethod': 'did:example:ebfeb1f712ebc6f1c276e12ec21#assertion'
         }
         output = self.handler.add_proof(fixture_certificate_json, fixture_proof)
-        self.assertIn(self.contextUrls.chained_proof_2021(), output['@context'])
+        self.assertIn(self.contextUrls.data_integrity_proof_v2(), output['@context'])
 
     def test_updates_blockcerts_context_version(self):
         fixture_initial_proof = {

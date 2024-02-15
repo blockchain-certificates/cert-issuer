@@ -213,7 +213,8 @@ class TestCertificateHandler(unittest.TestCase):
         return_cert = handler.add_proof(certificate_json, proof_value)
         self.assertEqual(return_cert, {
             '@context': [
-                'https://www.w3.org/2018/credentials/v1'
+                'https://www.w3.org/2018/credentials/v1',
+                'https://w3id.org/security/data-integrity/v2'
             ],
             'kek': 'kek',
             'proof': self._proof_helper()

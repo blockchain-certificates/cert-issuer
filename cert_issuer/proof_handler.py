@@ -18,7 +18,7 @@ class ProofHandler:
                 certificate_json['proof'].append(merkle_proof)
         else:
             certificate_json['proof'] = merkle_proof
-            self.update_context_for_single_proof(certificate_json)
+        self.update_context_for_proof(certificate_json)
         return certificate_json
 
     def add_merkle_proof_2019(self, certificate_json, proof_value, app_config=None):
@@ -35,15 +35,12 @@ class ProofHandler:
         previous_proof = certificate_json['proof'][-1]
         merkle_proof['previousProof'] = previous_proof['id']
         certificate_json['proof'].append(merkle_proof)
-        self.update_context_for_chained_proof(certificate_json)
 
-    def update_context_for_chained_proof(self, certificate_json):
+    def update_context_for_proof(self, certificate_json):
         context = certificate_json['@context']
-        if self.contextUrls.merkle_proof_2019() not in context:
-            context.append(self.contextUrls.merkle_proof_2019())
 
-        if self.contextUrls.chained_proof_2021() not in context:
-            context.append(self.contextUrls.chained_proof_2021())
+        if self.contextUrls.data_integrity_proof_v2() not in context:
+            context.append(self.contextUrls.data_integrity_proof_v2())
 
         if array_intersect(self.contextUrls.v3_all(), context):
             for v3_context in self.contextUrls.v3_all():
@@ -51,9 +48,3 @@ class ProofHandler:
                     index = context.index(v3_context)
                     del context[index]
             context.append(self.contextUrls.v3_1_canonical())
-
-    def update_context_for_single_proof(self, certificate_json):
-        context = certificate_json['@context']
-        if array_intersect(self.contextUrls.v3_1_all(), context):
-            if self.contextUrls.merkle_proof_2019() not in context:
-                context.append(self.contextUrls.merkle_proof_2019())
