@@ -44,7 +44,7 @@ class MerkleTreeGenerator(object):
         merkle_root = self.tree.get_merkle_root()
         return h2b(ensure_string(merkle_root))
 
-    def get_proof_generator(self, tx_id, verification_method, chain=Chain.bitcoin_mainnet):
+    def get_proof_generator(self, tx_id, chain=Chain.bitcoin_mainnet):
         """
         Returns a generator (1-time iterator) of proofs in insertion order.
 
@@ -75,14 +75,7 @@ class MerkleTreeGenerator(object):
             logging.info('merkle_json: %s', str(merkle_json))
 
             proof_value = mp2019.encode(merkle_json)
-            merkle_proof = {
-                "type": "MerkleProof2019",
-                "created": datetime.now().isoformat(),
-                "proofValue": proof_value.decode('utf8'),
-                "proofPurpose": "assertionMethod",
-                "verificationMethod": verification_method
-            }
-            yield merkle_proof
+            yield proof_value
 
 
 def to_source_id(txid, chain):

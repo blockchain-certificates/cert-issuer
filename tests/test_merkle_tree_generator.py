@@ -41,7 +41,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         merkle_tree_generator.populate(get_test_data_generator())
         _ = merkle_tree_generator.get_blockchain_data()
         gen = merkle_tree_generator.get_proof_generator(
-            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', 'http://example.com', chain)
+            '8087c03e7b7bc9ca7b355de9d9d8165cc5c76307f337f0deb8a204d002c8e582', chain)
         p1 = next(gen)
         _ = next(gen)
         p3 = next(gen)
@@ -60,13 +60,7 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         mp2019 = MerkleProof2019()
         proof_value = mp2019.encode(p1_json_proof)
 
-        p1_expected = {
-                "type": "MerkleProof2019",
-                "created": p1['created'],
-                "proofValue": proof_value.decode('utf8'),
-                "proofPurpose": "assertionMethod",
-                "verificationMethod": "http://example.com"
-            }
+        p1_expected = proof_value
 
         p3_json_proof = {
             'path': [
@@ -81,16 +75,10 @@ class TestMerkleTreeGenerator(unittest.TestCase):
         mp2019 = MerkleProof2019()
         proof_value = mp2019.encode(p3_json_proof)
 
-        p3_expected = {
-            "type": "MerkleProof2019",
-            "created": p3['created'],
-            "proofValue": proof_value.decode('utf8'),
-            "proofPurpose": "assertionMethod",
-            "verificationMethod": "http://example.com"
-        }
+        p3_expected = proof_value
 
-        self.assertEqual(p1, p1_expected)
-        self.assertEqual(p3, p3_expected)
+        self.assertEqual(p1.decode('utf8'), p1_expected.decode('utf8'))
+        self.assertEqual(p3.decode('utf8'), p3_expected.decode('utf8'))
 
 
 if __name__ == '__main__':
