@@ -44,8 +44,10 @@ RUN apk add --update \
 ENTRYPOINT bitcoind -daemon && bash
 
 
+# Add file pk_issuer.txt with private key
 # python setup.py install --user
 # python setup.py experimental --blockchain=ethereum
 # python cert_issuer -c conf.ini
 # Generate test coins https://sepolia-faucet.pk910.de/#/mine/abc271d8-7428-4a60-b538-e15598496b2b
 # Check if the test credential has been pushed to the chain https://sepolia.etherscan.io/
+# Sample credential in the chain https://sepolia.etherscan.io/tx/0x8c49f98f822944d250e527cfdc0ad3a25945fd2f4d718c8a175d9abfc67b94ca
