@@ -25,6 +25,9 @@ RUN apk add --update \
         tar \
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && source $HOME/.cargo/env \
+    && rustup default stable \
     && pip3 install Cython \
     && pip3 install wheel \
     && mkdir -p /etc/cert-issuer/data/unsigned_certificates \
@@ -41,3 +44,6 @@ RUN apk add --update \
 ENTRYPOINT bitcoind -daemon && bash
 
 
+# python setup.py install --user
+# python setup.py experimental --blockchain=ethereum
+# python cert_issuer -c conf.ini
