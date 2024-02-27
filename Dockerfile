@@ -47,3 +47,4 @@ ENTRYPOINT bitcoind -daemon && bash
 # python setup.py install --user
 # python setup.py experimental --blockchain=ethereum
 # python cert_issuer -c conf.ini
+# Generate test coins https://sepolia-faucet.pk910.de/#/mine/abc271d8-7428-4a60-b538-e15598496b2b
