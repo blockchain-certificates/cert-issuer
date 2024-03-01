@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-DATA_INTEGRITY_PROOF_TYPE = 'DataIntegrityProof'
+DATA_INTEGRITY_PROOF_TYPE = 'MerkleProof2019'
 MERKLE_PROOF_2019_TYPE = 'merkle-proof-2019'
 class MerkleProof2019Suite:
     type = ''
