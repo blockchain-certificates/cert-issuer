@@ -1,7 +1,10 @@
 import re
 import logging
+import json
 from urllib.parse import urlparse
 from cert_schema import ContextUrls
+from urllib.request import urlretrieve
+from jsonschema import validate as jsonschema_validate
 
 # TODO: move the v3 checks to cert-schema
 def validate_RFC3339_date (date):
@@ -62,7 +65,16 @@ def validate_context (context, type):
 
     pass
 
-def validate_credential_subject (credential_subject):
+def validate_credential_subject (credential_subject, credential_schema):
+    if not isinstance(credential_schema, list):
+        credential_schema = [credential_schema]
+
+    for schema in credential_schema:
+        schema_url = schema['id']
+        local_filename, headers = urlretrieve(schema_url)
+        with open(local_filename) as f:
+            schema = json.load(f)
+            jsonschema_validate(credential_subject, schema)
     pass
 
 def validate_issuer (certificate_issuer):
@@ -132,10 +144,32 @@ def validate_credential_status (certificate_credential_status):
             raise ValueError('credentialStatus.type must be a string')
     pass
 
+def validate_credential_schema (certificate_credential_schema):
+    if not isinstance(certificate_credential_schema, list):
+        certificate_credential_schema = [certificate_credential_schema]
+
+    for schema in certificate_credential_schema:
+        try:
+            validate_url(schema['id'])
+        except KeyError:
+            raise ValueError('credentialSchema.id must be defined')
+        except ValueError:
+            raise ValueError('credentialSchema.id must be a valid URL')
+
+        try:
+            isinstance(schema['type'], str)
+            if (schema['type'] != 'JsonSchema'):
+                raise ValueError('Value of credentialSchema.type must be JsonSchema')
+        except KeyError:
+            raise ValueError('credentialSchema.type must be defined')
+        except:
+            raise ValueError('credentialSchema.type must be a string of value: JsonSchema', schema['id'])
+    pass
+
 def verify_credential(certificate_metadata):
     try:
         # if undefined will throw KeyError
-        validate_credential_subject(certificate_metadata['credentialSubject'])
+        credential_subject = certificate_metadata['credentialSubject']
     except:
         raise ValueError('`credentialSubject` property must be defined')
 
@@ -202,6 +236,17 @@ def verify_credential(certificate_metadata):
     try:
         # if undefined will throw KeyError
         validate_credential_status(certificate_metadata['credentialStatus'])
+    except KeyError:
+        # optional property
+        pass
+    except ValueError as err:
+        raise ValueError(err)
+
+    try:
+        # if undefined will throw KeyError
+        credential_schema = certificate_metadata['credentialSchema']
+        validate_credential_schema(credential_schema)
+        validate_credential_subject(credential_subject, credential_schema)
     except KeyError:
         # optional property
         pass
