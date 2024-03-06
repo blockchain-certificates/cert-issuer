@@ -6,6 +6,8 @@
 
 ### Chore
 
+* chore(SemanticRelease): specify where version is defined ([`3293630`](https://github.com/blockchain-certificates/cert-issuer/commit/3293630b2db2a88e124c74d87041fff59fd39c92))
+
 * chore(SemanticRelease): add build_command ([`dd266f1`](https://github.com/blockchain-certificates/cert-issuer/commit/dd266f16ed4290cdbe1cb6c84d1e9d5040685f0e))
 
 * chore(SemanticRelease): add semantic-release config ([`70c8114`](https://github.com/blockchain-certificates/cert-issuer/commit/70c81149ee2d4f30eb4102aa485ceaeda43e2fa4))
@@ -88,6 +90,10 @@ Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`18f78a6`](https://g
 * refactor(DataIntegrityProof): extract merkle proof 2019 to its own constructor ([`889440b`](https://github.com/blockchain-certificates/cert-issuer/commit/889440b7c2fc605861d46325da14401682db901b))
 
 ### Unknown
+
+* Merge pull request #273 from blockchain-certificates/chore/fix-semantic-release
+
+chore(SemanticRelease): specify where version is defined ([`837f5d6`](https://github.com/blockchain-certificates/cert-issuer/commit/837f5d6add2d484dc0302ce141096dce95729336))
 
 * Merge pull request #272 from blockchain-certificates/chore/fix-semantic-release
 
@@ -226,10 +232,6 @@ chore(Compliance): run publish report only on PR ([`9fde14f`](https://github.com
 * chore(Compliance): bump version ([`158f41c`](https://github.com/blockchain-certificates/cert-issuer/commit/158f41c4e4baee1811015968971822ac3c602b46))
 
 * chore(Compliance): reduce log output ([`2b2a63c`](https://github.com/blockchain-certificates/cert-issuer/commit/2b2a63c42371fa0c3baf844dcdec99b20699ccc2))
-
-* chore(Compliance): bump version ([`160f800`](https://github.com/blockchain-certificates/cert-issuer/commit/160f80042e2271cb40adc6ad85ceed63feb40fa8))
-
-* chore(Compliance): enable compliance run ([`18e08e6`](https://github.com/blockchain-certificates/cert-issuer/commit/18e08e6551cb88ba7bb37201e6eaeaf5994ab2e5))
 
 ### Feature
 
@@ -432,12 +434,6 @@ Support Ethereum testnets, the Goerli and the Sepolia ([`323601a`](https://githu
 
 * fix(Etherscan): [#205] prevent captcha request when calling Etherscan ropsten api ([`2998dd6`](https://github.com/blockchain-certificates/cert-issuer/commit/2998dd6a1693ef49c930948a20f00dbf79fdb3ef))
 
-* fix: update new web location of Merkleproof2017
-
-Changing to new location of Merkleproof2017 from https://w3c-dvcg.github.io/lds-merkleproof2017/ to https://w3c-ccg.github.io/lds-merkleproof2017/ ([`4ebe6e2`](https://github.com/blockchain-certificates/cert-issuer/commit/4ebe6e20a27669a9f85ff80cbd1da5beff1459d0))
-
-* fix(Issuance): settle pyld to v1 ([`3fb2477`](https://github.com/blockchain-certificates/cert-issuer/commit/3fb247703d5ce35d11c632e46bcad33e097c39ef))
-
 ### Refactor
 
 * refactor(Models): split models file for sanity of the man ([`54bb61a`](https://github.com/blockchain-certificates/cert-issuer/commit/54bb61a552b08162bfec98b44da89082e899a956))
@@ -465,10 +461,6 @@ Changing to new location of Merkleproof2017 from https://w3c-dvcg.github.io/lds-
 * test(V3): test whole VP verification execution ([`2a6026f`](https://github.com/blockchain-certificates/cert-issuer/commit/2a6026f48f8c0a62bc99d4f6a5d4cd96474eb6b2))
 
 * test(V3): test whole VC verification execution ([`ad52583`](https://github.com/blockchain-certificates/cert-issuer/commit/ad52583be48319597c3a0b95cce29a6b7abf788e))
-
-* test(V3): integration test VC compliance passing ([`87ea60c`](https://github.com/blockchain-certificates/cert-issuer/commit/87ea60c36e0ce89d01c8c0c6805bd2e9b1a43a09))
-
-* test(V3): scaffhold integration test VC compliance ([`fdd8104`](https://github.com/blockchain-certificates/cert-issuer/commit/fdd81047a52ae3a93861e4a7b23e9a714b31bb3a))
 
 ### Unknown
 
@@ -626,12 +618,6 @@ Adding a connector for Ethereum RPC providers. ([`febeda1`](https://github.com/b
 
 * Merge branch &#39;lp-eth-fixes&#39; of https://github.com/fuerve/cert-issuer into lp-eth-fixes ([`55671e4`](https://github.com/blockchain-certificates/cert-issuer/commit/55671e467aaad7597b38c5b8c99cdac4d3a77baf))
 
-* Fixup to the Ethereum RPC environment variable name. ([`a170429`](https://github.com/blockchain-certificates/cert-issuer/commit/a17042923d84bb4e24097f684f70180b6cac7782))
-
-* Merge branch &#39;master&#39; into lp-eth-fixes ([`5fefb9c`](https://github.com/blockchain-certificates/cert-issuer/commit/5fefb9c8df6dc8a4f214605c3bd8b3096bb4b8d8))
-
-* Version number fixed.  Oops. ([`fd06237`](https://github.com/blockchain-certificates/cert-issuer/commit/fd06237151ffd2d51fba49a02fe36154e6427770))
-
 * Merge pull request #191 from blockchain-certificates/test/v3-unit-testing
 
 Test/v3 unit testing ([`37399da`](https://github.com/blockchain-certificates/cert-issuer/commit/37399da56508dba073abea0f759b4157d0830cd5))
@@ -652,20 +638,6 @@ Test/v3 unit testing ([`37399da`](https://github.com/blockchain-certificates/cer
 
 Removing Blockexplorer and Bitpay broadcasters, as they no longer work. ([`1506ed4`](https://github.com/blockchain-certificates/cert-issuer/commit/1506ed4b7527ca9f85f651ded7e843839bbc099c))
 
-* Removing Blockexplorer and Bitpay broadcasters, as they no longer work. ([`dd49883`](https://github.com/blockchain-certificates/cert-issuer/commit/dd49883bdafe566fb8cfeb4aa441ddac76f3ce9b))
-
-* Merge pull request #185 from blockchain-certificates/v3-vc-compliance-test
-
-V3 vc compliance test ([`c8f078f`](https://github.com/blockchain-certificates/cert-issuer/commit/c8f078f380fb492e550c49cda4059191f44ebfdf))
-
-* tests(V3): fix tests failure ([`9ec7160`](https://github.com/blockchain-certificates/cert-issuer/commit/9ec7160815263ae578353bd8c7c9f4eabe4840c0))
-
-* Merge pull request #184 from rajvijen/patch-1
-
-fix: update new web location of Merkleproof-2017 ([`8fbd82e`](https://github.com/blockchain-certificates/cert-issuer/commit/8fbd82e75174e7ab0de9cbde1238d1ca0a7a3baf))
-
-* Revving version to republish PyPI package. ([`7d03e7f`](https://github.com/blockchain-certificates/cert-issuer/commit/7d03e7fc130b47d865dd05f3f4a47353b3c54c30))
-
 * Merge pull request #115 from AnthonyRonning/master
 
 Removing 2nd instance of logger ([`c984a62`](https://github.com/blockchain-certificates/cert-issuer/commit/c984a622ae1b3c1b8ac15958ce5e99f49e0931d8))
@@ -683,13 +655,3 @@ Logging is happening twice, due to `configure_logger()` at the beginning of the 
 * Merge pull request #109 from AnthonyRonning/master
 
 Force ethereum python version to 2.3.1 (#107) ([`1a3c353`](https://github.com/blockchain-certificates/cert-issuer/commit/1a3c353fb8fcc462d5eaedba655c35f6a13fd3d4))
-
-* Force ethereum python version to 2.3.1 (#107) ([`bff217f`](https://github.com/blockchain-certificates/cert-issuer/commit/bff217f3dced5d3eb7d4fd2027a80d16b3da50f1))
-
-* Merge pull request #98 from AnthonyRonning/master
-
-Fixing UnboundLocalError: local variable ‘cost_constants’ error ([`815e2ae`](https://github.com/blockchain-certificates/cert-issuer/commit/815e2aed87c28ce209136533621225a754be32ea))
-
-* Rev version to 2.0.15 ([`7b8f327`](https://github.com/blockchain-certificates/cert-issuer/commit/7b8f32787d67b5565e299a020b0f096a6c95f944))
-
-* remove mock workaround; not needed ([`7c7b96a`](https://github.com/blockchain-certificates/cert-issuer/commit/7c7b96a4313669586c71fca8ab8531626ee7dab8))
