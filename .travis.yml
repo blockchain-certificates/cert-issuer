@@ -9,6 +9,7 @@ after_success:
   - pip install python-semantic-release
   - git config user.name botcerts
   - git config user.email botcerts@learningmachine.com
+  - git branch
   - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then git checkout master; fi' # trigger semantic release only on merge build
   - semantic-release publish
 after_script:
