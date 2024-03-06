@@ -227,8 +227,6 @@ chore(Compliance): run publish report only on PR ([`9fde14f`](https://github.com
 
 * chore(Compliance): use simpler example for debug ([`31d98c8`](https://github.com/blockchain-certificates/cert-issuer/commit/31d98c84b41cbab36a97a25d27ed8999d21387ba))
 
-* chore(Compliance): debug ([`65848b7`](https://github.com/blockchain-certificates/cert-issuer/commit/65848b79f34412a2144325a1c9a7eab9bd6b7cfe))
-
 ### Documentation
 
 * docs(Example): update example cert ([`59f55f9`](https://github.com/blockchain-certificates/cert-issuer/commit/59f55f917e78eb3857372c4d1be71253d2c59b04))
@@ -480,8 +478,6 @@ Changing to new location of Merkleproof2017 from https://w3c-dvcg.github.io/lds-
 
 * test(Validation): add verify_presentation tests ([`8720048`](https://github.com/blockchain-certificates/cert-issuer/commit/872004840cbf8bed355437c58be6ecd55b6a9b92))
 
-* test(Validation): add verify_credential tests ([`86402d6`](https://github.com/blockchain-certificates/cert-issuer/commit/86402d6854a8409859e6abf44e74a0cf364d4df3))
-
 ### Unknown
 
 * Merge pull request #238 from blockchain-certificates/feat/validate_metadata
@@ -670,8 +666,6 @@ Removing Blockexplorer and Bitpay broadcasters, as they no longer work. ([`1506e
 
 * Removing Blockexplorer and Bitpay broadcasters, as they no longer work. ([`dd49883`](https://github.com/blockchain-certificates/cert-issuer/commit/dd49883bdafe566fb8cfeb4aa441ddac76f3ce9b))
 
-* Merge branch &#39;lp-eth-fixes&#39; of https://github.com/fuerve/cert-issuer into lp-eth-fixes ([`73fcc0d`](https://github.com/blockchain-certificates/cert-issuer/commit/73fcc0db60429f7d4fcff79de37fb339a84c4fb5))
-
 * Merge pull request #185 from blockchain-certificates/v3-vc-compliance-test
 
 V3 vc compliance test ([`c8f078f`](https://github.com/blockchain-certificates/cert-issuer/commit/c8f078f380fb492e550c49cda4059191f44ebfdf))
@@ -681,8 +675,6 @@ V3 vc compliance test ([`c8f078f`](https://github.com/blockchain-certificates/ce
 * Merge pull request #184 from rajvijen/patch-1
 
 fix: update new web location of Merkleproof-2017 ([`8fbd82e`](https://github.com/blockchain-certificates/cert-issuer/commit/8fbd82e75174e7ab0de9cbde1238d1ca0a7a3baf))
-
-* test scaffholding to run local code ([`7703e50`](https://github.com/blockchain-certificates/cert-issuer/commit/7703e50525f019c54a7caa590a1d1e312b91ecd5))
 
 * Revving version to republish PyPI package. ([`7d03e7f`](https://github.com/blockchain-certificates/cert-issuer/commit/7d03e7fc130b47d865dd05f3f4a47353b3c54c30))
 
@@ -694,15 +686,9 @@ Restructuring documentation ([`83221a3`](https://github.com/blockchain-certifica
 
 * Update README.md ([`8fc9ae1`](https://github.com/blockchain-certificates/cert-issuer/commit/8fc9ae1f7b142e7883ea3763e3be4bba0b110fcc))
 
-* Merge pull request #173 from blockchain-certificates/wip_etherscan_nonce
-
-#172 - Etherscan nonce uses pending instead of latest. ([`76141de`](https://github.com/blockchain-certificates/cert-issuer/commit/76141de1b21ab8bc50c181d75ed1ea421d834feb))
-
 * Bump v3-alpha schema to 3.0.0a4 ([`24a4f4f`](https://github.com/blockchain-certificates/cert-issuer/commit/24a4f4f8ff202e51b77cc585b128ce9d862d49e2))
 
 * Bump v3-alpha schema to 3.0.0a3 ([`c64f477`](https://github.com/blockchain-certificates/cert-issuer/commit/c64f477e1000307a9d7db43c632d3d7c749f4383))
-
-* Fix test using proof instead of signature for v3 ([`df2a44f`](https://github.com/blockchain-certificates/cert-issuer/commit/df2a44f8b36c8885a0da2df3080e05a006b7496e))
 
 * Merge pull request #115 from AnthonyRonning/master
 
@@ -739,9 +725,3 @@ Fixing UnboundLocalError: local variable ‘cost_constants’ error ([`815e2ae`]
 * Merge pull request #97 from lparkerlm/master
 
 Adding a document for PyCharm users. ([`763ce1b`](https://github.com/blockchain-certificates/cert-issuer/commit/763ce1b14695c11980aac1aefcf60cb0607ad852))
-
-* Trying to fix image links. ([`31bbacc`](https://github.com/blockchain-certificates/cert-issuer/commit/31bbaccf85353c717ce86ab288095115d7c9a050))
-
-* Merge pull request #96 from AnthonyRonning/master
-
-Gentle touch to the README to mention the Ethereum blockchain explorer. ([`64e22ff`](https://github.com/blockchain-certificates/cert-issuer/commit/64e22ff33e1ba5778e6207eba3456148ab09ce3d))
