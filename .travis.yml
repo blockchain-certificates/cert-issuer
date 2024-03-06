@@ -9,6 +9,7 @@ after_success:
   - pip install python-semantic-release
   - git config user.name botcerts
   - git config user.email botcerts@learningmachine.com
+  - git checkout master
   - semantic-release publish
 after_script:
   - nvm install 16
