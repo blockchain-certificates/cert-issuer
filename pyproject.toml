@@ -9,6 +9,7 @@ version_variables = [
     "cert_issuer/__init__.py:__version__"
 ]
 build_command = "python3 setup.py sdist bdist_wheel"
+upload_to_pypi = true
 
 [tool.semantic_release.branches.main]
 match = "(main|master)"
