@@ -6,6 +6,8 @@
 
 ### Chore
 
+* chore(SemanticRelease): add semantic-release config ([`70c8114`](https://github.com/blockchain-certificates/cert-issuer/commit/70c81149ee2d4f30eb4102aa485ceaeda43e2fa4))
+
 * chore(SemanticRelease): run version before publish ([`4b8e5ac`](https://github.com/blockchain-certificates/cert-issuer/commit/4b8e5ac673d72532f02a6f88cf8809e6a3bac60e))
 
 * chore(CI): debug git and semantic release ([`8478dc9`](https://github.com/blockchain-certificates/cert-issuer/commit/8478dc9fdc13a66f4d63f4dca8a2e1dd8d0eeb5c))
@@ -84,6 +86,10 @@ Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`18f78a6`](https://g
 * refactor(DataIntegrityProof): extract merkle proof 2019 to its own constructor ([`889440b`](https://github.com/blockchain-certificates/cert-issuer/commit/889440b7c2fc605861d46325da14401682db901b))
 
 ### Unknown
+
+* Merge pull request #271 from blockchain-certificates/chore/fix-semantic-release
+
+chore(SemanticRelease): add semantic-release config ([`597fe5f`](https://github.com/blockchain-certificates/cert-issuer/commit/597fe5f4bcf0c17ad1b67005a94f2962f56a0453))
 
 * Merge pull request #270 from blockchain-certificates/feat/support-credential-schema
 
@@ -222,10 +228,6 @@ chore(Compliance): run publish report only on PR ([`9fde14f`](https://github.com
 * chore(Compliance): use simpler example for debug ([`31d98c8`](https://github.com/blockchain-certificates/cert-issuer/commit/31d98c84b41cbab36a97a25d27ed8999d21387ba))
 
 * chore(Compliance): debug ([`65848b7`](https://github.com/blockchain-certificates/cert-issuer/commit/65848b79f34412a2144325a1c9a7eab9bd6b7cfe))
-
-* chore(CI): downgrade python version - 3.11 not working ([`0137b07`](https://github.com/blockchain-certificates/cert-issuer/commit/0137b0772f24befca631a5a35faed6746ab29faf))
-
-* chore(CI): bump python version ([`1901f70`](https://github.com/blockchain-certificates/cert-issuer/commit/1901f7065da39bab0c5552bcc31498e3039e83d9))
 
 ### Documentation
 
@@ -424,10 +426,6 @@ Support Ethereum testnets, the Goerli and the Sepolia ([`323601a`](https://githu
 
 * feat(VerifiableCredential): allow for issuer object with id as per the spec ([`e46702c`](https://github.com/blockchain-certificates/cert-issuer/commit/e46702c40276c1ed51f97c90e692e683f932879d))
 
-* feat(VC): force issuer property to be a URL ([`234df38`](https://github.com/blockchain-certificates/cert-issuer/commit/234df381fadd66afc6ce9265215c3ab232c0cc2b))
-
-* feat(VC): validate @context property ([`a38cb9a`](https://github.com/blockchain-certificates/cert-issuer/commit/a38cb9a0f2652e75d94bbd52c4b0d50f185ff054))
-
 ### Fix
 
 * fix(RFC3339): fix regex to differentiate closing group Z or timezone offset ([`41f1797`](https://github.com/blockchain-certificates/cert-issuer/commit/41f1797f6152052d785da16e20837c05abc1cfb1))
@@ -483,10 +481,6 @@ Changing to new location of Merkleproof2017 from https://w3c-dvcg.github.io/lds-
 * test(Validation): add verify_presentation tests ([`8720048`](https://github.com/blockchain-certificates/cert-issuer/commit/872004840cbf8bed355437c58be6ecd55b6a9b92))
 
 * test(Validation): add verify_credential tests ([`86402d6`](https://github.com/blockchain-certificates/cert-issuer/commit/86402d6854a8409859e6abf44e74a0cf364d4df3))
-
-* test(Validation): add validate_credential_status tests ([`d5f7b9c`](https://github.com/blockchain-certificates/cert-issuer/commit/d5f7b9c4d4f22ab89c59627a9b18270c99c5a258))
-
-* test(Validation): add validate_expiration_date tests ([`3142e28`](https://github.com/blockchain-certificates/cert-issuer/commit/3142e2867c615986302913a000a5204e497456e7))
 
 ### Unknown
 
@@ -690,8 +684,6 @@ fix: update new web location of Merkleproof-2017 ([`8fbd82e`](https://github.com
 
 * test scaffholding to run local code ([`7703e50`](https://github.com/blockchain-certificates/cert-issuer/commit/7703e50525f019c54a7caa590a1d1e312b91ecd5))
 
-* Adding support for Ethereum RPC. ([`d97309c`](https://github.com/blockchain-certificates/cert-issuer/commit/d97309c57f99d12c53c22f2fcc7e9579a7c2d109))
-
 * Revving version to republish PyPI package. ([`7d03e7f`](https://github.com/blockchain-certificates/cert-issuer/commit/7d03e7fc130b47d865dd05f3f4a47353b3c54c30))
 
 * Merge pull request #175 from blockchain-certificates/docs
@@ -706,29 +698,11 @@ Restructuring documentation ([`83221a3`](https://github.com/blockchain-certifica
 
 #172 - Etherscan nonce uses pending instead of latest. ([`76141de`](https://github.com/blockchain-certificates/cert-issuer/commit/76141de1b21ab8bc50c181d75ed1ea421d834feb))
 
-* #172 - Changing over to pending for get_balance as well. ([`a745bab`](https://github.com/blockchain-certificates/cert-issuer/commit/a745bab4f148e3276e1aa54f8f7f7696eca61cff))
-
-* #172 - Changing over to pending for get_balance as well. ([`b0cb424`](https://github.com/blockchain-certificates/cert-issuer/commit/b0cb4241f6094a30dc9b9bcd7dc9576815a8084b))
-
 * Bump v3-alpha schema to 3.0.0a4 ([`24a4f4f`](https://github.com/blockchain-certificates/cert-issuer/commit/24a4f4f8ff202e51b77cc585b128ce9d862d49e2))
 
 * Bump v3-alpha schema to 3.0.0a3 ([`c64f477`](https://github.com/blockchain-certificates/cert-issuer/commit/c64f477e1000307a9d7db43c632d3d7c749f4383))
 
 * Fix test using proof instead of signature for v3 ([`df2a44f`](https://github.com/blockchain-certificates/cert-issuer/commit/df2a44f8b36c8885a0da2df3080e05a006b7496e))
-
-* v3-alpha schema updates ([`625b1f1`](https://github.com/blockchain-certificates/cert-issuer/commit/625b1f169fa52e3accd35eb3e56be644c72db190))
-
-* RI etherscan changes from v2 to v3 ([`830ee9d`](https://github.com/blockchain-certificates/cert-issuer/commit/830ee9d8ff2860976138dca8f2440c571e5d2170))
-
-* Merge pull request #168 from blockchain-certificates/etherscan-api
-
-Etherscan api key was never being used - fixed. ([`eccb187`](https://github.com/blockchain-certificates/cert-issuer/commit/eccb187a734ef2d9fd3d8300223bd703c1b4a2c5))
-
-* Etherscan api key was never being used - fixed. ([`983c3d3`](https://github.com/blockchain-certificates/cert-issuer/commit/983c3d35f87487fe84288d5759b1044ba34acfa4))
-
-* Merge pull request #167 from blockchain-certificates/etherscan-api-key
-
-Raise a broadcast error if etherscan api error #166 ([`951f282`](https://github.com/blockchain-certificates/cert-issuer/commit/951f28284659d7d8a20560416e0b0cc5a7df4bb3))
 
 * Merge pull request #115 from AnthonyRonning/master
 
@@ -768,20 +742,6 @@ Adding a document for PyCharm users. ([`763ce1b`](https://github.com/blockchain-
 
 * Trying to fix image links. ([`31bbacc`](https://github.com/blockchain-certificates/cert-issuer/commit/31bbaccf85353c717ce86ab288095115d7c9a050))
 
-* Adding a document to help folks get cert-issuer going in the PyCharm IDE. ([`322ec65`](https://github.com/blockchain-certificates/cert-issuer/commit/322ec6501a74db6c88b674192e0c638ea4acd0fa))
-
 * Merge pull request #96 from AnthonyRonning/master
 
 Gentle touch to the README to mention the Ethereum blockchain explorer. ([`64e22ff`](https://github.com/blockchain-certificates/cert-issuer/commit/64e22ff33e1ba5778e6207eba3456148ab09ce3d))
-
-* Gentle touch to the README to mention the Ethereum blockchain explorer. ([`ea783cf`](https://github.com/blockchain-certificates/cert-issuer/commit/ea783cfd1241a8049150dcbdbed8e5d0c39a8672))
-
-* Merge pull request #95 from AnthonyRonning/master
-
-#92 - Fix for namespace and dependency conflicts with bitcoin and ethereum libraries (fixed). ([`6f63f9e`](https://github.com/blockchain-certificates/cert-issuer/commit/6f63f9e371d14d99772265234ca451fc1d4496e4))
-
-* Removing the version number from the blockchain_handlers submodule. ([`65f7686`](https://github.com/blockchain-certificates/cert-issuer/commit/65f768602f02e6ed0a673016023891bd8444500c))
-
-* Merge pull request #90 from AnthonyRonning/master
-
-Removed ethereum testnet, should use ropsten instead ([`b560b6b`](https://github.com/blockchain-certificates/cert-issuer/commit/b560b6b4cdf5b500d29dc7f45230e0bd52c5f791))
