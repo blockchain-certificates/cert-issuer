@@ -6,6 +6,8 @@
 
 ### Chore
 
+* chore(SemanticRelease): add build_command ([`dd266f1`](https://github.com/blockchain-certificates/cert-issuer/commit/dd266f16ed4290cdbe1cb6c84d1e9d5040685f0e))
+
 * chore(SemanticRelease): add semantic-release config ([`70c8114`](https://github.com/blockchain-certificates/cert-issuer/commit/70c81149ee2d4f30eb4102aa485ceaeda43e2fa4))
 
 * chore(SemanticRelease): run version before publish ([`4b8e5ac`](https://github.com/blockchain-certificates/cert-issuer/commit/4b8e5ac673d72532f02a6f88cf8809e6a3bac60e))
@@ -86,6 +88,10 @@ Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`18f78a6`](https://g
 * refactor(DataIntegrityProof): extract merkle proof 2019 to its own constructor ([`889440b`](https://github.com/blockchain-certificates/cert-issuer/commit/889440b7c2fc605861d46325da14401682db901b))
 
 ### Unknown
+
+* Merge pull request #272 from blockchain-certificates/chore/fix-semantic-release
+
+chore(SemanticRelease): add build_command ([`a4f2eb6`](https://github.com/blockchain-certificates/cert-issuer/commit/a4f2eb65afdf5984260dc827287ce14afa88a99a))
 
 * Merge pull request #271 from blockchain-certificates/chore/fix-semantic-release
 
@@ -225,12 +231,6 @@ chore(Compliance): run publish report only on PR ([`9fde14f`](https://github.com
 
 * chore(Compliance): enable compliance run ([`18e08e6`](https://github.com/blockchain-certificates/cert-issuer/commit/18e08e6551cb88ba7bb37201e6eaeaf5994ab2e5))
 
-* chore(Compliance): use simpler example for debug ([`31d98c8`](https://github.com/blockchain-certificates/cert-issuer/commit/31d98c84b41cbab36a97a25d27ed8999d21387ba))
-
-### Documentation
-
-* docs(Example): update example cert ([`59f55f9`](https://github.com/blockchain-certificates/cert-issuer/commit/59f55f917e78eb3857372c4d1be71253d2c59b04))
-
 ### Feature
 
 * feat(Compliance): throw if issuer is an array ([`02616cc`](https://github.com/blockchain-certificates/cert-issuer/commit/02616ccbf665fe80fcf4c77520ebd92e457444b9))
@@ -364,12 +364,6 @@ Support Ethereum testnets, the Goerli and the Sepolia ([`323601a`](https://githu
 
 * chore(Release): update release package script ([`55a850a`](https://github.com/blockchain-certificates/cert-issuer/commit/55a850ab5444d10baf57d16591f621355cf9ebdc))
 
-* chore(Tests): remove deprecation warnings ([`12977d7`](https://github.com/blockchain-certificates/cert-issuer/commit/12977d7449e59bf8ce8d9b289b82f1008c01b2b1))
-
-* chore(VC): bump version ([`11c727b`](https://github.com/blockchain-certificates/cert-issuer/commit/11c727b1e71416c1dc8fe30bf63573553b1117d0))
-
-* chore(VC): remove js test scaffholding ([`ad5e454`](https://github.com/blockchain-certificates/cert-issuer/commit/ad5e454af9cdf6b2c85f63c9ce9fd1b803804bd7))
-
 ### Documentation
 
 * docs(MultiSign): update readme ([`41eb02d`](https://github.com/blockchain-certificates/cert-issuer/commit/41eb02d1e72f1acee8eb5c2df2518db19174817f))
@@ -475,8 +469,6 @@ Changing to new location of Merkleproof2017 from https://w3c-dvcg.github.io/lds-
 * test(V3): integration test VC compliance passing ([`87ea60c`](https://github.com/blockchain-certificates/cert-issuer/commit/87ea60c36e0ce89d01c8c0c6805bd2e9b1a43a09))
 
 * test(V3): scaffhold integration test VC compliance ([`fdd8104`](https://github.com/blockchain-certificates/cert-issuer/commit/fdd81047a52ae3a93861e4a7b23e9a714b31bb3a))
-
-* test(Validation): add verify_presentation tests ([`8720048`](https://github.com/blockchain-certificates/cert-issuer/commit/872004840cbf8bed355437c58be6ecd55b6a9b92))
 
 ### Unknown
 
@@ -640,10 +632,6 @@ Adding a connector for Ethereum RPC providers. ([`febeda1`](https://github.com/b
 
 * Version number fixed.  Oops. ([`fd06237`](https://github.com/blockchain-certificates/cert-issuer/commit/fd06237151ffd2d51fba49a02fe36154e6427770))
 
-* Added a little bit of logging. ([`8759015`](https://github.com/blockchain-certificates/cert-issuer/commit/875901549ce0f20bf2ff7434707af5b48656fab4))
-
-* Fixups for Ethereum RPC connections. ([`680b171`](https://github.com/blockchain-certificates/cert-issuer/commit/680b171244d28c347c2ca585e4e9380f87fbfd56))
-
 * Merge pull request #191 from blockchain-certificates/test/v3-unit-testing
 
 Test/v3 unit testing ([`37399da`](https://github.com/blockchain-certificates/cert-issuer/commit/37399da56508dba073abea0f759b4157d0830cd5))
@@ -678,18 +666,6 @@ fix: update new web location of Merkleproof-2017 ([`8fbd82e`](https://github.com
 
 * Revving version to republish PyPI package. ([`7d03e7f`](https://github.com/blockchain-certificates/cert-issuer/commit/7d03e7fc130b47d865dd05f3f4a47353b3c54c30))
 
-* Merge pull request #175 from blockchain-certificates/docs
-
-Restructuring documentation ([`83221a3`](https://github.com/blockchain-certificates/cert-issuer/commit/83221a38552c3d0e488f416f8cb533a350d89ffa))
-
-* Restructuring documentation ([`a69f2e9`](https://github.com/blockchain-certificates/cert-issuer/commit/a69f2e9643ef3d31c6e7a956adcbf10194e5e62f))
-
-* Update README.md ([`8fc9ae1`](https://github.com/blockchain-certificates/cert-issuer/commit/8fc9ae1f7b142e7883ea3763e3be4bba0b110fcc))
-
-* Bump v3-alpha schema to 3.0.0a4 ([`24a4f4f`](https://github.com/blockchain-certificates/cert-issuer/commit/24a4f4f8ff202e51b77cc585b128ce9d862d49e2))
-
-* Bump v3-alpha schema to 3.0.0a3 ([`c64f477`](https://github.com/blockchain-certificates/cert-issuer/commit/c64f477e1000307a9d7db43c632d3d7c749f4383))
-
 * Merge pull request #115 from AnthonyRonning/master
 
 Removing 2nd instance of logger ([`c984a62`](https://github.com/blockchain-certificates/cert-issuer/commit/c984a622ae1b3c1b8ac15958ce5e99f49e0931d8))
@@ -716,12 +692,4 @@ Fixing UnboundLocalError: local variable ‘cost_constants’ error ([`815e2ae`]
 
 * Rev version to 2.0.15 ([`7b8f327`](https://github.com/blockchain-certificates/cert-issuer/commit/7b8f32787d67b5565e299a020b0f096a6c95f944))
 
-* Fixing UnboundLocalError: local variable ‘cost_constants’  error ([`51caa56`](https://github.com/blockchain-certificates/cert-issuer/commit/51caa56017b48b0b3f97ad63291a7d6eec6a038c))
-
 * remove mock workaround; not needed ([`7c7b96a`](https://github.com/blockchain-certificates/cert-issuer/commit/7c7b96a4313669586c71fca8ab8531626ee7dab8))
-
-* update cert-core and fix mocknet ([`99dfd57`](https://github.com/blockchain-certificates/cert-issuer/commit/99dfd57762adf756ecce997b6a59a6e0390ca25a))
-
-* Merge pull request #97 from lparkerlm/master
-
-Adding a document for PyCharm users. ([`763ce1b`](https://github.com/blockchain-certificates/cert-issuer/commit/763ce1b14695c11980aac1aefcf60cb0607ad852))
