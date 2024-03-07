@@ -8,7 +8,7 @@ tag_format = "v{version}"
 version_variables = [
     "cert_issuer/__init__.py:__version__"
 ]
-build_command = "python3 setup.py sdist bdist_wheel"
+build_command = "sh release_package.sh"
 upload_to_pypi = true
 
 [tool.semantic_release.branches.main]
