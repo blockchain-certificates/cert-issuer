@@ -2,9 +2,19 @@
 
 
 
-## v3.6.0 (2024-03-06)
+## v3.6.0 (2024-03-07)
 
 ### Chore
+
+* chore(SemanticRelease): install twine ([`555dd16`](https://github.com/blockchain-certificates/cert-issuer/commit/555dd16b460e1fc9d7307e07e6dd1c534165d15d))
+
+* chore(SemanticRelease): use release_package as build_command, as recommended by the migration doc
+
+https://python-semantic-release.readthedocs.io/en/latest/migrating_from_v7.html#repurposing-of-version-and-publish-commands ([`d02caed`](https://github.com/blockchain-certificates/cert-issuer/commit/d02caed7a071e2604cc3ca9c8dae3d6f1ec2340d))
+
+* chore(SemanticRelease): run only on merge build ([`d26ee30`](https://github.com/blockchain-certificates/cert-issuer/commit/d26ee30d30bff3d960bd65cd3fc3299bd050ea1a))
+
+* chore(SemanticRelease): revert to v7 with support for pypi uplaod ([`0f2fc9a`](https://github.com/blockchain-certificates/cert-issuer/commit/0f2fc9a34513940ed8ed788e4a27a3ed5fb68c37))
 
 * chore(SemanticRelease): specify upload to pypi - maybe ([`f2e4a30`](https://github.com/blockchain-certificates/cert-issuer/commit/f2e4a30fe273152ee1fb85bd737451d62b7d3706))
 
@@ -92,6 +102,30 @@ Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`18f78a6`](https://g
 * refactor(DataIntegrityProof): extract merkle proof 2019 to its own constructor ([`889440b`](https://github.com/blockchain-certificates/cert-issuer/commit/889440b7c2fc605861d46325da14401682db901b))
 
 ### Unknown
+
+* Merge pull request #278 from blockchain-certificates/chore/fix-semantic-release
+
+chore(SemanticRelease): install twine ([`03f398d`](https://github.com/blockchain-certificates/cert-issuer/commit/03f398d265d3d6cc433a3212cee03c8d865d34c1))
+
+* Merge pull request #277 from blockchain-certificates/chore/fix-semantic-release
+
+Chore/fix semantic release ([`3ce03fd`](https://github.com/blockchain-certificates/cert-issuer/commit/3ce03fd7cc06609d494193bf3923ba2d44e788eb))
+
+* Revert &#34;chore(SemanticRelease): revert to v7 with support for pypi uplaod&#34;
+
+This reverts commit 0f2fc9a34513940ed8ed788e4a27a3ed5fb68c37. ([`c701a12`](https://github.com/blockchain-certificates/cert-issuer/commit/c701a12de13c7aaad0124bb80c2b9e4edeb975bc))
+
+* Revert &#34;chore(SemanticRelease): run only on merge build&#34;
+
+This reverts commit d26ee30d30bff3d960bd65cd3fc3299bd050ea1a. ([`897de72`](https://github.com/blockchain-certificates/cert-issuer/commit/897de7237c660ae06fe6c2ea3fc082f51a20104a))
+
+* Merge pull request #276 from blockchain-certificates/chore/fix-semantic-release
+
+chore(SemanticRelease): run only on merge build ([`18cfd3f`](https://github.com/blockchain-certificates/cert-issuer/commit/18cfd3f9cbf3d405b24ad37445e496c5768a7e25))
+
+* Merge pull request #275 from blockchain-certificates/chore/fix-semantic-release
+
+chore(SemanticRelease): revert to v7 with support for pypi uplaod ([`ac5e13d`](https://github.com/blockchain-certificates/cert-issuer/commit/ac5e13da7eb6f1f8d04d8429bf9d83a9c35e003e))
 
 * Merge pull request #274 from blockchain-certificates/chore/fix-semantic-release
 
@@ -233,13 +267,7 @@ chore(Compliance): run publish report only on PR ([`9fde14f`](https://github.com
 
 * chore(Compliance): bump version ([`ae46d7f`](https://github.com/blockchain-certificates/cert-issuer/commit/ae46d7f60fa64334a2006993d7a9ffdce2854bcc))
 
-* chore(Compliance): bump version ([`95f5846`](https://github.com/blockchain-certificates/cert-issuer/commit/95f5846ab5777c0fa3036791d5dc8e991c20f6ee))
-
-* chore(Compliance): bump version ([`158f41c`](https://github.com/blockchain-certificates/cert-issuer/commit/158f41c4e4baee1811015968971822ac3c602b46))
-
 ### Feature
-
-* feat(Compliance): throw if issuer is an array ([`02616cc`](https://github.com/blockchain-certificates/cert-issuer/commit/02616ccbf665fe80fcf4c77520ebd92e457444b9))
 
 * feat(StatusList): support issuance of array credentialStatus property value ([`71cabce`](https://github.com/blockchain-certificates/cert-issuer/commit/71cabce20191dc5b56279c00adcc7831fd89ca1f))
 
@@ -248,10 +276,6 @@ chore(Compliance): run publish report only on PR ([`9fde14f`](https://github.com
 * feat(ConcurrentProofs): allow setting nature of multiple proofs by config/CLI ([`6ebf7f1`](https://github.com/blockchain-certificates/cert-issuer/commit/6ebf7f142105d5373d356cdce2d3be33310a2041))
 
 * feat(ProofHandler): add concurrent proof ([`8670875`](https://github.com/blockchain-certificates/cert-issuer/commit/867087522e20774aa8f2301ec89808207a544c2b))
-
-### Fix
-
-* fix(Compliance): improve issuer validation ([`d023dc0`](https://github.com/blockchain-certificates/cert-issuer/commit/d023dc0eb18c2c8958583ce9045fd890e72e4a02))
 
 ### Refactor
 
@@ -422,8 +446,6 @@ Support Ethereum testnets, the Goerli and the Sepolia ([`323601a`](https://githu
 
 * feat(Schema): bump cert-schema ([`8b7a1b9`](https://github.com/blockchain-certificates/cert-issuer/commit/8b7a1b96ecd9854d33543bab7cae4035783caa90))
 
-* feat(VerifiableCredential): allow for issuer object with id as per the spec ([`e46702c`](https://github.com/blockchain-certificates/cert-issuer/commit/e46702c40276c1ed51f97c90e692e683f932879d))
-
 ### Fix
 
 * fix(RFC3339): fix regex to differentiate closing group Z or timezone offset ([`41f1797`](https://github.com/blockchain-certificates/cert-issuer/commit/41f1797f6152052d785da16e20837c05abc1cfb1))
@@ -450,10 +472,6 @@ Support Ethereum testnets, the Goerli and the Sepolia ([`323601a`](https://githu
 
 * refactor(Schema): use latest cert-schema API ([`bcb534f`](https://github.com/blockchain-certificates/cert-issuer/commit/bcb534f1c9e47f5eaeef18cd9dde7f6cb647383b))
 
-### Style
-
-* style(V3): remove trailing print ([`e83deb5`](https://github.com/blockchain-certificates/cert-issuer/commit/e83deb54e7e4ab31395c628afb1fb4a4fbb243e2))
-
 ### Test
 
 * test(Metadata): test issuance check ([`7444fac`](https://github.com/blockchain-certificates/cert-issuer/commit/7444fac3ce187c4340ce726d2970c954619ea763))
@@ -461,8 +479,6 @@ Support Ethereum testnets, the Goerli and the Sepolia ([`323601a`](https://githu
 * test(Metadata): add tests for displayOrder and schema absence check ([`6601a04`](https://github.com/blockchain-certificates/cert-issuer/commit/6601a04105a2ef9f2fc957228167c40dd2b12a43))
 
 * test(RFC3339): add more test cases ([`cd80945`](https://github.com/blockchain-certificates/cert-issuer/commit/cd80945bc0f6bad9a9c458edfa06773016d8cf66))
-
-* test(V3): test whole VP verification execution ([`2a6026f`](https://github.com/blockchain-certificates/cert-issuer/commit/2a6026f48f8c0a62bc99d4f6a5d4cd96474eb6b2))
 
 ### Unknown
 
@@ -572,8 +588,6 @@ Ropsten API URL changed and the normal requests are blocked with a 40… ([`4319
 
 * Ropsten API URL changed and the normal requests are blocked with a 403 if the User Agent is python-requests. ([`5a4b7da`](https://github.com/blockchain-certificates/cert-issuer/commit/5a4b7da571f3d70a901a686bc6fb7bd81543fc3f))
 
-* Merge branch &#39;master&#39; into v3 ([`a57249c`](https://github.com/blockchain-certificates/cert-issuer/commit/a57249cee8c03143356c32f4266f0923eee3a15d))
-
 * Merge pull request #208 from blockchain-certificates/fu_bad_dependencies
 
 Fixed bad dependencies in the Dockerfile ([`6b4879a`](https://github.com/blockchain-certificates/cert-issuer/commit/6b4879a8076f468517ab02a58c61041c21df667f))
@@ -595,49 +609,3 @@ docs(Issuer): add sample issuer details ([`eb3f6a2`](https://github.com/blockcha
 * Merge pull request #196 from danishfastian/master
 
 Certissuer fix related to BlockCypher configuration ([`c3c7233`](https://github.com/blockchain-certificates/cert-issuer/commit/c3c723346465d2fb396375217db6cf861808555e))
-
-* Add missing blockcypher_api_token aggument ([`3fed1a4`](https://github.com/blockchain-certificates/cert-issuer/commit/3fed1a4bb79cbb88a6e46f94061bf64e4ba95d41))
-
-* Merge pull request #1 from blockchain-certificates/master
-
-Sync from main repository ([`5f46678`](https://github.com/blockchain-certificates/cert-issuer/commit/5f46678f42b7a9bb1bfb78b225b5e437a93b138f))
-
-* Merge pull request #193 from fuerve/lp-eth-fixes
-
-A positional argument error somehow slipped through. ([`9b0ed45`](https://github.com/blockchain-certificates/cert-issuer/commit/9b0ed451ef686018a507acd8bb7d217263a6fbf4))
-
-* Revving version number. ([`7f1127b`](https://github.com/blockchain-certificates/cert-issuer/commit/7f1127bf224558c91153def5f5532c4d87d34229))
-
-* A positional argument error somehow slipped through. ([`7cfdde6`](https://github.com/blockchain-certificates/cert-issuer/commit/7cfdde603ca23d49205b184d1225b8b9fdab0f95))
-
-* Merge pull request #192 from fuerve/lp-eth-fixes
-
-Adding a connector for Ethereum RPC providers. ([`febeda1`](https://github.com/blockchain-certificates/cert-issuer/commit/febeda11bb024ac9c2cefad23eaf2b5f75804fda))
-
-* Typo ([`a8b5766`](https://github.com/blockchain-certificates/cert-issuer/commit/a8b57667380d9fc70edde793445bde1858f4a9ae))
-
-* Fixup to the Ethereum RPC environment variable name. ([`64ee146`](https://github.com/blockchain-certificates/cert-issuer/commit/64ee146062af016f8018d3b0cf030fd00bf10447))
-
-* Merge pull request #191 from blockchain-certificates/test/v3-unit-testing
-
-Test/v3 unit testing ([`37399da`](https://github.com/blockchain-certificates/cert-issuer/commit/37399da56508dba073abea0f759b4157d0830cd5))
-
-* Adding a note about v3 Blockcerts to the master README. ([`d9c063a`](https://github.com/blockchain-certificates/cert-issuer/commit/d9c063a5369d21743221dcb80404388584ad122f))
-
-* Revving to version 3.0.0b2 ([`e064c64`](https://github.com/blockchain-certificates/cert-issuer/commit/e064c64970ddf5a02723d5e5ac07a77bfbff1684))
-
-* Merge branch &#39;v3&#39; of https://github.com/blockchain-certificates/cert-issuer into v3 ([`ecad0fb`](https://github.com/blockchain-certificates/cert-issuer/commit/ecad0fb301f60092d9384745db0ea5ce5917f155))
-
-* Revving cert-issuer to 2.0.25 ([`def3f66`](https://github.com/blockchain-certificates/cert-issuer/commit/def3f6622bb086b9719a0720857b0e1a7fca7258))
-
-* Merge pull request #115 from AnthonyRonning/master
-
-Removing 2nd instance of logger ([`c984a62`](https://github.com/blockchain-certificates/cert-issuer/commit/c984a622ae1b3c1b8ac15958ce5e99f49e0931d8))
-
-* Removing 2nd instance of logger
-
-Logging is happening twice, due to `configure_logger()` at the beginning of the method and this one at the end. ([`67a6a06`](https://github.com/blockchain-certificates/cert-issuer/commit/67a6a0651421c3965dfddf0d68c1c5ca1963d57e))
-
-* Merge pull request #113 from AnthonyRonning/master
-
-#112 - Specifying Coincurve version to fix ethereum installation error ([`26f842a`](https://github.com/blockchain-certificates/cert-issuer/commit/26f842ab4bee1577f629e196abf5c2ff85714960))
