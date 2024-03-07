@@ -3,16 +3,13 @@ language: python
 dist: focal
 python:
   - "3.10"
+branches:
+  only:
+    - master
 install: pip install tox-travis
 script: tox
 after_success:
-  - pip install python-semantic-release twine
-  - git config user.name botcerts
-  - git config user.email botcerts@learningmachine.com
-  - git branch
-  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then git checkout master; fi' # trigger semantic release only on merge build
-  - semantic-release version && semantic-release publish
-after_script:
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sh semantic-release.sh; fi'
   - nvm install 16
   - sh prepare-vc-compliance-tests-config.sh
   - python3 setup.py install
