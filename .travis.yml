@@ -6,10 +6,12 @@ python:
 install: pip install tox-travis
 script: tox
 after_success:
-  - pip install python-semantic-release==7.34.6
+  - pip install python-semantic-release
   - git config user.name botcerts
   - git config user.email botcerts@learningmachine.com
-  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then semantic-release publish; fi' # trigger semantic release only on merge build
+  - git branch
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then git checkout master; fi' # trigger semantic release only on merge build
+  - semantic-release version && semantic-release publish
 after_script:
   - nvm install 16
   - sh prepare-vc-compliance-tests-config.sh
