@@ -23,6 +23,17 @@ class UnitValidationV3 (unittest.TestCase):
 
         assert False
 
+    def test_validate_issuer_invalid_array (self):
+        candidate = ['https://first.issuer/profile', 'https://second.issuer/profile']
+        try:
+            validate_issuer(candidate)
+        except Exception as e:
+            print(e)
+            assert True
+            return
+
+        assert False
+
     def test_validate_issuer_valid_url (self):
         candidate = 'https://valid.url'
         try:
