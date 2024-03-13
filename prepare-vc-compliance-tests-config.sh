@@ -16,6 +16,7 @@ echo "unsigned_certificates_dir=${PWD}/data/unsigned_certificates" >> conf.ini
 echo "blockchain_certificates_dir=${PWD}/data/blockchain_certificates" >> conf.ini
 echo "work_dir=${PWD}/data/work" >> conf.ini
 echo "no_safe_mode" >> conf.ini
+echo "multiple_proofs=concurrent" >> conf.ini
 
 echo "Prepared config file for VC compliance test suite"
 cat conf.ini
