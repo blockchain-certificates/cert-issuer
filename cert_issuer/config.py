@@ -75,6 +75,8 @@ def add_arguments(p):
                    help='decide the priority fee per gas spent for EIP-1559-compliant transactions (in wei, the smallest ETH unit)', env_var='MAX_PRIORITY_FEE_PER_GAS')
     p.add_argument('--gas_price', default=20000000000, type=int,
                    help='decide the price per gas spent. sets max_fee_per_gas for EIP-1559-compliant transactions.', env_var='GAS_PRICE')
+    p.add_argument('--gas_price_dynamic', default=False, type=bool,
+                   help='Fetch the current gas price from Etherscan. Requires etherscan_api_token to be set', env_var='GAS_PRICE_DYNAMIC')
     p.add_argument('--gas_limit', default=25000, type=int,
                    help='decide on the maximum spendable gas. gas_limit < 25000 might not be sufficient', env_var='GAS_LIMIT')
     p.add_argument('--etherscan_api_token', default=None, type=str,
