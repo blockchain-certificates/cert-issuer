@@ -228,6 +228,19 @@ class EtherscanBroadcaster(object):
             return balance
         raise BroadcastError(response.text)
 
+    def gas_price(self):
+        """
+        returns the gas price in wei
+        """
+        api_url = self.base_url + '?module=proxy&action=eth_gasPrice'
+        if self.api_token:
+            api_url += '&apikey=%s' % self.api_token
+        response = self.send_request('GET', api_url)
+        if int(response.status_code) == 200:
+            gas = int(response.json().get('result', None), 0)
+            logging.info('Gas price: %s', response.json())
+            return gas
+        raise BroadcastError(response.text)
     def get_address_nonce(self, address):
         """
         Looks up the address nonce of this address
@@ -291,20 +304,6 @@ class MyEtherWalletBroadcaster(object):
             logging.info('Balance check succeeded: %s', response.json())
             return balance
         logging.error('Error getting balance through MyEtherWallet. Error msg: %s', response.text)
-        raise BroadcastError(response.text)
-
-    def gas_price(self):
-        """
-        returns the gas price in wei
-        """
-        broadcast_url = self.base_url + '?module=proxy&action=eth_gasPrice'
-        if self.api_token:
-            broadcast_url += '&apikey=%s' % self.api_token
-        response = self.send_request('GET', broadcast_url)
-        if int(response.status_code) == 200:
-            gas = int(response.json().get('result', None), 0)
-            logging.info('Gas price: %s', response.json())
-            return gas
         raise BroadcastError(response.text)
 
     def get_address_nonce(self, address):
