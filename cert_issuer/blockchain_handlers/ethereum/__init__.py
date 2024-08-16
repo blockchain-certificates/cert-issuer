@@ -69,9 +69,16 @@ def instantiate_blockchain_handlers(app_config):
     # ethereum chains
     elif chain.is_ethereum_type():
         nonce = app_config.nonce
-        cost_constants = EthereumTransactionCostConstants(app_config.max_priority_fee_per_gas, 
-                                                          app_config.gas_price, app_config.gas_limit)
         connector = EthereumServiceProviderConnector(chain, app_config)
+
+        if app_config.gas_price_dynamic:
+            gas_price = connector.gas_price()
+        else:
+            gas_price = app_config.gas_price
+
+        cost_constants = EthereumTransactionCostConstants(app_config.max_priority_fee_per_gas,
+                                                          gas_price, app_config.gas_limit)
+
         transaction_handler = EthereumTransactionHandler(connector, nonce, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 
