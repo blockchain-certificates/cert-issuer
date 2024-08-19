@@ -16,20 +16,14 @@ def get_config():
         config = cert_issuer.config.get_config()
     return config
 
-@app.route('/cert_issuer/api/v1.0/issue', methods=['POST'])
-def btc_issue():
+@app.route('/cert_issuer/api/v1.0/issue/', methods=['POST'])
+@app.route('/cert_issuer/api/v1.0/issue/<handler>', methods=['POST'])
+def issue(handler=None):
+    blockchain_handler = ethereum if handler == 'ethereum' else bitcoin
     config = get_config()
-    certificate_batch_handler, transaction_handler, connector = \
-            bitcoin.instantiate_blockchain_handlers(config, False)
-    certificate_batch_handler.set_certificates_in_batch(request.json)
-    cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
-    return json.dumps(certificate_batch_handler.proof)
 
-@app.route('/cert_issuer/api/v1.0/eth_issue', methods=['POST'])
-def eth_issue():
-    config = get_config()
     certificate_batch_handler, transaction_handler, connector = \
-            ethereum.instantiate_blockchain_handlers(config, False)
+            blockchain_handler.instantiate_blockchain_handlers(config, False)
     certificate_batch_handler.set_certificates_in_batch(request.json)
     cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
     return json.dumps(certificate_batch_handler.proof)
