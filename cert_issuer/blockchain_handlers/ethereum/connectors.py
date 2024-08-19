@@ -89,6 +89,17 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
                 pass
         return 0
 
+    def gas_price(self):
+        for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
+            try:
+                logging.info('m=%s', m)
+                gas_price = m.gas_price()
+                return gas_price
+            except Exception as e:
+                logging.info(e)
+                pass
+        return 0
+
     def get_address_nonce(self, address):
         for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
             try:
@@ -217,6 +228,19 @@ class EtherscanBroadcaster(object):
             return balance
         raise BroadcastError(response.text)
 
+    def gas_price(self):
+        """
+        returns the gas price in wei
+        """
+        api_url = self.base_url + '?module=proxy&action=eth_gasPrice'
+        if self.api_token:
+            api_url += '&apikey=%s' % self.api_token
+        response = self.send_request('GET', api_url)
+        if int(response.status_code) == 200:
+            gas = int(response.json().get('result', None), 0)
+            logging.info('Gas price: %s', response.json())
+            return gas
+        raise BroadcastError(response.text)
     def get_address_nonce(self, address):
         """
         Looks up the address nonce of this address
