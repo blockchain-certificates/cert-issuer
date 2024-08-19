@@ -61,20 +61,12 @@ def instantiate_blockchain_handlers(app_config, file_mode=True):
     chain = app_config.chain
     secret_manager = initialize_signer(app_config)
 
-    if file_mode:
-        certificate_batch_handler = CertificateBatchHandler(
-            secret_manager=secret_manager,
-            certificate_handler=CertificateV3Handler(app_config),
-            merkle_tree=MerkleTreeGenerator(),
-            config=app_config
-        )
-    else:
-        certificate_batch_handler = CertificateBatchWebHandler(
-            secret_manager=secret_manager,
-            certificate_handler=CertificateWebV3Handler(app_config),
-            merkle_tree=MerkleTreeGenerator(),
-            config=app_config
-        )
+    certificate_batch_handler = (CertificateBatchHandler if file_mode else CertificateBatchWebHandler)(
+        secret_manager=secret_manager,
+        certificate_handler=(CertificateV3Handler if file_mode else CertificateWebV3Handler)(app_config),
+        merkle_tree=MerkleTreeGenerator(),
+        config=app_config
+    )
 
     if chain.is_mock_type():
         transaction_handler = MockTransactionHandler()
