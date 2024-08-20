@@ -3,7 +3,7 @@ import os
 
 from cert_core import UnknownChainError
 
-from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler, CertificateBatchWebHandler, CertificateWebV3Handler
 from cert_issuer.blockchain_handlers.ethereum.connectors import EthereumServiceProviderConnector
 from cert_issuer.blockchain_handlers.ethereum.signer import EthereumSigner
 from cert_issuer.blockchain_handlers.ethereum.transaction_handlers import EthereumTransactionHandler
@@ -56,22 +56,33 @@ def initialize_signer(app_config):
     return secret_manager
 
 
-def instantiate_blockchain_handlers(app_config):
+def instantiate_blockchain_handlers(app_config, file_mode=True):
     issuing_address = app_config.issuing_address
     chain = app_config.chain
     secret_manager = initialize_signer(app_config)
-    certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
-                                                        certificate_handler=CertificateV3Handler(),
-                                                        merkle_tree=MerkleTreeGenerator(),
-                                                        config=app_config)
+
+    certificate_batch_handler = (CertificateBatchHandler if file_mode else CertificateBatchWebHandler)(
+        secret_manager=secret_manager,
+        certificate_handler=(CertificateV3Handler if file_mode else CertificateWebV3Handler)(app_config),
+        merkle_tree=MerkleTreeGenerator(),
+        config=app_config
+    )
+
     if chain.is_mock_type():
         transaction_handler = MockTransactionHandler()
     # ethereum chains
     elif chain.is_ethereum_type():
         nonce = app_config.nonce
-        cost_constants = EthereumTransactionCostConstants(app_config.max_priority_fee_per_gas, 
-                                                          app_config.gas_price, app_config.gas_limit)
         connector = EthereumServiceProviderConnector(chain, app_config)
+
+        if app_config.gas_price_dynamic:
+            gas_price = connector.gas_price()
+        else:
+            gas_price = app_config.gas_price
+
+        cost_constants = EthereumTransactionCostConstants(app_config.max_priority_fee_per_gas,
+                                                          gas_price, app_config.gas_limit)
+
         transaction_handler = EthereumTransactionHandler(connector, nonce, cost_constants, secret_manager,
                                                          issuing_address=issuing_address)
 
