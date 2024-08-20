@@ -3,7 +3,7 @@ import os
 
 from cert_core import UnknownChainError
 
-from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler
+from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler, CertificateBatchWebHandler, CertificateWebV3Handler
 from cert_issuer.blockchain_handlers.ethereum.connectors import EthereumServiceProviderConnector
 from cert_issuer.blockchain_handlers.ethereum.signer import EthereumSigner
 from cert_issuer.blockchain_handlers.ethereum.transaction_handlers import EthereumTransactionHandler
@@ -56,14 +56,18 @@ def initialize_signer(app_config):
     return secret_manager
 
 
-def instantiate_blockchain_handlers(app_config):
+def instantiate_blockchain_handlers(app_config, file_mode=True):
     issuing_address = app_config.issuing_address
     chain = app_config.chain
     secret_manager = initialize_signer(app_config)
-    certificate_batch_handler = CertificateBatchHandler(secret_manager=secret_manager,
-                                                        certificate_handler=CertificateV3Handler(app_config),
-                                                        merkle_tree=MerkleTreeGenerator(),
-                                                        config=app_config)
+
+    certificate_batch_handler = (CertificateBatchHandler if file_mode else CertificateBatchWebHandler)(
+        secret_manager=secret_manager,
+        certificate_handler=(CertificateV3Handler if file_mode else CertificateWebV3Handler)(app_config),
+        merkle_tree=MerkleTreeGenerator(),
+        config=app_config
+    )
+
     if chain.is_mock_type():
         transaction_handler = MockTransactionHandler()
     # ethereum chains

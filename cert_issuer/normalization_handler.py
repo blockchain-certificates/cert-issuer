@@ -14,7 +14,7 @@ class JSONLDHandler:
 
     @staticmethod
     def preload_contexts():
-        if CONFIG.context_urls is None or CONFIG.context_file_paths is None:
+        if CONFIG is None or CONFIG.context_urls is None or CONFIG.context_file_paths is None:
             return
         for (url, path) in zip(CONFIG.context_urls, CONFIG.context_file_paths):
             with open(os.path.join(os.getcwd(), path)) as context_file:
