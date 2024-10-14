@@ -24,7 +24,7 @@ class MerkleProof2019Suite:
             self.previousProof = previous_proof
 
     def get_creation_time(self):
-        return datetime.now().isoformat()
+        return datetime.now().replace(microsecond=0).isoformat() + 'Z'
 
     def to_json_object(self):
         return self.__dict__

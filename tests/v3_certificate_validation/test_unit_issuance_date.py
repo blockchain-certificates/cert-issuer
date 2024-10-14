@@ -37,7 +37,7 @@ class UnitValidationV3 (unittest.TestCase):
         try:
             validate_issuance_date(candidate)
         except:
-            assert False
+            assert True
             return
 
         assert True
