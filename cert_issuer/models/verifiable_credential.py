@@ -8,7 +8,8 @@ from jsonschema import validate as jsonschema_validate
 
 # TODO: move the v3 checks to cert-schema
 def validate_RFC3339_date (date):
-    return re.match('^[1-9]\d{3}-\d{2}-\d{2}[Tt\s]\d{2}:\d{2}:\d{2}(?:\.\d{3})?((?:[+-]\d{2}:\d{2})|[Zz])$', date)
+    # // https://www.w3.org/TR/vc-data-model-2.0/#example-regular-expression-to-detect-a-valid-xml-schema-1-1-part-2-datetimestamp
+    return re.match('-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))$', date)
 
 def is_valid_url (url):
     try:
