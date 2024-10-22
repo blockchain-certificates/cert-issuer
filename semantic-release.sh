@@ -5,4 +5,4 @@ git config user.name botcerts
 git config user.email botcerts@learningmachine.com
 git checkout master
 semantic-release version
-semantic-release publish
+source ./release_package.sh
