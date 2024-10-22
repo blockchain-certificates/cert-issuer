@@ -3,4 +3,4 @@
 rm -rf dist
 python3 setup.py sdist bdist_wheel
 keyring --disable
-twine upload dist/* -u%$TWINE_USERNAME% -p%$TWINE_PASSWORD% --verbose
+twine upload dist/* -u $TWINE_USERNAME -p $TWINE_PASSWORD --verbose
