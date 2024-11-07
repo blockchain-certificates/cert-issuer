@@ -70,12 +70,16 @@ def validate_credential_subject (credential_subject, credential_schema):
     if not isinstance(credential_schema, list):
         credential_schema = [credential_schema]
 
+    if not isinstance(credential_subject, list):
+        credential_subject = [credential_subject]
+
     for schema in credential_schema:
         schema_url = schema['id']
         local_filename, headers = urlretrieve(schema_url)
         with open(local_filename) as f:
             schema = json.load(f)
-            jsonschema_validate(credential_subject, schema)
+            for subject in credential_subject:
+                jsonschema_validate(subject, schema)
     pass
 
 def validate_issuer (certificate_issuer):
