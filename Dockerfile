@@ -1,5 +1,9 @@
-FROM seegno/bitcoind:0.13-alpine
-MAINTAINER Kim Duffy "kimhd@mit.edu"
+FROM ruimarinho/bitcoin-core:24.0.1-alpine
+
+# Vulnerability fixes.
+RUN apk upgrade busybox
+RUN apk add --upgrade sqlite sqlite-dev sqlite-libs openssl
+
 
 COPY . /cert-issuer
 COPY conf_regtest.ini /etc/cert-issuer/conf.ini
@@ -17,11 +21,11 @@ RUN apk add --update \
         linux-headers \
         make \
         musl-dev \
-        python \
         python3 \
         python3-dev \
-        tar \
-    && python3 -m ensurepip \
+        tar
+
+RUN python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
     && pip3 install Cython \
     && pip3 install wheel \
@@ -34,6 +38,8 @@ RUN apk add --update \
     && rm -r /usr/lib/python*/ensurepip \
     && rm -rf /var/cache/apk/* \
     && rm -rf /root/.cache
+
+
 
 
 ENTRYPOINT bitcoind -daemon && bash
