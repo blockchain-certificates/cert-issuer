@@ -2,9 +2,9 @@ import io
 import unittest
 
 from bitcoin import SelectParams
-from pycoin.serialize import b2h, h2b
-from pycoin.tx.Spendable import Spendable
-from pycoin.tx.Tx import Tx
+from pycoin.encoding.hexbytes import b2h, h2b
+from pycoin.coins.bitcoin.Spendable import Spendable
+from pycoin.coins.bitcoin.Tx import Tx
 
 from cert_issuer.blockchain_handlers.bitcoin import BitcoinTransactionCostConstants, tx_utils
 

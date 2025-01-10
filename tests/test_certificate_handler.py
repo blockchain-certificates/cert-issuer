@@ -3,7 +3,7 @@ import unittest
 import mock
 import json
 import io
-from pycoin.serialize import b2h
+from pycoin.encoding.hexbytes import b2h
 from mock import patch, mock_open
 
 from cert_issuer.certificate_handlers import CertificateWebV2Handler, CertificateV2Handler, CertificateBatchHandler, CertificateHandler, CertificateBatchWebHandler

@@ -4,9 +4,8 @@ import logging
 from bitcoin.signmessage import BitcoinMessage, SignMessage
 from bitcoin.signmessage import VerifyMessage
 from bitcoin.wallet import CBitcoinSecret
-from pycoin.encoding import wif_to_secret_exponent
-from pycoin.networks import wif_prefix_for_netcode
-from pycoin.tx.pay_to import build_hash160_lookup
+from pycoin.networks.registry import network_for_netcode
+from pycoin.solve.utils import build_hash160_lookup
 
 from cert_issuer.errors import UnverifiedSignatureError, UnableToSignTxError
 from cert_issuer.helpers import to_pycoin_chain
@@ -16,7 +15,6 @@ from cert_issuer.models import Signer
 class BitcoinSigner(Signer):
     def __init__(self, bitcoin_chain):
         self.bitcoin_chain = bitcoin_chain
-        self.allowable_wif_prefixes = wif_prefix_for_netcode(to_pycoin_chain(bitcoin_chain))
 
     def sign_message(self, wif, message_to_sign):
         secret_key = CBitcoinSecret(wif)
@@ -25,7 +23,10 @@ class BitcoinSigner(Signer):
         return str(signature, 'utf-8')
 
     def sign_transaction(self, wif, transaction_to_sign):
-        secret_exponent = wif_to_secret_exponent(wif, self.allowable_wif_prefixes)
+        netcode = to_pycoin_chain(self.bitcoin_chain)
+        network = network_for_netcode(netcode)
+        key = network.parse.wif(wif)
+        secret_exponent = key.secret_exponent()
         lookup = build_hash160_lookup([secret_exponent])
         signed_transaction = transaction_to_sign.sign(lookup)
         # Because signing failures silently continue, first check that the inputs are signed

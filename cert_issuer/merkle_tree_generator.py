@@ -2,7 +2,7 @@ import hashlib
 
 from cert_core import Chain
 from blockcerts_merkletools import MerkleTools
-from pycoin.serialize import h2b
+from pycoin.encoding.hexbytes import h2b
 
 
 def hash_byte_array(data):
