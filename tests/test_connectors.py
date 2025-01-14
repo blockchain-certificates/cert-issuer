@@ -5,7 +5,7 @@ from bitcoin.core import COutPoint, lx, x, CScript
 from bitcoin.core.script import OP_EQUALVERIFY, OP_CHECKSIG, OP_DUP, OP_HASH160
 from bitcoin.wallet import P2PKHBitcoinAddress
 from mock import patch
-from pycoin.serialize import b2h
+from pycoin.encoding.hexbytes import b2h
 
 from cert_issuer.blockchain_handlers.bitcoin.connectors import BitcoindConnector
 
