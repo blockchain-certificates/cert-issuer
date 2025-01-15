@@ -5,7 +5,7 @@ configargparse==0.13.0
 glob2==0.6
 mock==2.0.0
 requests[security]>=2.18.4
-pycoin==0.80
+pycoin==0.92.20241201
 pyld==2.0.3
 safe-pysha3>=1.0.2
 python-bitcoinlib>=0.10.1

@@ -5,7 +5,7 @@ import shutil
 
 import glob2
 from cert_core import Chain, UnknownChainError
-from pycoin.serialize import b2h, h2b
+from pycoin.encoding.hexbytes import b2h, h2b
 
 from cert_issuer.errors import NoCertificatesFoundError
 

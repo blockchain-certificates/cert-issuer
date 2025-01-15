@@ -2,7 +2,7 @@ import unittest
 
 import mock
 import builtins
-from pycoin.serialize import b2h
+from pycoin.encoding.hexbytes import b2h
 from mock import patch
 
 from cert_issuer.certificate_handlers import CertificateWebV3Handler, CertificateV3Handler, CertificateBatchHandler, CertificateHandler, CertificateBatchWebHandler

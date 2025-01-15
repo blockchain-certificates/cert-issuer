@@ -4,7 +4,7 @@ from datetime import datetime
 
 from cert_core import Chain
 from merkletools import MerkleTools
-from pycoin.serialize import h2b
+from pycoin.encoding.hexbytes import h2b
 from lds_merkle_proof_2019.merkle_proof_2019 import MerkleProof2019
 from cert_issuer import helpers
 
