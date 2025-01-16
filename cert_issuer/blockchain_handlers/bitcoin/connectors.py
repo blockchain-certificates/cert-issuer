@@ -10,12 +10,12 @@ import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
 from cert_core import Chain
-from pycoin.serialize import b2h, b2h_rev, h2b, h2b_rev
+from pycoin.encoding.hexbytes import b2h, b2h_rev, h2b, h2b_rev
 from pycoin.services import providers
 from pycoin.services.chain_so import ChainSoProvider
 from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
-from pycoin.tx.Spendable import Spendable
+from pycoin.coins.bitcoin.Spendable import Spendable
 
 import cert_issuer.config
 from cert_issuer import helpers

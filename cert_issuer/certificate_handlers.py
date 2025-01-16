@@ -3,7 +3,7 @@ import logging
 
 from cert_issuer import helpers
 from cert_issuer.proof_handler import ProofHandler
-from pycoin.serialize import b2h
+from pycoin.encoding.hexbytes import b2h
 from cert_issuer.normalization_handler import JSONLDHandler
 from cert_issuer.models import CertificateHandler, BatchHandler
 

@@ -12,7 +12,7 @@ import logging
 from bitcoin.core import CScript, CMutableTransaction, CMutableTxOut, CTxIn, COutPoint
 from bitcoin.core.script import OP_RETURN
 from bitcoin.wallet import CBitcoinAddress
-from pycoin.tx.Tx import Tx, TxOut
+from pycoin.coins.bitcoin.Tx import Tx, TxOut
 
 from cert_issuer.errors import UnverifiedTransactionError
 
