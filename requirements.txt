@@ -11,3 +11,4 @@ python-bitcoinlib>=0.10.1
 tox>=3.0.0
 jsonschema==4.23.0
 urllib3==1.26.19
+setuptools>=75.8.0
