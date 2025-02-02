@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 DATA_INTEGRITY_PROOF_TYPE = 'DataIntegrityProof'
 MERKLE_PROOF_2019_TYPE = 'merkle-proof-2019'
@@ -24,7 +24,7 @@ class MerkleProof2019Suite:
             self.previousProof = previous_proof
 
     def get_creation_time(self):
-        return datetime.now().replace(microsecond=0).isoformat() + 'Z'
+        return datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None).isoformat() + 'Z'
 
     def to_json_object(self):
         return self.__dict__
