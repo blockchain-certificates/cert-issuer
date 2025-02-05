@@ -27,7 +27,7 @@ class BitcoinSigner(Signer):
         network = network_for_netcode(netcode)
         key = network.parse.wif(wif)
         secret_exponent = key.secret_exponent()
-        lookup = build_hash160_lookup([secret_exponent])
+        lookup = build_hash160_lookup([secret_exponent], generators=[network.generator])
         signed_transaction = transaction_to_sign.sign(lookup)
         # Because signing failures silently continue, first check that the inputs are signed
         for input in signed_transaction.txs_in:
