@@ -25,7 +25,7 @@ class MerkleProof2019Suite:
         if issuanceTimezone == 'UTC':
             return datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None).isoformat() + 'Z'
         else:
-            return datetime.now().replace(microsecond=0).isoformat() #TODO: add timezone offset
+            return datetime.now().astimezone().replace(microsecond=0).isoformat()
 
     def to_json_object(self):
         return self.__dict__
