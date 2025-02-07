@@ -21,8 +21,8 @@ class ProofHandler:
         self.update_context_for_proof(certificate_json)
         return certificate_json
 
-    def add_merkle_proof_2019(self, certificate_json, proof_value, app_config=None):
-        merkle_proof = MerkleProof2019Suite(proof_value, app_config.verification_method)
+    def add_merkle_proof_2019(self, certificate_json, proof_value, app_config):
+        merkle_proof = MerkleProof2019Suite(proof_value, app_config)
         certificate_json = self.add_proof(certificate_json, merkle_proof.to_json_object(), app_config)
         return certificate_json
 

@@ -30,6 +30,7 @@ class TestCertificateHandler(unittest.TestCase):
         class Mock_App_Config:
             def __init__(self):
                 self.verification_method = 'did:example:1234'
+                self.issuance_timezone = 'UTC'
 
         return Mock_App_Config()
 

@@ -128,6 +128,14 @@ def add_arguments(p):
                         '"concurrent": Concurrent proofs mean the parties independently sign the document without ' +
                         'the other parties\' signatures. Defaults to chained proofs.'
     )
+    p.add_argument('--issuance_timezone',
+                   default='UTC',
+                   type=str,
+                   choices=['UTC', 'local'],
+                   help='Set the timezone offset for the issuance. Will be used in the `created` property of the proof \n' +
+                        'as well as in the `validFrom` property. If set to `local` time, the time on the issuing machine will \n' +
+                        'be used, otherwise UTC time will be applied.'
+                   )
 
 
 def get_config():
