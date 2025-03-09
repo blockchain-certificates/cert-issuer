@@ -7,22 +7,24 @@ COPY . /cert-issuer
 COPY conf_regtest.ini /etc/cert-issuer/conf.ini
 
 RUN apk add --update \
-        bash \
-        ca-certificates \
-        curl \
-        gcc \
-        gmp-dev \
-        libffi-dev \
-        libressl-dev \
-        libxml2-dev \
-        libxslt-dev \
-        linux-headers \
-        make \
-        musl-dev \
-        python2 \
-        python3 \
-        python3-dev \
-        tar \
+    bash \
+    ca-certificates \
+    curl \
+    gcc \
+    gmp-dev \
+    libffi-dev \
+    libressl-dev \
+    libxml2-dev \
+    libxslt-dev \
+    linux-headers \
+    make \
+    musl-dev \
+    python2 \
+    python3 \
+    python3-dev \
+    tar \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && source $HOME/.cargo/env \
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
     && pip3 install Cython \
