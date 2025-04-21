@@ -10,6 +10,7 @@ import bitcoin.rpc
 import requests
 from bitcoin.core import CTransaction
 from cert_core import Chain
+from pycoin.coins.bitcoin.Tx import Tx
 from pycoin.encoding.hexbytes import b2h, b2h_rev, h2b, h2b_rev
 from pycoin.services import providers
 from pycoin.services.chain_so import ChainSoProvider
@@ -46,6 +47,9 @@ class BlockcypherProvider(object):
     def __init__(self, base_url, api_token=None):
         self.base_url = base_url
         self.api_token = api_token
+        
+        if self.api_token:
+            logging.info('Blockcypher at ' + base_url + ' is configured with an API token')
 
     def broadcast_tx(self, tx):
         hextx = to_hex(tx)
@@ -81,19 +85,120 @@ class BlockcypherProvider(object):
                 spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
         return spendables
 
-class BlockstreamBroadcaster(object):
-    def __init__(self, base_url):
-        self.base_url = base_url
+class BlockstreamProvider(object):
+    def __init__(self, base_url_free, base_url_enterprise, client_id=None, client_secret=None):
+        if base_url_enterprise and client_id and client_secret:
+            logging.info('Blockstream provider for ' + base_url_enterprise + ' configured for enterprise tier')
+            self.base_url = base_url_enterprise
+        elif base_url_enterprise:
+            logging.warning('Blockstream enterprise base URL is set, but CLIENT_ID and/or CLIENT_SECRET are missing. Defaulting to free tier.')
+            self.base_url = base_url_free
+            logging.info('Blockstream provider for ' + base_url_free + ' configured for free tier')
+        else:
+            self.base_url = base_url_free
+            logging.info('Blockstream provider for ' + base_url_free + ' configured for free tier')
+        
+        self.client_id = client_id
+        self.client_secret = client_secret
+
+    def get_access_token(self):
+        if not self.client_id or not self.client_secret:
+            logging.warning('Client ID or Client Secret is not set.')
+            return None
+        token_url = 'https://login.blockstream.com/realms/blockstream-public/protocol/openid-connect/token'
+        
+        payload = {
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
+            'grant_type': 'client_credentials',
+            'scope': 'openid'
+        }
+        
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        
+        try:
+            response = requests.post(token_url, data=payload, headers=headers)
+            response.raise_for_status()  # Raise an error for bad responses
+            
+            # Assuming the token is returned in JSON format under key 'access_token'
+            access_token = response.json().get('access_token')
+            return access_token
+        except requests.exceptions.RequestException as e:
+            logging.error('Error obtaining access token: %s', str(e))
+            return None
 
     def broadcast_tx(self, tx):
         hextx = to_hex(tx)
         broadcast_url = self.base_url + '/tx'
-        response = requests.post(broadcast_url, data=hextx)
+        
+        access_token = self.get_access_token()
+
+        if access_token:
+            logging.info('Using enterprise-tier Blockstream to broadcast transaction')
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+            }
+        else:
+            logging.info('Using free-tier Blockstream to broadcast transaction.')
+            headers = {}
+        
+        response = requests.post(broadcast_url, data=hextx, headers=headers)
+        
         if int(response.status_code) == 200:
             tx_id = response.text
             return tx_id
         logging.error('Error broadcasting the transaction through the Blockstream API. Error msg: %s', response.text)
         raise BroadcastError(response.text)
+    
+    def spendables_for_address(self, address):
+        logging.info('Trying to get spendables from Blockstream')
+        spendables = []
+
+        # Default headers
+        headers = {}
+
+        # Determine if we should use authenticated access
+        access_token = None
+        if self.client_id and self.client_secret:
+            access_token = self.get_access_token()
+            if access_token:
+                logging.info('Using enterprise-tier Blockstream to get spendables.')
+                headers['Authorization'] = f'Bearer {access_token}'
+            else:
+                logging.warning('Failed to get access token; falling back to free-tier Blockstream for spendables.')
+        else:
+            logging.info('Using free-tier Blockstream to get spendables.')
+
+        # Step 1: Get UTXOs for the address
+        url = f"{self.base_url}/address/{address}/utxo"
+        response = requests.get(url, headers=headers)
+
+        if int(response.status_code) == 200:
+            utxos = response.json()
+            for utxo in utxos:
+                coin_value = utxo.get('value')
+                previous_hash = h2b_rev(utxo.get('txid'))
+                previous_index = utxo.get('vout')
+
+                # Step 2: Get full transaction to retrieve scriptPubKey
+                tx_url = f"{self.base_url}/tx/{utxo['txid']}/hex"
+                tx_response = requests.get(tx_url, headers=headers)
+
+                if int(tx_response.status_code) == 200:
+                    tx_hex = tx_response.text
+                    tx = Tx.from_hex(tx_hex)
+                    script = tx.txs_out[utxo['vout']].script
+
+                    spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
+                else:
+                    logging.error(f"Error fetching full transaction {utxo['txid']} from Blockstream.")
+        else:
+            logging.error(f"Error fetching UTXOs for address {address}: {response.text}")
+
+        return spendables
+
 
 class BitcoindConnector(object):
     def __init__(self, netcode):
@@ -257,6 +362,8 @@ class BitcoinServiceProviderConnector(ServiceProviderConnector):
 # configure api tokens
 config = cert_issuer.config.CONFIG
 blockcypher_token = None if config is None else config.blockcypher_api_token
+blockstream_client_id = None if config is None else config.blockstream_client_id
+blockstream_client_secret = None if config is None else config.blockstream_client_secret
 
 PYCOIN_BTC_PROVIDERS = "chain.so"  # blockchain.info blockcypher.com
 PYCOIN_XTN_PROVIDERS = ""  # chain.so
@@ -265,22 +372,65 @@ PYCOIN_XTN_PROVIDERS = ""  # chain.so
 connectors = {}
 
 # configure mainnet providers
-provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS,
-                                                      helpers.to_pycoin_chain(Chain.bitcoin_mainnet))
-provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/main', blockcypher_token))
-provider_list.append(InsightProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
-provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
-provider_list.append(BlockstreamBroadcaster('https://blockstream.info/api'))
+provider_list = providers.providers_for_config_string(
+    PYCOIN_BTC_PROVIDERS,
+    helpers.to_pycoin_chain(Chain.bitcoin_mainnet)
+)
+provider_list.append(
+    BlockstreamProvider(
+        'https://blockstream.info/api',
+        'https://enterprise.blockstream.info/api',
+        blockstream_client_id,
+        blockstream_client_secret
+    )
+)
+provider_list.append(
+    BlockcypherProvider(
+        'https://api.blockcypher.com/v1/btc/main',
+        blockcypher_token
+    )
+)
+provider_list.append(
+    InsightProvider(
+        netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)
+    )
+)
+#provider_list.append(
+#    ChainSoProvider(
+#        netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)
+#    )
+#)
+
 connectors[Chain.bitcoin_mainnet] = provider_list
 
 # configure testnet providers
-xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS,
-                                                          helpers.to_pycoin_chain(Chain.bitcoin_testnet))
-xtn_provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_testnet)))
-xtn_provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/test3', blockcypher_token))
-xtn_provider_list.append(BlockstreamBroadcaster('https://blockstream.info/testnet/api'))
-connectors[Chain.bitcoin_testnet] = xtn_provider_list
+xtn_provider_list = providers.providers_for_config_string(
+    PYCOIN_XTN_PROVIDERS,
+    helpers.to_pycoin_chain(Chain.bitcoin_testnet)
+)
+#xtn_provider_list.append(
+#    ChainSoProvider(
+#        netcode=helpers.to_pycoin_chain(Chain.bitcoin_testnet)
+#    )
+#)
 
+xtn_provider_list.append(
+    BlockstreamProvider(
+        'https://blockstream.info/testnet/api',
+        'https://enterprise.blockstream.info/testnet/api',
+        blockstream_client_id,
+        blockstream_client_secret
+    )
+)
+
+xtn_provider_list.append(
+    BlockcypherProvider(
+        'https://api.blockcypher.com/v1/btc/test3',
+        blockcypher_token
+    )
+)
+
+connectors[Chain.bitcoin_testnet] = xtn_provider_list
 
 def get_providers_for_chain(chain, bitcoind=False):
     if bitcoind:

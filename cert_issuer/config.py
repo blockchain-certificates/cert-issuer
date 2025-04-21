@@ -83,6 +83,11 @@ def add_arguments(p):
 
     p.add_argument('--blockcypher_api_token', default=None, type=str,
                    help='the API token of the blockcypher broadcaster', env_var='BLOCKCYPHER_API_TOKEN')
+                   
+    p.add_argument('--blockstream_client_id', default=None, type=str,
+                   help='the CLIENT_ID of the Blockstream API key', env_var='BLOCKSTREAM_CLIENT_ID')
+    p.add_argument('--blockstream_client_secret', default=None, type=str,
+                   help='the CLIENT_SECRET of the Blockstream API key', env_var='BLOCKSTREAM_CLIENT_SECRET')
 
 
 def get_config():
