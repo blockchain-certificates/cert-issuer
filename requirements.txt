@@ -2,7 +2,6 @@ cert-core==2.1.10
 cert-schema==3.0.0a9
 blockcerts-merkletools==1.0.3
 configargparse==0.12.0
-glob2==0.6
 mock==2.0.0
 requests[security]>=2.18.4
 pycoin==0.92.20241201
