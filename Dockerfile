@@ -1,4 +1,4 @@
-FROM lncm/bitcoind:v22.0
+FROM lncm/bitcoind:v27.2
 MAINTAINER Kim Duffy "kimhd@mit.edu"
 
 USER root
@@ -19,10 +19,12 @@ RUN apk add --update \
         linux-headers \
         make \
         musl-dev \
-        python2 \
         python3 \
         python3-dev \
         tar \
+        git \
+    && python3 -m venv .venv \
+    && . .venv/bin/activate \
     && python3 -m ensurepip \
     && pip3 install --upgrade pip setuptools \
     && pip3 install Cython \
