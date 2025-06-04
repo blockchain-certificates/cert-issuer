@@ -15,8 +15,8 @@ def get_config():
         config = cert_issuer.config.get_config()
     return config
 
-@app.route('/cert_issuer/api/v1.0/issue/', methods=['POST'])
-@app.route('/cert_issuer/api/v1.0/issue/<handler>', methods=['POST'])
+@app.route('/api/v1.0/credentials/issue/', methods=['POST'])
+@app.route('/api/v1.0/credentials/issue/<handler>', methods=['POST'])
 def issue(handler=None):
     blockchain_handler = ethereum if handler == 'ethereum' else bitcoin
     config = get_config()
