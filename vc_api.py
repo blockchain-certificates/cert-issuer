@@ -25,11 +25,20 @@ def issue(handler=None):
         array_of_credentials = [request.json]
     else:
         array_of_credentials = request.json
-    certificate_batch_handler, transaction_handler, connector = \
-            blockchain_handler.instantiate_blockchain_handlers(config, False)
-    certificate_batch_handler.set_certificates_in_batch(array_of_credentials)
-    cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
-    return json.dumps(certificate_batch_handler.proof)
+
+    try:
+        certificate_batch_handler, transaction_handler, connector = \
+                blockchain_handler.instantiate_blockchain_handlers(config, False)
+        certificate_batch_handler.set_certificates_in_batch(array_of_credentials)
+        cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
+
+        response = {
+            'verifiableCredential': json.dumps(certificate_batch_handler.proof)
+        }
+
+        return response, 201
+    except Exception:
+        return 400
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
