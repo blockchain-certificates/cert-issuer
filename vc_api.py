@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import json
-from flask import Flask, jsonify, request, abort
-from subprocess import call
+from flask import Flask, request
 
 import cert_issuer.config
 from cert_issuer.blockchain_handlers import bitcoin, ethereum
@@ -22,9 +21,13 @@ def issue(handler=None):
     blockchain_handler = ethereum if handler == 'ethereum' else bitcoin
     config = get_config()
 
+    if not isinstance(request.json, list):
+        array_of_credentials = [request.json]
+    else:
+        array_of_credentials = request.json
     certificate_batch_handler, transaction_handler, connector = \
             blockchain_handler.instantiate_blockchain_handlers(config, False)
-    certificate_batch_handler.set_certificates_in_batch(request.json)
+    certificate_batch_handler.set_certificates_in_batch(array_of_credentials)
     cert_issuer.issue_certificates.issue(config, certificate_batch_handler, transaction_handler)
     return json.dumps(certificate_batch_handler.proof)
 
