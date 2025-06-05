@@ -1,5 +1,5 @@
 cert-core>=3.0.0
-cert-schema>=3.7.2
+cert-schema>=3.9.1
 merkletools @ git+https://github.com/tierion/pymerkletools.git@f10d71e2cd529a833728e836dc301f9af502d0b0
 configargparse==0.13.0
 glob2==0.6
