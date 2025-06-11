@@ -141,8 +141,8 @@ def add_arguments(p):
 def get_config(path_to_config=os.path.join(PATH, 'conf.ini')):
     configure_logger()
     print('config file path', path_to_config)
-    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, path_to_config),
-                                                               '/etc/cert-issuer/conf.ini'])
+    p = configargparse.ArgParser(default_config_files=[os.path.join(PATH, path_to_config),
+                                                              '/etc/cert-issuer/conf.ini'])
     add_arguments(p)
     parsed_config, _ = p.parse_known_args()
     print('loaded config', p.parse_known_args())
