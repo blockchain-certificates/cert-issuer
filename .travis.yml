@@ -1,5 +1,7 @@
 sudo: false
 language: python
+dist: jammy
+language: python
 python:
   - "3.12"
 install: pip install tox-travis
