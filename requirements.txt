@@ -1,6 +1,6 @@
 cert-core==2.1.10
 cert-schema==3.0.0a9
-blockcerts-merkletools==1.0.3
+blockcerts-merkletools==1.0.4
 configargparse==0.12.0
 mock==2.0.0
 requests[security]>=2.18.4
@@ -9,5 +9,5 @@ pyld>=1.0.3
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
 jsonschema==4.23.0
-urllib3==1.26.19
+urllib3==2.5.0
 setuptools>=75.8.0
