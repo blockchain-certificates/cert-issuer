@@ -12,6 +12,10 @@ Blockcerts v3 is released. This new version of the standard leverages the [W3C V
 Cert-issuer v3 is _not_ backwards compatible and does not support Blockcerts v2 issuances. If you need to work with v2, you need to install cert-issuer v2 or use the [v2](https://github.com/blockchain-certificates/cert-issuer/tree/v2) branch of this repo.
 You may expect little to no maintenance to the v2 code at this point.
 
+## Using a VC API compliant issuing server
+
+To run this in a server, use https://github.com/blockchain-certificates/cert-issuer-vc-api.
+
 ## Web resources
 
 For development or testing using web requests, check out the documentation at [docs/web_resources.md](./docs/web_resources.md).
