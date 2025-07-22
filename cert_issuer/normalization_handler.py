@@ -9,7 +9,7 @@ class JSONLDHandler:
     @staticmethod
     def normalize_to_utf8(certificate_json):
         JSONLDHandler.preload_contexts()
-        normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=False)
+        normalized = normalize_jsonld(certificate_json, detect_unmapped_fields=True)
         return normalized.encode('utf-8')
 
     @staticmethod

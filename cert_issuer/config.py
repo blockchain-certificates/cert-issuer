@@ -19,14 +19,15 @@ CONFIG = None
 
 
 def configure_logger():
-    # Configure logging settings; create console handler and set level to info
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+
+    if not logger.handlers:  # only add one handler
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter("%(levelname)s - %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
 
 # restructured arguments to put the chain specific arguments together.
@@ -138,12 +139,14 @@ def add_arguments(p):
                    )
 
 
-def get_config():
+def get_config(path_to_config=os.path.join(PATH, 'conf.ini')):
     configure_logger()
-    p = configargparse.getArgumentParser(default_config_files=[os.path.join(PATH, 'conf.ini'),
-                                                               '/etc/cert-issuer/conf.ini'])
+    print('config file path', path_to_config)
+    p = configargparse.ArgParser(default_config_files=[os.path.join(PATH, path_to_config),
+                                                              '/etc/cert-issuer/conf.ini'])
     add_arguments(p)
     parsed_config, _ = p.parse_known_args()
+    print('loaded config', p.parse_known_args())
 
     if not parsed_config.safe_mode:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '

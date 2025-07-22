@@ -66,6 +66,7 @@ def validate_context (context, type):
 
     pass
 
+
 def validate_credential_subject (credential_subject, credential_schema):
     if not isinstance(credential_schema, list):
         credential_schema = [credential_schema]
@@ -81,6 +82,7 @@ def validate_credential_subject (credential_subject, credential_schema):
             for subject in credential_subject:
                 jsonschema_validate(subject, schema)
     pass
+
 
 def validate_issuer (certificate_issuer):
     has_error = False
