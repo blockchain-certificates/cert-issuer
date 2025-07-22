@@ -6,6 +6,8 @@ python:
 branches:
   only:
     - master
+before_install:
+  - git fetch --unshallow --tags
 install: pip install tox-travis
 script: tox
 after_success:
