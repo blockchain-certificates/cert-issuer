@@ -6,12 +6,14 @@ from cert_schema import ContextUrls
 from urllib.request import urlretrieve
 from jsonschema import validate as jsonschema_validate
 
+
 # TODO: move the v3 checks to cert-schema
-def validate_RFC3339_date (date):
+def validate_RFC3339_date(date):
     # // https://www.w3.org/TR/vc-data-model-2.0/#example-regular-expression-to-detect-a-valid-xml-schema-1-1-part-2-datetimestamp
     return re.match('-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?|(24:00:00(\.0+)?))(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))$', date)
 
-def is_valid_url (url):
+
+def is_valid_url(url):
     try:
         parsed_url = urlparse(url)
     except:
@@ -20,21 +22,24 @@ def is_valid_url (url):
        or parsed_url.netloc.__contains__(' '))
        and url.__contains__(':'))
 
-def is_V1_verifiable_credential (context):
+
+def is_V1_verifiable_credential(context):
     ContextUrlsInstance = ContextUrls()
     return ContextUrlsInstance.verifiable_credential_v1() in context
 
-def is_V2_verifiable_credential (context):
+
+def is_V2_verifiable_credential(context):
     ContextUrlsInstance = ContextUrls()
     return ContextUrlsInstance.verifiable_credential_v2() in context
 
 
-def validate_url (url):
+def validate_url(url):
     if not is_valid_url (url):
         raise ValueError('Invalid URL: {}'.format(url))
     pass
 
-def validate_type (certificate_type):
+
+def validate_type(certificate_type):
     compulsory_types = ['VerifiableCredential', 'VerifiablePresentation']
     if not isinstance(certificate_type, list):
         raise ValueError('`type` property must be an array')
@@ -44,7 +49,13 @@ def validate_type (certificate_type):
         raise ValueError('`type` property must be an array with at least `VerifiableCredential` or `VerifiablePresentation` value')
     pass
 
-def validate_context (context, type):
+
+def validate_id(identifier):
+    validate_url(identifier)
+    pass
+
+
+def validate_context(context, type):
     ContextUrlsInstance = ContextUrls()
     vc_context_url = [ContextUrlsInstance.verifiable_credential_v1(), ContextUrlsInstance.verifiable_credential_v2()]
     blockcerts_valid_context_url = ContextUrlsInstance.v3_all()
@@ -84,7 +95,7 @@ def validate_credential_subject (credential_subject, credential_schema):
     pass
 
 
-def validate_issuer (certificate_issuer):
+def validate_issuer(certificate_issuer):
     has_error = False
     if isinstance(certificate_issuer, str) and not is_valid_url(certificate_issuer):
         has_error = True
@@ -99,7 +110,8 @@ def validate_issuer (certificate_issuer):
         raise ValueError('`issuer` property must be a URL string or an object with an `id` property containing a URL string')
     pass
 
-def validate_date_RFC3339_string_format (date, property_name):
+
+def validate_date_RFC3339_string_format(date, property_name):
     error_message = '`{}` property must be a valid RFC3339 string.'.format(property_name)
     if not isinstance(date, str):
         error_message += ' `{}` value is not a string'.format(date)
@@ -110,28 +122,34 @@ def validate_date_RFC3339_string_format (date, property_name):
         raise ValueError(error_message)
     pass
 
-def validate_issuance_date (certificate_issuance_date):
+
+def validate_issuance_date(certificate_issuance_date):
     validate_date_RFC3339_string_format(certificate_issuance_date, 'issuanceDate')
     pass
 
-def validate_expiration_date (certificate_expiration_date):
+
+def validate_expiration_date(certificate_expiration_date):
     validate_date_RFC3339_string_format(certificate_expiration_date, 'expirationDate')
     pass
 
-def validate_valid_from_date (certificate_valid_from_date):
+
+def validate_valid_from_date(certificate_valid_from_date):
     validate_date_RFC3339_string_format(certificate_valid_from_date, 'validFrom')
     pass
 
-def validate_valid_until_date (certificate_valid_until_date):
+
+def validate_valid_until_date(certificate_valid_until_date):
     validate_date_RFC3339_string_format(certificate_valid_until_date, 'validUntil')
     pass
+
 
 def validate_date_set_after_other_date(second_date, first_date, second_date_key, first_date_key):
     if not second_date > first_date:
         raise ValueError('`{}` property must be a date set after `{}`'.format(second_date_key, first_date_key))
     pass
 
-def validate_credential_status (certificate_credential_status):
+
+def validate_credential_status(certificate_credential_status):
     if not isinstance(certificate_credential_status, list):
         certificate_credential_status = [certificate_credential_status]
 
@@ -150,6 +168,7 @@ def validate_credential_status (certificate_credential_status):
         except:
             raise ValueError('credentialStatus.type must be a string')
     pass
+
 
 def validate_credential_schema (certificate_credential_schema):
     if not isinstance(certificate_credential_schema, list):
@@ -173,6 +192,7 @@ def validate_credential_schema (certificate_credential_schema):
             raise ValueError('credentialSchema.type must be a string of value: JsonSchema', schema['id'])
     pass
 
+
 def verify_credential(certificate_metadata):
     try:
         # if undefined will throw KeyError
@@ -185,6 +205,13 @@ def verify_credential(certificate_metadata):
         validate_issuer(certificate_metadata['issuer'])
     except KeyError:
         raise ValueError('`issuer` property must be defined')
+    except ValueError as err:
+        raise ValueError(err)
+
+    try:
+        validate_id(certificate_metadata['id'])
+    except KeyError:
+        pass # optional property
     except ValueError as err:
         raise ValueError(err)
 
@@ -261,6 +288,7 @@ def verify_credential(certificate_metadata):
         raise ValueError(err)
 
     pass
+
 
 def verify_presentation (certificate_metadata):
     try:
