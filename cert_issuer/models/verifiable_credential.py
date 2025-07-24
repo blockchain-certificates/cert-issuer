@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from cert_schema import ContextUrls
 from urllib.request import urlretrieve
 from jsonschema import validate as jsonschema_validate
-
+from dateutil import parser, tz
 
 # TODO: move the v3 checks to cert-schema
 def validate_RFC3339_date(date):
@@ -62,12 +62,12 @@ def validate_context(context, type):
 
     if not isinstance(context, list):
         raise ValueError('`@context` property must be an array')
+    if len(context) == 0:
+        raise ValueError('`@context` array cannot be empty')
     if context[0] not in vc_context_url:
         raise ValueError('First @context declared must be one of {}, was given {}'.format(vc_context_url, context[0]))
     if is_V1_verifiable_credential(context) and is_V2_verifiable_credential(context):
         raise ValueError('Cannot have both v1 and v2 Verifiable Credentials contexts defined in the context array')
-    if len(type) > 1 and len(context) == 1:
-        raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
     if context[-1] not in blockcerts_valid_context_url:
         logging.warning("""
            Last `@context` is not blockcerts' context. It is not a critical issue but some issues have come up at times
@@ -78,7 +78,16 @@ def validate_context(context, type):
     pass
 
 
-def validate_credential_subject (credential_subject, credential_schema):
+def validate_credential_subject(credential_subject):
+    if not isinstance(credential_subject, list):
+        credential_subject = [credential_subject]
+
+    for subject in credential_subject:
+        if not isinstance(subject, dict) or not subject:
+            raise ValueError('`credentialSubject` must be a non empty object')
+
+
+def validate_credential_subject_against_schema(credential_subject, credential_schema):
     if not isinstance(credential_schema, list):
         credential_schema = [credential_schema]
 
@@ -89,19 +98,24 @@ def validate_credential_subject (credential_subject, credential_schema):
         schema_url = schema['id']
         local_filename, headers = urlretrieve(schema_url)
         with open(local_filename) as f:
-            schema = json.load(f)
+            schema_data = json.load(f)
             for subject in credential_subject:
-                jsonschema_validate(subject, schema)
-    pass
+                jsonschema_validate(subject, schema_data)
 
 
 def validate_issuer(certificate_issuer):
     has_error = False
+    if certificate_issuer is None:
+        has_error = True
+
     if isinstance(certificate_issuer, str) and not is_valid_url(certificate_issuer):
         has_error = True
 
-    if isinstance(certificate_issuer, dict) and not is_valid_url(certificate_issuer['id']):
-        has_error = True
+    if isinstance(certificate_issuer, dict):
+        if certificate_issuer['id'] is None:
+            has_error = True
+        if certificate_issuer['id'] is not None and not is_valid_url(certificate_issuer['id']):
+            has_error = True
 
     if isinstance(certificate_issuer, list):
         has_error = True
@@ -143,7 +157,14 @@ def validate_valid_until_date(certificate_valid_until_date):
     pass
 
 
-def validate_date_set_after_other_date(second_date, first_date, second_date_key, first_date_key):
+def validate_date_set_after_other_date(second_date_str, first_date_str, second_date_key, first_date_key):
+    first_date = parser.isoparse(first_date_str)
+    second_date = parser.isoparse(second_date_str)
+
+    # Ensure both are in UTC
+    first_date = first_date.astimezone(tz=None).astimezone(tz=tz.UTC)
+    second_date = second_date.astimezone(tz=None).astimezone(tz=tz.UTC)
+
     if not second_date > first_date:
         raise ValueError('`{}` property must be a date set after `{}`'.format(second_date_key, first_date_key))
     pass
@@ -157,7 +178,7 @@ def validate_credential_status(certificate_credential_status):
         try:
             validate_url(status['id'])
         except KeyError:
-            raise ValueError('credentialStatus.id must be defined')
+            pass # optional
         except ValueError:
             raise ValueError('credentialStatus.id must be a valid URL')
 
@@ -183,13 +204,13 @@ def validate_credential_schema (certificate_credential_schema):
             raise ValueError('credentialSchema.id must be a valid URL')
 
         try:
-            isinstance(schema['type'], str)
-            if (schema['type'] != 'JsonSchema'):
-                raise ValueError('Value of credentialSchema.type must be JsonSchema')
+            # using a try to catch if undefined
+            if not isinstance(schema['type'], str):
+                raise ValueError('Value of credentialSchema.type must be a string')
         except KeyError:
             raise ValueError('credentialSchema.type must be defined')
         except:
-            raise ValueError('credentialSchema.type must be a string of value: JsonSchema', schema['id'])
+            raise ValueError('credentialSchema.type must be a string', schema['id'])
     pass
 
 
@@ -278,9 +299,10 @@ def verify_credential(certificate_metadata):
 
     try:
         # if undefined will throw KeyError
+        validate_credential_subject(credential_subject)
         credential_schema = certificate_metadata['credentialSchema']
         validate_credential_schema(credential_schema)
-        validate_credential_subject(credential_subject, credential_schema)
+        validate_credential_subject_against_schema(credential_subject, credential_schema)
     except KeyError:
         # optional property
         pass
