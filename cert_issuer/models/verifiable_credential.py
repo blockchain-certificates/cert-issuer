@@ -169,48 +169,27 @@ def validate_date_set_after_other_date(second_date_str, first_date_str, second_d
         raise ValueError('`{}` property must be a date set after `{}`'.format(second_date_key, first_date_key))
     pass
 
+def validate_prop_type_and_id(prop, prop_name):
+    if not isinstance(prop, list):
+        prop = [prop]
 
-def validate_credential_status(certificate_credential_status):
-    if not isinstance(certificate_credential_status, list):
-        certificate_credential_status = [certificate_credential_status]
+    for p in prop:
+        if 'id' not in p:
+            if prop_name == 'credentialSchema':
+                raise ValueError('{}.id must be defined'.format(prop_name))
+            # else optional
+        else:
+            try:
+                validate_url(p['id'])
+            except ValueError:
+                raise ValueError('{}.id must be a valid URL'.format(prop_name))
 
-    for status in certificate_credential_status:
         try:
-            validate_url(status['id'])
+            isinstance(p['type'], str)
         except KeyError:
-            pass # optional
-        except ValueError:
-            raise ValueError('credentialStatus.id must be a valid URL')
-
-        try:
-            isinstance(status['type'], str)
-        except KeyError:
-            raise ValueError('credentialStatus.type must be defined')
+            raise ValueError('{}.type must be defined'.format(prop_name))
         except:
-            raise ValueError('credentialStatus.type must be a string')
-    pass
-
-
-def validate_credential_schema (certificate_credential_schema):
-    if not isinstance(certificate_credential_schema, list):
-        certificate_credential_schema = [certificate_credential_schema]
-
-    for schema in certificate_credential_schema:
-        try:
-            validate_url(schema['id'])
-        except KeyError:
-            raise ValueError('credentialSchema.id must be defined')
-        except ValueError:
-            raise ValueError('credentialSchema.id must be a valid URL')
-
-        try:
-            # using a try to catch if undefined
-            if not isinstance(schema['type'], str):
-                raise ValueError('Value of credentialSchema.type must be a string')
-        except KeyError:
-            raise ValueError('credentialSchema.type must be defined')
-        except:
-            raise ValueError('credentialSchema.type must be a string', schema['id'])
+            raise ValueError('{}.type must be a string'.format(prop_name))
     pass
 
 
@@ -232,7 +211,7 @@ def verify_credential(certificate_metadata):
     try:
         validate_id(certificate_metadata['id'])
     except KeyError:
-        pass # optional property
+        pass  # optional property
     except ValueError as err:
         raise ValueError(err)
 
@@ -262,6 +241,7 @@ def verify_credential(certificate_metadata):
                 raise ValueError(err)
 
     if is_V2_verifiable_credential(certificate_metadata['@context']):
+        logging.info('Validating a VC v2 credential')
         try:
             # if undefined will throw KeyError
             validate_valid_from_date(certificate_metadata['validFrom'])
@@ -289,23 +269,25 @@ def verify_credential(certificate_metadata):
                 raise ValueError(err)
 
     try:
-        # if undefined will throw KeyError
-        validate_credential_status(certificate_metadata['credentialStatus'])
-    except KeyError:
-        # optional property
-        pass
+        validate_credential_subject(credential_subject)
     except ValueError as err:
         raise ValueError(err)
 
+    # individually handle optional properties
+    for key in ['credentialStatus', 'evidence', 'refreshService', 'termsOfUse']:
+        try:
+            validate_prop_type_and_id(certificate_metadata[key], key)
+        except KeyError:
+            pass  # property is optional
+        except ValueError as err:
+            raise ValueError(err)
+
     try:
-        # if undefined will throw KeyError
-        validate_credential_subject(credential_subject)
         credential_schema = certificate_metadata['credentialSchema']
-        validate_credential_schema(credential_schema)
+        validate_prop_type_and_id(credential_schema, 'credentialSchema')
         validate_credential_subject_against_schema(credential_subject, credential_schema)
     except KeyError:
-        # optional property
-        pass
+        pass  # credentialSchema is optional
     except ValueError as err:
         raise ValueError(err)
 
