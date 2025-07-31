@@ -6,6 +6,7 @@ from cert_schema import ContextUrls
 from urllib.request import urlretrieve
 from jsonschema import validate as jsonschema_validate
 from dateutil import parser, tz
+from cert_issuer.digests import validate_digest_sri
 
 # TODO: move the v3 checks to cert-schema
 def validate_RFC3339_date(date):
@@ -169,6 +170,41 @@ def validate_date_set_after_other_date(second_date_str, first_date_str, second_d
         raise ValueError('`{}` property must be a date set after `{}`'.format(second_date_key, first_date_key))
     pass
 
+
+def validate_related_resource(related_resource):
+    logging.info('A relatedResource object was passed, validating...')
+    print(related_resource)
+    if not isinstance(related_resource, list):
+        related_resource = [related_resource]
+
+    if any(not isinstance(resource, dict) for resource in related_resource):
+        raise ValueError('relatedResource entry must be an object')
+
+    for resource in related_resource:
+        if 'id' not in resource:
+            raise ValueError('relatedResource.id is required')
+        else:
+            logging.info('relatedResource.id is specified')
+            try:
+                validate_url(resource['id'])
+            except ValueError:
+                raise ValueError('relatedResource.id must be a valid URL')
+            logging.info('relatedResource.id is a valid URL')
+
+        if 'digestSRI' not in resource and 'digestMultibase' not in resource:
+            raise ValueError('a relatedResource must contain at least a digestSRI or a digestMultibase')
+
+        if 'digestSRI' in resource:
+            logging.info('A digest SRI was specified, validating...')
+            try:
+                validate_digest_sri(resource['id'], resource['digestSRI'])
+            except ValueError as err:
+                raise ValueError(err)
+
+
+    if len({resource['id'] for resource in related_resource}) != len(related_resource):
+        raise ValueError('Each "id" in relatedResource must be unique')
+
 def validate_prop_type_and_id(prop, prop_name):
     if not isinstance(prop, list):
         prop = [prop]
@@ -281,6 +317,13 @@ def verify_credential(certificate_metadata):
             pass  # property is optional
         except ValueError as err:
             raise ValueError(err)
+
+    try:
+        validate_related_resource(certificate_metadata['relatedResource'])
+    except KeyError:
+        pass  # optional property
+    except ValueError as err:
+        raise ValueError(err)
 
     try:
         credential_schema = certificate_metadata['credentialSchema']
