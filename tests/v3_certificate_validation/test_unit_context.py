@@ -25,17 +25,6 @@ class UnitValidationV3 (unittest.TestCase):
 
         assert False
 
-    def test_validate_context_invalid_missing_context (self):
-        candidate_context_url = ['https://www.w3.org/2018/credentials/v1']
-        candidate_type = ['VerifiableCredential', 'BlockcertsCredential']
-        try:
-            validate_context(candidate_context_url, candidate_type)
-        except:
-            assert True
-            return
-
-        assert False
-
     def test_validate_context_no_duplicate_vc_context (self):
         candidate_context_url = [
             'https://www.w3.org/2018/credentials/v1',

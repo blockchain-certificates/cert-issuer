@@ -6,7 +6,7 @@ from cert_schema import ContextUrls
 from urllib.request import urlretrieve
 from jsonschema import validate as jsonschema_validate
 from dateutil import parser, tz
-from cert_issuer.digests import validate_digest_sri
+from cert_issuer.digests import validate_digest_sri, validate_digest_multibase
 
 # TODO: move the v3 checks to cert-schema
 def validate_RFC3339_date(date):
@@ -200,6 +200,14 @@ def validate_related_resource(related_resource):
                 validate_digest_sri(resource['id'], resource['digestSRI'])
             except ValueError as err:
                 raise ValueError(err)
+
+        if 'digestMultibase' in resource:
+            logging.info('A digest multibase was specified, validating...')
+            try:
+                validate_digest_multibase(resource['id'], resource['digestMultibase'])
+            except ValueError as err:
+                raise ValueError(err)
+
 
 
     if len({resource['id'] for resource in related_resource}) != len(related_resource):
