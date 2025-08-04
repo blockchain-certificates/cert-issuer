@@ -1,6 +1,6 @@
 import unittest
 
-from cert_issuer.models.verifiable_credential import validate_credential_status
+from cert_issuer.models.verifiable_credential import validate_prop_type_and_id
 
 class UnitValidationV3 (unittest.TestCase):
     def test_validate_credential_status_undefined_id (self):
@@ -8,7 +8,7 @@ class UnitValidationV3 (unittest.TestCase):
             "type": 'a type'
         }
         try:
-            validate_credential_status(candidate)
+            validate_prop_type_and_id(candidate, 'credentialStatus')
         except:
             assert True
             return
@@ -18,7 +18,7 @@ class UnitValidationV3 (unittest.TestCase):
             "type": 'a type'
         }
         try:
-            validate_credential_status(candidate)
+            validate_prop_type_and_id(candidate, 'credentialStatus')
         except:
             assert True
             return
@@ -30,7 +30,7 @@ class UnitValidationV3 (unittest.TestCase):
             "id": 'https://valid.path'
         }
         try:
-            validate_credential_status(candidate)
+            validate_prop_type_and_id(candidate, 'credentialStatus')
         except:
             assert True
             return
@@ -43,7 +43,7 @@ class UnitValidationV3 (unittest.TestCase):
             "type": 'statusList'
         }
         try:
-            validate_credential_status(candidate)
+            validate_prop_type_and_id(candidate, 'credentialStatus')
         except:
             assert False
             return

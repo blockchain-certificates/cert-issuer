@@ -1,5 +1,5 @@
 cert-core>=3.0.0
-cert-schema>=3.9.1
+cert-schema>=3.10.0
 blockcerts-merkletools>=1.0.4
 configargparse==0.13.0
 glob2==0.6
