@@ -36,44 +36,53 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 
         # Configure Ethereum mainnet connectors
         eth_provider_list = []
-        if hasattr(app_config, 'ethereum_rpc_url'):
+        if getattr(app_config, 'ethereum_rpc_url', None):
             self.ethereum_rpc_url = app_config.ethereum_rpc_url
             eth_provider_list.append(EthereumRPCProvider(self.ethereum_rpc_url))
 
         etherscan_api_token = None
         if hasattr(app_config, 'api_token'):
             logging.warning('The api_token config property is deprecated in favor of the etherscan_api_token property.  It still works, but please switch over soon.')
-            etherscan_api_token = app_config.etherscan_api_token
+            etherscan_api_token = app_config.api_token
         if hasattr(app_config, 'etherscan_api_token'):
             etherscan_api_token = app_config.etherscan_api_token
-        eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api', etherscan_api_token))
-        # eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth', None))
+
+        eth_provider_list.append(EtherscanBroadcaster(self.get_etherscan_api_endpoint_for_chain('main'), etherscan_api_token))
         self.connectors[Chain.ethereum_mainnet] = eth_provider_list
 
-        # Configure Ethereum Ropsten testnet connectors
-        rop_provider_list = []
-        if hasattr(app_config, 'ropsten_rpc_url'):
-            self.ropsten_rpc_url = app_config.ropsten_rpc_url
-            rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
-        rop_provider_list.append(EtherscanBroadcaster('https://api-ropsten.etherscan.io/api', etherscan_api_token))
-        # rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop', None))
-        self.connectors[Chain.ethereum_ropsten] = rop_provider_list
+        # Ethereum Ropsten deprecated by Etherscan
 
         # Configure Ethereum Goerli testnet connectors
         goe_provider_list = []
-        if hasattr(app_config, 'goerli_rpc_url'):
+        if getattr(app_config, 'goerli_rpc_url', None):
             self.goerli_rpc_url = app_config.goerli_rpc_url
             goe_provider_list.append(EthereumRPCProvider(self.goerli_rpc_url))
-        goe_provider_list.append(EtherscanBroadcaster('https://api-goerli.etherscan.io/api', etherscan_api_token))
+        goe_provider_list.append(EtherscanBroadcaster(self.get_etherscan_api_endpoint_for_chain('goerli'), etherscan_api_token))
         self.connectors[Chain.ethereum_goerli] = goe_provider_list
 
         # Configure Ethereum Sepolia testnet connectors
         sep_provider_list = []
-        if hasattr(app_config, 'sepolia_rpc_url'):
+        if getattr(app_config, 'sepolia_rpc_url', None):
             self.sepolia_rpc_url = app_config.sepolia_rpc_url
             sep_provider_list.append(EthereumRPCProvider(self.sepolia_rpc_url))
-        sep_provider_list.append(EtherscanBroadcaster('https://api-sepolia.etherscan.io/api', etherscan_api_token))
+        sep_provider_list.append(EtherscanBroadcaster(self.get_etherscan_api_endpoint_for_chain('sepolia'), etherscan_api_token))
         self.connectors[Chain.ethereum_sepolia] = sep_provider_list
+
+    def get_etherscan_api_endpoint_for_chain(self, chain):
+        chain_codes = {
+            'main': 1,
+            'goerli': 5,
+            'sepolia': 11155111
+        }
+
+        chainId = chain_codes[chain]
+
+        if chainId is None:
+            raise ValueError(f'Unknown chain code for Etherscan API: {chain}')
+
+        logging.debug(f'Etherscan endpoint url for chain {chain} is https://api.etherscan.io/v2/api?chainid={chainId}')
+
+        return f'https://api.etherscan.io/v2/api?chainid={chainId}'
 
     def get_providers_for_chain(self, chain, local_node=False):
         return self.connectors[chain]
@@ -153,6 +162,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 class EthereumRPCProvider(object):
     def __init__(self, ethereum_url):
         self.ethereum_url = ethereum_url
+        logging.info(f'Setting up a new RPC provider for Ethereum at url: {ethereum_url}')
         self.w3 = Web3(HTTPProvider(ethereum_url))
 
     def broadcast_tx(self, tx):
@@ -164,7 +174,7 @@ class EthereumRPCProvider(object):
         """
         Returns the balance in Wei.
         """
-        response = self.w3.eth.getBalance(account=address, block_identifier="latest")
+        response = self.w3.eth.get_balance(account=address, block_identifier="latest")
         logging.info('Getting balance with EthereumRPCProvider: %s', response)
         return response
 
@@ -193,7 +203,7 @@ class EtherscanBroadcaster(object):
     def broadcast_tx(self, tx):
         tx_hex = tx
 
-        broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
+        broadcast_url = self.base_url + '&module=proxy&action=eth_sendRawTransaction'
         if self.api_token:
             broadcast_url += '&apikey=%s' % self.api_token
         response = self.send_request('POST', broadcast_url, {'hex': tx_hex})
@@ -214,7 +224,7 @@ class EtherscanBroadcaster(object):
         returns the balance in wei
         with some inspiration from PyWallet
         """
-        broadcast_url = self.base_url + '?module=account&action=balance'
+        broadcast_url = self.base_url + '&module=account&action=balance'
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=pending'
         if self.api_token:
@@ -232,7 +242,7 @@ class EtherscanBroadcaster(object):
         """
         returns the gas price in wei
         """
-        api_url = self.base_url + '?module=proxy&action=eth_gasPrice'
+        api_url = self.base_url + '&module=proxy&action=eth_gasPrice'
         if self.api_token:
             api_url += '&apikey=%s' % self.api_token
         response = self.send_request('GET', api_url)
@@ -246,7 +256,7 @@ class EtherscanBroadcaster(object):
         Looks up the address nonce of this address
         Neccesary for the transaction creation
         """
-        broadcast_url = self.base_url + '?module=proxy&action=eth_getTransactionCount'
+        broadcast_url = self.base_url + '&module=proxy&action=eth_getTransactionCount'
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=pending' # Valid tags are 'earliest', 'latest', and 'pending', the last of which includes both pending and committed transactions.
         if self.api_token:

@@ -84,6 +84,9 @@ class EthereumTransactionHandler(TransactionHandler):
         with FinalizableSigner(self.secret_manager) as signer:
             signed_tx = signer.sign_transaction(prepared_tx)
 
+        if isinstance(signed_tx, dict) and signed_tx.get('error') is True:
+            raise ValueError('An error occurred while signing the transacation:', signed_tx['message'])
+
         logging.info('signed Ethereum trx = %s', signed_tx)
         return signed_tx
 

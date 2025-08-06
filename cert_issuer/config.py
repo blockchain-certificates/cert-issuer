@@ -19,12 +19,13 @@ CONFIG = None
 
 
 def configure_logger():
+    log_level = logging.INFO
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(log_level)
 
     if not logger.handlers:  # only add one handler
         handler = logging.StreamHandler()
-        handler.setLevel(logging.INFO)
+        handler.setLevel(log_level)
         formatter = logging.Formatter("%(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
@@ -50,7 +51,7 @@ def add_arguments(p):
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure', env_var='MAX_RETRY')
     p.add_argument('--chain', default='bitcoin_regtest',
                    help=('Which chain to use. Default is bitcoin_regtest (which is how the docker container is configured). Other options are '
-                         'bitcoin_testnet bitcoin_mainnet, mockchain, ethereum_mainnet, ethereum_ropsten, ethereum_goerli, ethereum_sepolia'), env_var='CHAIN')
+                         'bitcoin_testnet bitcoin_mainnet, mockchain, ethereum_mainnet, ethereum_goerli, ethereum_sepolia'), env_var='CHAIN')
 
     p.add_argument('--safe_mode', dest='safe_mode', default=True, action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.', env_var='SAFE_MODE')
@@ -85,9 +86,6 @@ def add_arguments(p):
     p.add_argument('--ethereum_rpc_url', default=None, type=str,
                    help='The URL of an Ethereum main net RPC node - useful in the case of third-party full node vendors.',
                    env_var='ETHEREUM_RPC_URL')
-    p.add_argument('--ropsten_rpc_url', default=None, type=str,
-                   help='The URL of an Ethereum Ropsten RPC node - useful in the case of third-party full node vendors.',
-                   env_var='ROPSTEN_RPC_URL')
     p.add_argument('--goerli_rpc_url', default=None, type=str,
                    help='The URL of an Ethereum Goerli RPC node - useful in the case of third-party full node vendors.',
                    env_var='GOERLI_RPC_URL')
@@ -145,12 +143,12 @@ def get_config(path_to_config=os.path.join(PATH, 'conf.ini')):
         return CONFIG
 
     configure_logger()
-    print('config file path', path_to_config)
+    logging.debug(f'config file path: {path_to_config}')
     p = configargparse.ArgParser(default_config_files=[os.path.join(PATH, path_to_config),
                                                               '/etc/cert-issuer/conf.ini'])
     add_arguments(p)
     parsed_config, _ = p.parse_known_args()
-    print('loaded config', p.parse_known_args())
+    logging.debug(f'loaded config {p.parse_known_args()}')
 
     if not parsed_config.safe_mode:
         logging.warning('Your app is configured to skip the wifi check when the USB is plugged in. Read the '
