@@ -50,7 +50,7 @@ def add_arguments(p):
     p.add_argument('--max_retry', default=10, type=int, help='Maximum attempts to retry transaction on failure', env_var='MAX_RETRY')
     p.add_argument('--chain', default='bitcoin_regtest',
                    help=('Which chain to use. Default is bitcoin_regtest (which is how the docker container is configured). Other options are '
-                         'bitcoin_testnet bitcoin_mainnet, mockchain, ethereum_mainnet, ethereum_ropsten, ethereum_goerli, ethereum_sepolia'), env_var='CHAIN')
+                         'bitcoin_testnet bitcoin_mainnet, mockchain, ethereum_mainnet, ethereum_goerli, ethereum_sepolia'), env_var='CHAIN')
 
     p.add_argument('--safe_mode', dest='safe_mode', default=True, action='store_true',
                    help='Used to make sure your private key is not plugged in with the wifi.', env_var='SAFE_MODE')
@@ -85,9 +85,6 @@ def add_arguments(p):
     p.add_argument('--ethereum_rpc_url', default=None, type=str,
                    help='The URL of an Ethereum main net RPC node - useful in the case of third-party full node vendors.',
                    env_var='ETHEREUM_RPC_URL')
-    p.add_argument('--ropsten_rpc_url', default=None, type=str,
-                   help='The URL of an Ethereum Ropsten RPC node - useful in the case of third-party full node vendors.',
-                   env_var='ROPSTEN_RPC_URL')
     p.add_argument('--goerli_rpc_url', default=None, type=str,
                    help='The URL of an Ethereum Goerli RPC node - useful in the case of third-party full node vendors.',
                    env_var='GOERLI_RPC_URL')

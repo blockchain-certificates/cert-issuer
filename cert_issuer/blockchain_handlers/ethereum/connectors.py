@@ -43,28 +43,21 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         etherscan_api_token = None
         if hasattr(app_config, 'api_token'):
             logging.warning('The api_token config property is deprecated in favor of the etherscan_api_token property.  It still works, but please switch over soon.')
-            etherscan_api_token = app_config.etherscan_api_token
+            etherscan_api_token = app_config.api_token
         if hasattr(app_config, 'etherscan_api_token'):
             etherscan_api_token = app_config.etherscan_api_token
-        eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api', etherscan_api_token))
-        # eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth', None))
+
+        eth_provider_list.append(EtherscanBroadcaster(self.get_etherscan_api_endpoint_for_chain('main'), etherscan_api_token))
         self.connectors[Chain.ethereum_mainnet] = eth_provider_list
 
-        # Configure Ethereum Ropsten testnet connectors
-        rop_provider_list = []
-        if hasattr(app_config, 'ropsten_rpc_url'):
-            self.ropsten_rpc_url = app_config.ropsten_rpc_url
-            rop_provider_list.append(EthereumRPCProvider(self.ropsten_rpc_url))
-        rop_provider_list.append(EtherscanBroadcaster('https://api-ropsten.etherscan.io/api', etherscan_api_token))
-        # rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop', None))
-        self.connectors[Chain.ethereum_ropsten] = rop_provider_list
+        # Ethereum Ropsten deprecated by Etherscan
 
         # Configure Ethereum Goerli testnet connectors
         goe_provider_list = []
         if hasattr(app_config, 'goerli_rpc_url'):
             self.goerli_rpc_url = app_config.goerli_rpc_url
             goe_provider_list.append(EthereumRPCProvider(self.goerli_rpc_url))
-        goe_provider_list.append(EtherscanBroadcaster('https://api-goerli.etherscan.io/api', etherscan_api_token))
+        goe_provider_list.append(EtherscanBroadcaster(self.get_etherscan_api_endpoint_for_chain('goerli'), etherscan_api_token))
         self.connectors[Chain.ethereum_goerli] = goe_provider_list
 
         # Configure Ethereum Sepolia testnet connectors
@@ -72,8 +65,24 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
         if hasattr(app_config, 'sepolia_rpc_url'):
             self.sepolia_rpc_url = app_config.sepolia_rpc_url
             sep_provider_list.append(EthereumRPCProvider(self.sepolia_rpc_url))
-        sep_provider_list.append(EtherscanBroadcaster('https://api-sepolia.etherscan.io/api', etherscan_api_token))
+        sep_provider_list.append(EtherscanBroadcaster(self.get_etherscan_api_endpoint_for_chain('sepolia'), etherscan_api_token))
         self.connectors[Chain.ethereum_sepolia] = sep_provider_list
+
+    def get_etherscan_api_endpoint_for_chain(self, chain):
+        chain_codes = {
+            'main': 1,
+            'goerli': 5,
+            'sepolia': 11155111
+        }
+
+        chainId = chain_codes[chain]
+
+        if chainId is None:
+            raise ValueError(f'Unknown chain code for Etherscan API: {chain}')
+
+        logging.info(f'Etherscan endpoint url for chain {chain} is https://api.etherscan.io/v2/api?chainid={chainId}&module=proxy')
+
+        return f'https://api.etherscan.io/v2/api?chainid={chainId}&module=proxy'
 
     def get_providers_for_chain(self, chain, local_node=False):
         return self.connectors[chain]
