@@ -46,7 +46,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
             etherscan_api_token = app_config.etherscan_api_token
         if hasattr(app_config, 'etherscan_api_token'):
             etherscan_api_token = app_config.etherscan_api_token
-        eth_provider_list.append(EtherscanBroadcaster('https://api.etherscan.io/api', etherscan_api_token))
+        eth_provider_list.append(EtherscanBroadcaster(self.get_etherscan_api_endpoint_for_chain('main'), etherscan_api_token))
         # eth_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/eth', None))
         self.connectors[Chain.ethereum_mainnet] = eth_provider_list
 
@@ -58,6 +58,22 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
             rop_provider_list.append(EtherscanBroadcaster('https://api-ropsten.etherscan.io/api', etherscan_api_token))
         # rop_provider_list.append(MyEtherWalletBroadcaster('https://api.myetherwallet.com/rop', None))
         self.connectors[Chain.ethereum_ropsten] = rop_provider_list
+
+    def get_etherscan_api_endpoint_for_chain(self, chain):
+        chain_codes = {
+            'main': 1,
+            'goerli': 5,
+            'sepolia': 11155111
+        }
+
+        chainId = chain_codes[chain]
+
+        if chainId is None:
+            raise ValueError(f'Unknown chain code for Etherscan API: {chain}')
+
+        logging.debug(f'Etherscan endpoint url for chain {chain} is https://api.etherscan.io/v2/api?chainid={chainId}')
+
+        return f'https://api.etherscan.io/v2/api?chainid={chainId}'
 
     def get_providers_for_chain(self, chain, local_node=False):
         return self.connectors[chain]
@@ -159,7 +175,7 @@ class EtherscanBroadcaster(object):
     def broadcast_tx(self, tx):
         tx_hex = tx
 
-        broadcast_url = self.base_url + '?module=proxy&action=eth_sendRawTransaction'
+        broadcast_url = self.base_url + '&module=proxy&action=eth_sendRawTransaction'
         if self.api_token:
             broadcast_url += '&apikey=%s' % self.api_token
         response = requests.post(broadcast_url, data={'hex': tx_hex}, headers={'user-agent':'cert-issuer'})
@@ -181,7 +197,7 @@ class EtherscanBroadcaster(object):
         returns the balance in wei
         with some inspiration from PyWallet
         """
-        broadcast_url = self.base_url + '?module=account&action=balance'
+        broadcast_url = self.base_url + '&module=account&action=balance'
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=pending'
         if self.api_token:
@@ -200,7 +216,7 @@ class EtherscanBroadcaster(object):
         Looks up the address nonce of this address
         Neccesary for the transaction creation
         """
-        broadcast_url = self.base_url + '?module=proxy&action=eth_getTransactionCount'
+        broadcast_url = self.base_url + '&module=proxy&action=eth_getTransactionCount'
         broadcast_url += '&address=%s' % address
         broadcast_url += '&tag=pending' # Valid tags are 'earliest', 'latest', and 'pending', the last of which includes both pending and committed transactions.
         if self.api_token:
