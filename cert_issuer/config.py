@@ -19,12 +19,13 @@ CONFIG = None
 
 
 def configure_logger():
+    log_level = logging.INFO
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(log_level)
 
     if not logger.handlers:  # only add one handler
         handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
+        handler.setLevel(log_level)
         formatter = logging.Formatter("%(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
