@@ -35,7 +35,7 @@ def is_V2_verifiable_credential(context):
 
 
 def validate_url(url):
-    if not is_valid_url (url):
+    if not is_valid_url(url):
         raise ValueError('Invalid URL: {}'.format(url))
     pass
 
@@ -52,6 +52,8 @@ def validate_type(certificate_type):
 
 
 def validate_id(identifier):
+    if not isinstance(identifier, str):
+        raise TypeError('"@id" value must be a string.')
     validate_url(identifier)
     pass
 
@@ -69,6 +71,8 @@ def validate_context(context, type):
         raise ValueError('First @context declared must be one of {}, was given {}'.format(vc_context_url, context[0]))
     if is_V1_verifiable_credential(context) and is_V2_verifiable_credential(context):
         raise ValueError('Cannot have both v1 and v2 Verifiable Credentials contexts defined in the context array')
+    if is_V1_verifiable_credential(context) and len(type) > 1 and len(context) == 1:
+        raise ValueError('A more specific type: {}, was detected, yet no context seems provided for that type'.format(type[1]))
     if context[-1] not in blockcerts_valid_context_url:
         logging.warning("""
            Last `@context` is not blockcerts' context. It is not a critical issue but some issues have come up at times
