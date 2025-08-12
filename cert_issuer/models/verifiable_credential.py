@@ -177,7 +177,6 @@ def validate_date_set_after_other_date(second_date_str, first_date_str, second_d
 
 def validate_related_resource(related_resource):
     logging.info('A relatedResource object was passed, validating...')
-    print(related_resource)
     if not isinstance(related_resource, list):
         related_resource = [related_resource]
 
@@ -217,6 +216,7 @@ def validate_related_resource(related_resource):
     if len({resource['id'] for resource in related_resource}) != len(related_resource):
         raise ValueError('Each "id" in relatedResource must be unique')
 
+
 def validate_prop_type_and_id(prop, prop_name):
     if not isinstance(prop, list):
         prop = [prop]
@@ -238,6 +238,44 @@ def validate_prop_type_and_id(prop, prop_name):
             raise ValueError('{}.type must be defined'.format(prop_name))
         except:
             raise ValueError('{}.type must be a string'.format(prop_name))
+    pass
+
+
+def validate_data_integrity_proof(proof):
+    required_keys = [
+        'type',
+        'created',
+        'verificationMethod',
+        'proofPurpose',
+        'proofValue'
+    ]
+    proof_type = proof['type']
+    for key in required_keys:
+        if key not in proof:
+            raise ValueError(f'Missing required key: `{key}` in Data Integrity proof')
+
+    if proof_type == 'DataIntegrityProof':
+        if 'cryptosuite' not in proof:
+            raise ValueError(f'Missing required key: `cryptosuite` in Data Integrity proof')
+
+    validate_date_RFC3339_string_format(proof['created'], 'proof.created')
+
+    if 'expires' in proof:
+        validate_date_RFC3339_string_format(proof['expires'], 'proof.expires')
+
+    pass
+
+
+def validate_proof_format(proof):
+    if not isinstance(proof, list):
+        proof = [proof]
+
+    for p in proof:
+        if 'type' not in p:
+            raise ValueError('proof.type must be defined')
+
+        validate_data_integrity_proof(p)
+
     pass
 
 
@@ -349,10 +387,16 @@ def verify_credential(certificate_metadata):
     pass
 
 
-def verify_presentation (certificate_metadata):
+def verify_presentation(certificate_metadata):
     try:
         for credential in certificate_metadata['verifiableCredential']:
+            if credential['type'] != 'EnvelopedVerifiableCredential':
+                if 'proof' not in credential:
+                    raise ValueError('Each Verifiable Credential in a Verifiable Presentation must be signed')
+
+                validate_proof_format(credential['proof'])
+
             verify_credential(credential)
-    except:
-        raise ValueError('A Verifiable Presentation must contain valid verifiableCredential(s)')
+    except ValueError as err:
+        raise ValueError(f'A Verifiable Presentation must contain valid verifiableCredential(s): {err}')
     pass
