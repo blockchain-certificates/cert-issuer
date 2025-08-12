@@ -14,7 +14,7 @@ after_success:
   - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sh semantic-release.sh; fi'
   - nvm install 16
   - sh prepare-vc-compliance-tests-config.sh
-  - python3 setup.py install
+  - pip install -e . # maintain a local access point for nodejs
   - npm ci
   - npm run test:vc-compliance
   - sh publish-vc-compliance-result.sh # if no changes, no commit

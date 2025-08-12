@@ -37,7 +37,7 @@ presentation_example = {
            },
            "proof": {
              "type": "MerkleProof2019",
-             "created": "2020-03-23T15:38:11.804838",
+             "created": "2020-03-23T15:38:11Z",
              "proofValue": "z2LuLBVSfnVzaQtvzuA7EaPQsGEgYWeaMTH1p3uqAG3ESx9HYyFzFFrYsyPkZSbn1Ji5LN76jw6HBr3oiaa8KsQenCPqKk7dJvxEXsDnYvhuDHu3ktTZuz4KL2UWU3hieKFwMG2akp4rPvYmwQDbtXNmhZgpdGpp9hiDZiz37bca2LZZG2VJ9Xen31trVG5A2SApCkFoUxYeNvXr8reqJPca1voRwFXAgo25XWV2BQ1ycQ2wM3jPz3BAx4tZuPno7Ebd5XLfroXHCaKiNadiqxLedp2SHZjDicG8kxMwPo2gR1mYeWjtQSPVMrtf6p325wCNVrQpxTAszLp4CPXSZFFYsb2dn9iRAcMTUSKYhYtsNjst2fDdPye4arHmvLL5s6pL6U8vtEEBiYJDrFj8xo",
              "proofPurpose": "assertionMethod",
              "verificationMethod": "ecdsa-koblitz-pubkey:0x7e30a37763e6Ba1fFeDE1750bBeFB4c60b17a1B3"
@@ -46,8 +46,9 @@ presentation_example = {
     ]
 }
 
+
 class UnitValidationV3 (unittest.TestCase):
-    def test_verify_presentation_invalid_credential (self):
+    def test_verify_presentation_invalid_credential(self):
         candidate = copy.deepcopy(presentation_example)
         del candidate['verifiableCredential'][0]['credentialSubject']
         try:
@@ -57,6 +58,55 @@ class UnitValidationV3 (unittest.TestCase):
             return
 
         assert False
+
+
+    def test_verify_presentation_invalid_credential_missing_proof(self):
+        candidate = copy.deepcopy(presentation_example)
+        del candidate['verifiableCredential'][0]['proof']
+        try:
+            verify_presentation(candidate)
+        except:
+            assert True
+            return
+
+        assert False
+
+
+    def test_verify_presentation_invalid_credential_missing_proof_property(self):
+        candidate = copy.deepcopy(presentation_example)
+        del candidate['verifiableCredential'][0]['proof']['proofValue']
+        try:
+            verify_presentation(candidate)
+        except:
+            assert True
+            return
+
+        assert False
+
+
+    def test_verify_presentation_invalid_credential_missing_cryptosuite_property(self):
+        candidate = copy.deepcopy(presentation_example)
+        candidate['verifiableCredential'][0]['proof']['type'] = 'DataIntegrityProof'
+        try:
+            verify_presentation(candidate)
+        except:
+            assert True
+            return
+
+        assert False
+
+
+    def test_verify_presentation_invalid_credential_invalid_created_property(self):
+        candidate = copy.deepcopy(presentation_example)
+        candidate['verifiableCredential'][0]['proof']['created'] = '2022/03/01'
+        try:
+            verify_presentation(candidate)
+        except:
+            assert True
+            return
+
+        assert False
+
 
     def test_verify_presentation_valid_credential (self):
         candidate = copy.deepcopy(presentation_example)

@@ -22,6 +22,7 @@ class JSONLDHandler:
             return
         for (url, path) in zip(config.context_urls, config.context_file_paths):
             with open(os.path.join(os.getcwd(), path)) as context_file:
+                logging.info(f'preloading context at url {url}')
                 context_data = json.load(context_file)
                 logging.debug(f'adding preloaded context {context_data} for {url}')
                 extend_preloaded_context(url, context_data)

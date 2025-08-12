@@ -3,7 +3,6 @@ import mock
 import copy
 
 from cert_issuer.certificate_handlers import CertificateBatchHandler, CertificateV3Handler
-from cert_issuer.models import CertificateHandler
 
 presentation_example = {
     "@context": [
@@ -39,7 +38,7 @@ presentation_example = {
            },
            "proof": {
              "type": "MerkleProof2019",
-             "created": "2020-03-23T15:38:11.804838",
+             "created": "2020-03-23T15:38:11Z",
              "proofValue": "z2LuLBVSfnVzaQtvzuA7EaPQsGEgYWeaMTH1p3uqAG3ESx9HYyFzFFrYsyPkZSbn1Ji5LN76jw6HBr3oiaa8KsQenCPqKk7dJvxEXsDnYvhuDHu3ktTZuz4KL2UWU3hieKFwMG2akp4rPvYmwQDbtXNmhZgpdGpp9hiDZiz37bca2LZZG2VJ9Xen31trVG5A2SApCkFoUxYeNvXr8reqJPca1voRwFXAgo25XWV2BQ1ycQ2wM3jPz3BAx4tZuPno7Ebd5XLfroXHCaKiNadiqxLedp2SHZjDicG8kxMwPo2gR1mYeWjtQSPVMrtf6p325wCNVrQpxTAszLp4CPXSZFFYsb2dn9iRAcMTUSKYhYtsNjst2fDdPye4arHmvLL5s6pL6U8vtEEBiYJDrFj8xo",
              "proofPurpose": "assertionMethod",
              "verificationMethod": "ecdsa-koblitz-pubkey:0x7e30a37763e6Ba1fFeDE1750bBeFB4c60b17a1B3"
@@ -49,7 +48,7 @@ presentation_example = {
 }
 
 class TestIssuanceBatchValidation (unittest.TestCase):
-    def test_verify_credential_status (self):
+    def test_vp_credential_invalid(self):
         candidate = copy.deepcopy(presentation_example)
         del candidate['verifiableCredential'][0]['credentialSubject']
         handler = CertificateBatchHandler(
@@ -63,7 +62,8 @@ class TestIssuanceBatchValidation (unittest.TestCase):
         try:
             handler.prepare_batch()
         except Exception as e:
-            self.assertEqual(str(e), 'A Verifiable Presentation must contain valid verifiableCredential(s)')
+            self.assertEqual(str(e), 'A Verifiable Presentation must contain valid verifiableCredential(s): ' +
+                                     '`credentialSubject` property must be defined')
             return
 
         assert False
