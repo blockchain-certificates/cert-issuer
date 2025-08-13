@@ -397,6 +397,6 @@ def verify_presentation(certificate_metadata):
                 validate_proof_format(credential['proof'])
 
             verify_credential(credential)
-    except ValueError as err:
+    except (KeyError, ValueError) as err:
         raise ValueError(f'A Verifiable Presentation must contain valid verifiableCredential(s): {err}')
     pass
