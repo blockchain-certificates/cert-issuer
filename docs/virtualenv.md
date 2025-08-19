@@ -16,6 +16,7 @@ We recommend using virtualenv [details](http://docs.python-guide.org/en/latest/d
 3. Activate the environment
    ```bash
    source ./venv/bin/activate
+   venv\Scripts\activate // for Windows
    ```
 4. After you're finished, deactivate the environment by running
    ```bash
