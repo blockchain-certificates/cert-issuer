@@ -16,6 +16,7 @@ from cert_core import Chain
 from cert_issuer.models import ServiceProviderConnector
 from cert_issuer.errors import BroadcastError
 
+POST_BROADCAST_DELAY_SECONDS = 2
 BROADCAST_RETRY_INTERVAL = 30
 MAX_BROADCAST_ATTEMPTS = 3
 
@@ -83,6 +84,16 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
                 logging.warning(e)
                 pass
         return 0
+    
+    def check_tx_exists(self, txid):
+        for m in self.get_providers_for_chain(self.ethereum_chain, self.local_node):
+            try:
+                logging.debug('m=%s', m)
+                if hasattr(m, 'tx_seen_in_mempool') and m.tx_seen_in_mempool(txid):
+                    return True
+            except Exception as e:
+                logging.warning('Provider check for tx_seen_in_mempool failed: %s', e)
+        return False
 
     def broadcast_tx(self, tx):
 
@@ -111,6 +122,12 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 
             # At least 1 provider succeeded, so return
             if final_tx_id:
+                # Wait a couple of seconds, then check the network to see if the transaction made it.
+                time.sleep(POST_BROADCAST_DELAY_SECONDS)
+                if not self.connector.tx_exists(final_tx_id):
+                    logging.warning("Transaction %s not present in mempool or chain!", final_tx_id)
+                else:
+                    logging.info("Transaction %s confirmed visible to at least one provider", final_tx_id)
                 return final_tx_id
             else:
                 logging.warning('Broadcasting failed. Waiting before retrying. This is attempt number %d',
@@ -149,6 +166,13 @@ class EthereumRPCProvider(object):
         logging.info('Fetching nonce with EthereumRPCProvider')
         response = self.w3.eth.get_transaction_count(address, "pending")
         return response
+    
+    def tx_seen_in_mempool(self, txid):
+        try:
+            result = self.w3.eth.get_transaction(txid)
+            return result is not None
+        except Exception:
+            return False
 
 
 class EtherscanBroadcaster(object):
@@ -215,6 +239,16 @@ class EtherscanBroadcaster(object):
         else:
             logging.info('response error checking nonce')
         raise BroadcastError('Error checking the nonce through the Etherscan API. Error msg: %s', response.text)
+    
+    def tx_seen_in_mempool(self, txid):
+        url = self.base_url + '&module=proxy&action=eth_getTransactionByHash' \
+              + f'&txhash={txid}'
+        if self.api_token:
+            url += f'&apikey={self.api_token}'
+        response = requests.get(url)
+        if int(response.status_code) != 200:
+            return False
+        return response.json().get("result") is not None
 
 
 class MyEtherWalletBroadcaster(object):
