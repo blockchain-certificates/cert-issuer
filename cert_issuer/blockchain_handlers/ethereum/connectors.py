@@ -130,7 +130,17 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
                                 final_tx_id, txid, tx.as_hex())
                             raise Exception('Got conflicting tx_ids.')
                         final_tx_id = txid
+
+                    if final_tx_id:
+                        # Wait a couple of seconds, then check the network to see if the transaction made it.
+                        time.sleep(POST_BROADCAST_DELAY_SECONDS)
+                        if not self.connector.tx_exists(final_tx_id):
+                            logging.warning("Transaction %s not present in mempool or chain!", final_tx_id)
+                        else:
+                            logging.info("Transaction %s confirmed visible to at least one provider", final_tx_id)
+
                     return txid
+
                 except Exception as e:
                     logging.warning('Caught exception trying provider %s. Trying another. Exception=%s',
                                     str(m), e)
