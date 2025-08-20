@@ -134,7 +134,7 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
                     if final_tx_id:
                         # Wait a couple of seconds, then check the network to see if the transaction made it.
                         time.sleep(POST_BROADCAST_DELAY_SECONDS)
-                        if not self.connector.tx_exists(final_tx_id):
+                        if not m.tx_seen_in_mempool(final_tx_id):
                             logging.warning("Transaction %s not present in mempool or chain!", final_tx_id)
                         else:
                             logging.info("Transaction %s confirmed visible to at least one provider", final_tx_id)
@@ -148,12 +148,6 @@ class EthereumServiceProviderConnector(ServiceProviderConnector):
 
             # At least 1 provider succeeded, so return
             if final_tx_id:
-                # Wait a couple of seconds, then check the network to see if the transaction made it.
-                time.sleep(POST_BROADCAST_DELAY_SECONDS)
-                if not self.connector.tx_exists(final_tx_id):
-                    logging.warning("Transaction %s not present in mempool or chain!", final_tx_id)
-                else:
-                    logging.info("Transaction %s confirmed visible to at least one provider", final_tx_id)
                 return final_tx_id
             else:
                 logging.warning('Broadcasting failed. Waiting before retrying. This is attempt number %d',
