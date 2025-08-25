@@ -173,7 +173,7 @@ class BlockstreamProvider(object):
 
         # Step 1: Get UTXOs for the address
         url = f"{self.base_url}/address/{address}/utxo"
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=(30,60))
 
         if int(response.status_code) == 200:
             utxos = response.json()
@@ -184,7 +184,7 @@ class BlockstreamProvider(object):
 
                 # Step 2: Get full transaction to retrieve scriptPubKey
                 tx_url = f"{self.base_url}/tx/{utxo['txid']}/hex"
-                tx_response = requests.get(tx_url, headers=headers)
+                tx_response = requests.get(tx_url, headers=headers, timeout=(30, 60))
 
                 if int(tx_response.status_code) == 200:
                     tx_hex = tx_response.text
