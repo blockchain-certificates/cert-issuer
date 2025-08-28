@@ -1,5 +1,5 @@
-[![Verifiable Credential V1 Compliance result](https://badgen.net/badge/Verifiable%20Credentials%20v1/compliant/green?icon=https://www.w3.org/Icons/WWW/w3c_home_nb-v.svg)](https://www.blockcerts.org/vc-compliance-report.html)
-[![Verifiable Credential V2 Compliance result](https://badgen.net/badge/Verifiable%20Credentials%20v2/compliant/green?icon=https://www.w3.org/Icons/WWW/w3c_home_nb-v.svg)](https://www.blockcerts.org/vc-v2-compliance-report.html)
+[![Verifiable Credential V1 Compliance result](https://badgen.net/badge/Verifiable%20Credentials%20v1/failure/red?icon=https://www.w3.org/Icons/WWW/w3c_home_nb-v.svg)](https://www.blockcerts.org/vc-compliance-report.html)
+[![Verifiable Credential V2 Compliance result](https://badgen.net/badge/Verifiable%20Credentials%20v2/failed/red?icon=https://www.w3.org/Icons/WWW/w3c_home_nb-v.svg)](https://www.blockcerts.org/vc-v2-compliance-report.html)
 [![Data Integrity V1 Compliance result](https://badgen.net/badge/Data%20Integrity%20v1/compliant/green?icon=https://www.w3.org/Icons/WWW/w3c_home_nb-v.svg)](https://www.blockcerts.org/di-v1-compliance-report.html)
 [![Build Status](https://travis-ci.org/blockchain-certificates/cert-issuer.svg?branch=master)](https://travis-ci.org/blockchain-certificates/cert-issuer)
 [![PyPI version](https://badge.fury.io/py/cert-issuer.svg)](https://badge.fury.io/py/cert-issuer)
