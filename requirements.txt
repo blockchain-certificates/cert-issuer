@@ -9,5 +9,5 @@ pyld>=1.0.3
 python-bitcoinlib>=0.10.1
 tox>=3.0.0
 jsonschema==4.23.0
-urllib3==2.5.0
+urllib3>=2.6.0
 setuptools>=75.8.0
