@@ -14,3 +14,4 @@ jsonschema>=4.0.0
 lds-merkle-proof-2019>=0.1.0
 connexion==3.2.0
 setuptools>=75.8.0
+eth-utils>=2.0.0,<3.0.0
