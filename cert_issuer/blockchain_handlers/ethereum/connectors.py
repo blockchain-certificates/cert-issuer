@@ -4,6 +4,7 @@ import time
 import requests
 import web3
 from web3 import Web3, HTTPProvider
+from hexbytes import HexBytes
 
 try:
     from urllib2 import urlopen, HTTPError
@@ -167,7 +168,7 @@ class EthereumRPCProvider(object):
 
     def broadcast_tx(self, tx):
         logging.info('Broadcasting transaction with EthereumRPCProvider')
-        response = self.w3.eth.sendRawTransaction(tx).hex()
+        response = self.w3.eth.send_raw_transaction(HexBytes(tx)).hex()
         return response
 
     def get_balance(self, address):
@@ -184,7 +185,7 @@ class EthereumRPCProvider(object):
         Necessary for the transaction creation.
         """
         logging.info('Fetching nonce with EthereumRPCProvider')
-        response = self.w3.eth.getTransactionCount(address, "pending")
+        response = self.w3.eth.get_transaction_count(address, "pending")
         return response
 
 
