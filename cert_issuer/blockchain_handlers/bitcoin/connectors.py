@@ -214,6 +214,22 @@ class BitcoinServiceProviderConnector(ServiceProviderConnector):
                 try:
                     tx_id = method_provider(tx)
                     if tx_id:
+                        # We have to check to make sure that the tx_id at least kind of looks like a sha256 hash string.
+                        if len(tx_id) != 64:
+                            if final_tx_id:
+                                # If we already found a final_tx_id, then some other provider got it, but we should
+                                # log the bad provider.
+                                logging.error("Ignoring invalid tx_id %s from provider %s since valid" +
+                                    "tx_id %s already exists (another provider already sent the transaction).  " +
+                                    "The current provider might be broken!  Bad txid!",
+                                    tx_id, str(method_provider), final_tx_id)
+                                continue
+                            else:
+                                logging.error("Provider %s returned an invalid tx_id: %s.  " +
+                                    "Aborting further retries.  Bad txid!",
+                                    str(method_provider), tx_id)
+                                raise BroadcastError("Invalid tx_id received: " + tx_id)
+                        
                         logging.info('Broadcasting succeeded with method_provider=%s, txid=%s', str(method_provider),
                                      tx_id)
                         if final_tx_id and final_tx_id != tx_id:
@@ -242,7 +258,7 @@ class BitcoinServiceProviderConnector(ServiceProviderConnector):
 config = cert_issuer.config.CONFIG
 blockcypher_token = None if config is None else config.blockcypher_api_token
 
-PYCOIN_BTC_PROVIDERS = "blockchain.info chain.so"  # blockcypher.com
+PYCOIN_BTC_PROVIDERS = "chain.so"  # blockchain.info blockcypher.com
 PYCOIN_XTN_PROVIDERS = ""  # chain.so
 
 # initialize connectors
