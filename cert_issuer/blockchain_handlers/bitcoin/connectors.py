@@ -12,7 +12,6 @@ from bitcoin.core import CTransaction
 from cert_core import Chain
 from pycoin.encoding.hexbytes import b2h, b2h_rev, h2b, h2b_rev
 from pycoin.services import providers
-from pycoin.services.chain_so import ChainSoProvider
 from pycoin.services.insight import InsightProvider
 from pycoin.services.providers import service_provider_methods
 from pycoin.coins.bitcoin.Spendable import Spendable
@@ -242,8 +241,8 @@ class BitcoinServiceProviderConnector(ServiceProviderConnector):
 config = cert_issuer.config.CONFIG
 blockcypher_token = None if config is None else config.blockcypher_api_token
 
-PYCOIN_BTC_PROVIDERS = "blockchain.info chain.so"  # blockcypher.com
-PYCOIN_XTN_PROVIDERS = ""  # chain.so
+PYCOIN_BTC_PROVIDERS = "blockchain.info"  # blockcypher.com
+PYCOIN_XTN_PROVIDERS = ""
 
 # initialize connectors
 connectors = {}
@@ -253,14 +252,12 @@ provider_list = providers.providers_for_config_string(PYCOIN_BTC_PROVIDERS,
                                                       helpers.to_pycoin_chain(Chain.bitcoin_mainnet))
 provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/main', blockcypher_token))
 provider_list.append(InsightProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
-provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_mainnet)))
 provider_list.append(BlockstreamBroadcaster('https://blockstream.info/api'))
 connectors[Chain.bitcoin_mainnet] = provider_list
 
 # configure testnet providers
 xtn_provider_list = providers.providers_for_config_string(PYCOIN_XTN_PROVIDERS,
                                                           helpers.to_pycoin_chain(Chain.bitcoin_testnet))
-xtn_provider_list.append(ChainSoProvider(netcode=helpers.to_pycoin_chain(Chain.bitcoin_testnet)))
 xtn_provider_list.append(BlockcypherProvider('https://api.blockcypher.com/v1/btc/test3', blockcypher_token))
 xtn_provider_list.append(BlockstreamBroadcaster('https://blockstream.info/testnet/api'))
 connectors[Chain.bitcoin_testnet] = xtn_provider_list
